@@ -12,7 +12,7 @@
     "typecheck": "tsgo"
   },
   "dependencies": {
-    "@oxc-project/types": "^0.129.0",
+    "@oxc-project/types": "^0.139.0",
     "oxc-parser": "^0.134.0",
     "remark": "^15.0.1",
     "tinyglobby": "^0.2.16",
