@@ -18,12 +18,12 @@
   },
   "devDependencies": {
     "@types/node": "catalog:dev",
-    "knip": "6.31.0",
+    "knip": "6.32.0",
     "lefthook": "2.1.10",
     "oxfmt": "0.62.0",
     "oxlint": "1.77.0",
     "oxlint-tsgolint": "0.25.0",
-    "tsx": "4.23.8",
+    "tsx": "4.23.9",
     "typescript": "catalog:dev"
   },
   "engines": {
