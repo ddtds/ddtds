@@ -103,8 +103,8 @@ importers:
   packages/core:
     dependencies:
       '@oxc-project/types':
-        specifier: ^0.139.0
-        version: 0.139.0
+        specifier: ^0.148.0
+        version: 0.148.0
       oxc-parser:
         specifier: ^0.134.0
         version: 0.134.0
@@ -613,11 +613,11 @@ packages:
   '@oxc-project/types@0.134.0':
     resolution: {integrity: sha512-T0xuRRKrQFmocH8y+jGfpmSkGcheaJExY9lEihmR1Gm2aH+75B8CzgU2rABRQSzzDxLjZ15Sc0bRVLj5lVeNXQ==}
 
-  '@oxc-project/types@0.139.0':
-    resolution: {integrity: sha512-r9gHphtCs+1M7J0pw6Sn/hh/Wpa/iQrOOkrNAlVLF/gHq+/CJmHIWKKUUhdWjcD6CIa8idarspCsASiXCXvFUw==}
-
   '@oxc-project/types@0.147.0':
     resolution: {integrity: sha512-IJ3s6ltHLp45S0bh7phkX+gJO7A1Wuz2EaqpAhb8WjqDwbzMiWKHhyyT42tskaWjEYXtHtVCPpnBJVT9+dcRLg==}
+
+  '@oxc-project/types@0.148.0':
+    resolution: {integrity: sha512-Nm4s/jB+4FpFsPhWGEC4h7rzksesmtnMXomo6rCMcg/b8zLQuOziRgkCS1fxDCXOlJB/6Q8oABOZ/OP6RIPj9A==}
 
   '@oxc-resolver/binding-android-arm-eabi@11.24.2':
     resolution: {integrity: sha512-y09e0L0SRI2OA2tUIrjBgoV3eH5hvUKXNkJqXmNo5V2WxIjyC7I7aJfRLMEVpA8yi95f90gFDvO0VMgrDw+vwA==}
@@ -2342,9 +2342,9 @@ snapshots:
 
   '@oxc-project/types@0.134.0': {}
 
-  '@oxc-project/types@0.139.0': {}
-
   '@oxc-project/types@0.147.0': {}
+
+  '@oxc-project/types@0.148.0': {}
 
   '@oxc-resolver/binding-android-arm-eabi@11.24.2':
     optional: true
