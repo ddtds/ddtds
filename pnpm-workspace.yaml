@@ -6,6 +6,6 @@ catalogs:
   dev:
     "@types/node": ^24.12.2
     typescript: "npm:@typescript/native-preview@7.0.0-dev.20260510.1"
-    vitest: ^4.1.5
+    vitest: ^5.0.0
   prod: {}
   peer: {}
