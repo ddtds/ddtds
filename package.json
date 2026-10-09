@@ -23,7 +23,6 @@
     "oxfmt": "0.72.0",
     "oxlint": "1.87.0",
     "oxlint-tsgolint": "7.0.2003",
-    "tsx": "4.23.15",
     "typescript": "catalog:dev"
   },
   "engines": {

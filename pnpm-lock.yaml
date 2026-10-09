@@ -196,9 +196,6 @@ importers:
       oxlint-tsgolint:
         specifier: 7.0.2003
         version: 7.0.2003
-      tsx:
-        specifier: 4.23.15
-        version: 4.23.15
       typescript:
         specifier: catalog:dev
         version: '@typescript/native-preview@7.0.0-dev.20260707.2'
@@ -4007,6 +4004,7 @@ snapshots:
       esbuild: 0.28.0
     optionalDependencies:
       fsevents: 2.3.3
+    optional: true
 
   type-flag@4.2.0: {}
 
