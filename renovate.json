@@ -1,20 +1,40 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": ["config:best-practices"],
+  "schedule": ["before 9am on monday"],
   "packageRules": [
     {
-      "matchManagers": ["npm", "pnpm.catalog.dev"],
+      "matchManagers": ["npm"],
       "matchDepTypes": ["devDependencies"],
       "groupName": "dev deps (minor + patch)",
       "matchUpdateTypes": ["patch", "minor"],
-      "automerge": true
+      "automerge": false
+    },
+    {
+      "matchManagers": ["npm"],
+      "matchDepTypes": ["devDependencies"],
+      "groupName": "dev deps (major)",
+      "matchUpdateTypes": ["major"],
+      "automerge": false
     },
     {
       "matchManagers": ["github-actions"],
       "groupName": "github actions",
       "matchUpdateTypes": ["patch", "minor", "digest"],
-      "automerge": true,
+      "automerge": false,
+      "minimumReleaseAge": "14 days"
+    },
+    {
+      "matchManagers": ["github-actions"],
+      "groupName": "github actions (major)",
+      "matchUpdateTypes": ["major"],
+      "automerge": false,
       "minimumReleaseAge": "14 days"
     }
-  ]
+  ],
+  "lockFileMaintenance": {
+    "enabled": true,
+    "schedule": ["before 9am on monday"],
+    "automerge": false
+  }
 }
