@@ -18,11 +18,14 @@ function renderTest(kind: "test" | "test.skip", name: string, body: string): str
 const VITEST_IMPORT = "import { test, expect } from 'vitest';";
 const DDT_IMPORT = "import { DdtTestError, wrapDdtTest } from '@ddtds/vitest'";
 
+function wrapBody(inner: string): string {
+  return `await wrapDdtTest(async () => {\n${indent(inner)}\n});`;
+}
+
 export function generateBlockFile(mdPath: string, block: CodeBlock): string {
   const name = JSON.stringify(`${mdPath}:${block.line}`);
   const { imports, body } = block.splitImports();
   const header = [VITEST_IMPORT, DDT_IMPORT, ...imports].join("\n") + "\n";
-  const wrapBody = (inner: string) => `await wrapDdtTest(async () => {\n${indent(inner)}\n});`;
 
   if (block.shouldFail()) {
     const inner = `await expect(async () => {\n${indent(body)}\n}).rejects.toThrow();`;

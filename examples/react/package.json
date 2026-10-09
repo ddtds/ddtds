@@ -8,7 +8,7 @@
   },
   "devDependencies": {
     "@ddtds/vitest": "workspace:*",
-    "@testing-library/jest-dom": "^6.0.0",
+    "@testing-library/jest-dom": "^7.0.1",
     "@testing-library/react": "^16.0.0",
     "happy-dom": "*",
     "react": "^19.0.0",
