@@ -8,8 +8,8 @@ allowBuilds:
 
 catalogs:
   dev:
-    "@types/node": ^24.19.2
-    typescript: "npm:@typescript/native-preview@7.0.0-dev.20260707.2"
+    "@types/node": 24.19.1
+    typescript: ^7.0.2
     vitest: ^4.1.11
   prod: {}
   peer: {}

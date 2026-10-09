@@ -7,7 +7,7 @@
   "type": "module",
   "scripts": {
     "test": "vitest run",
-    "typecheck": "tsgo"
+    "typecheck": "tsc"
   },
   "dependencies": {
     "@ddtds/vitest": "workspace:*",

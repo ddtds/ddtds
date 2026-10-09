@@ -6,9 +6,7 @@ const config: KnipConfig = {
   },
   workspaces: {
     "examples/react": {
-      // Consumed only by __doctests__/*.test.tsx, generated at test-run
-      // time by @ddtds/vitest from components.mdx (gitignored), so knip
-      // can't see the imports statically.
+      // used in generated tests
       ignoreDependencies: ["react", "react-dom", "@testing-library/react"],
     },
   },
