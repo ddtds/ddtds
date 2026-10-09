@@ -26,6 +26,7 @@ jobs:
           node-version-file: "package.json"
 
       - run: pnpm install --frozen-lockfile
+      - run: pnpm run validate:renovate
       - run: pnpm run lint
       - run: pnpm run format:check
       - run: pnpm run typecheck
