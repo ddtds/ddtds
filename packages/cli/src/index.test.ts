@@ -112,19 +112,16 @@ test("ddt build writes modules that vitest runs without the plugin", async () =>
   `);
 
   const vitest = await createVitest("test", { root, config: false, watch: false, reporters: [{}] });
-  try {
-    await vitest.start();
-    const states = vitest.state
-      .getTestModules()
-      .flatMap((module) => Array.from(module.children.allTests()))
-      .map((testCase) => `${testCase.name} ${testCase.result().state}`);
-    expect(states).toMatchInlineSnapshot(`
-      [
-        "guide.md:1 passed",
-        "guide.md:5 passed",
-      ]
-    `);
-  } finally {
-    await vitest.close();
-  }
+  await using _ = { [Symbol.asyncDispose]: () => vitest.close() };
+  await vitest.start();
+  const states = vitest.state
+    .getTestModules()
+    .flatMap((module) => Array.from(module.children.allTests()))
+    .map((testCase) => `${testCase.name} ${testCase.result().state}`);
+  expect(states).toMatchInlineSnapshot(`
+    [
+      "guide.md:1 passed",
+      "guide.md:5 passed",
+    ]
+  `);
 });

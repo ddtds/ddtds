@@ -34,8 +34,8 @@ async function vitest(
     watch?: boolean;
     reporter?: Reporter;
   } = {},
-): Promise<Vitest> {
-  return createVitest(
+): Promise<Vitest & AsyncDisposable> {
+  const instance = await createVitest(
     "test",
     { root, config: false, watch, reporters: [reporter] },
     {
@@ -44,6 +44,7 @@ async function vitest(
       test,
     },
   );
+  return Object.assign(instance, { [Symbol.asyncDispose]: () => instance.close() });
 }
 
 function outcomes(modules: readonly TestModule[]): Outcomes {
@@ -63,21 +64,13 @@ export async function collect(
   plugin: DdtPluginOptions = {},
   test: ViteUserConfig["test"] = {},
 ): Promise<string[]> {
-  const instance = await vitest(root, { plugin, test });
-  try {
-    const specs = await instance.globTestSpecifications();
-    return specs.map((spec) => relative(root, spec.moduleId)).toSorted();
-  } finally {
-    await instance.close();
-  }
+  await using instance = await vitest(root, { plugin, test });
+  const specs = await instance.globTestSpecifications();
+  return specs.map((spec) => relative(root, spec.moduleId)).toSorted();
 }
 
 export async function run(root: string, plugin: DdtPluginOptions = {}): Promise<Outcomes> {
-  const instance = await vitest(root, { plugin });
-  try {
-    await instance.start();
-    return outcomes(instance.state.getTestModules());
-  } finally {
-    await instance.close();
-  }
+  await using instance = await vitest(root, { plugin });
+  await instance.start();
+  return outcomes(instance.state.getTestModules());
 }
