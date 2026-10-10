@@ -35,7 +35,7 @@ export type BlockDetails = {
 
 export type ParserDetails = { name: Parser; package: string; version: string };
 
-export type CompilePhase = "parse" | "parser-crash";
+export type CompilePhase = "parse" | "parser-crash" | "imports";
 
 export type CompileErrorDetails = {
   block: BlockDetails;

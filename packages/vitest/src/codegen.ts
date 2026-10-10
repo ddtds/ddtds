@@ -52,10 +52,10 @@ function failedToCompileFile(name: string): string {
   return `${VITEST_IMPORT}\n${renderTest("test", name, "")}`;
 }
 
-export function generateBlockFile(mdPath: string, block: CodeBlock, importsFrom?: string): string {
+export function generateBlockFile(mdPath: string, block: CodeBlock): string {
   const name = JSON.stringify(`${mdPath}:${block.line}`);
   try {
-    const file = blockFile(name, block, importsFrom);
+    const file = blockFile(name, block);
     return block.shouldFailToCompile() ? compiledFile(name) : file;
   } catch (error) {
     if (!(error instanceof DdtCompileError)) throw error;
@@ -66,8 +66,8 @@ export function generateBlockFile(mdPath: string, block: CodeBlock, importsFrom?
   }
 }
 
-function blockFile(name: string, block: CodeBlock, importsFrom?: string): string {
-  const { imports, body } = block.splitImports(importsFrom);
+function blockFile(name: string, block: CodeBlock): string {
+  const { imports, body } = block.splitImports();
   const header = [VITEST_IMPORT, DDT_IMPORT, ...imports].join("\n") + "\n";
 
   if (block.shouldFail()) {

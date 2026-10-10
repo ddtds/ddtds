@@ -86,7 +86,7 @@ test("collects tsrx doc tests", async () => {
   `);
 });
 
-test("resolves relative imports from the doc", async () => {
+test("fails docs that import relative paths", async () => {
   const root = mkdtempSync(join(import.meta.dirname, "../.fixture-"));
   onTestFinished(() => rmSync(root, { recursive: true, force: true }));
   mkdirSync(join(root, "docs"));
@@ -105,11 +105,17 @@ test("resolves relative imports from the doc", async () => {
   );
   try {
     await vitest.start();
-    const states = vitest.state
+    const errors = vitest.state
       .getTestModules()
       .flatMap((module) => Array.from(module.children.allTests()))
-      .map((testCase) => `${testCase.name} ${testCase.result().state}`);
-    expect(states).toEqual(["docs/guide.md:1 passed"]);
+      .flatMap((testCase) => testCase.result().errors ?? [])
+      .map((error) => error.message);
+    expect(errors).toMatchInlineSnapshot(`
+      [
+        "docs/guide.md:2:21 Docs can only import packages, not "./two.ts" (ts block at line 1)
+      help: Import from the package name, as users of the package would.",
+      ]
+    `);
   } finally {
     await vitest.close();
   }

@@ -55,7 +55,7 @@ describe("generateBlockFile: basic", () => {
 
 describe("generateBlockFile: imports", () => {
   test("hoists multiline imports", () => {
-    const code = "import {\n  foo,\n  bar,\n  baz,\n} from './utils'\nfoo()";
+    const code = "import {\n  foo,\n  bar,\n  baz,\n} from 'utils'\nfoo()";
     const out = generateBlockFile("t.md", block(code));
 
     assertTestRun(out);
@@ -66,7 +66,7 @@ describe("generateBlockFile: imports", () => {
         foo,
         bar,
         baz,
-      } from './utils'
+      } from 'utils'
       test("t.md:1", async () => {
         await wrapDdtTest(async () => {
           foo()

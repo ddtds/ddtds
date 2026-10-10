@@ -130,18 +130,23 @@ function compileError(b: CodeBlock): DdtCompileError {
 
 describe("CodeBlock.splitImports", () => {
   test("hoists static imports to file level", () => {
-    const b = block("import { foo } from './foo'\nexpect(foo).toBe(1)");
+    const b = block("import { foo } from 'foo'\nexpect(foo).toBe(1)");
     const { imports, body } = b.splitImports();
-    expect(imports).toEqual(["import { foo } from './foo'"]);
+    expect(imports).toEqual(["import { foo } from 'foo'"]);
     expect(body).not.toContain("import {");
   });
 
-  test("makes relative imports absolute from importsFrom", () => {
-    const b = block("import { a } from './a.ts'\nimport { b } from \"pkg\"\na + b");
-    expect(b.splitImports("/repo/docs").imports).toEqual([
-      'import { a } from "/repo/docs/a.ts"',
-      'import { b } from "pkg"',
-    ]);
+  test("rejects imports that are not packages", () => {
+    const b = block(
+      "import { a } from './a.ts'\nimport { b } from '/b.ts'\nimport { c } from 'pkg'",
+    );
+    expect(() => b.splitImports()).toThrowErrorMatchingInlineSnapshot(`
+      [DdtCompileError: t.md:2:19 Docs can only import packages, not "./a.ts" (ts block at line 1)
+      help: Import from the package name, as users of the package would.
+
+      t.md:3:19 Docs can only import packages, not "/b.ts" (ts block at line 1)
+      help: Import from the package name, as users of the package would.]
+    `);
   });
 
   test("strips export modifiers from runtime declarations", () => {
@@ -167,9 +172,9 @@ describe("CodeBlock.splitImports", () => {
   });
 
   test("parses tsrx with @tsrx/oxc", () => {
-    const b = block("import { x } from './x'\nfunction A() @{\n  <p>{x}</p>\n}", null, 1, "tsrx");
+    const b = block("import { x } from 'x'\nfunction A() @{\n  <p>{x}</p>\n}", null, 1, "tsrx");
     expect(b.splitImports()).toEqual({
-      imports: ["import { x } from './x'"],
+      imports: ["import { x } from 'x'"],
       body: "function A() @{\n  <p>{x}</p>\n}",
     });
   });
