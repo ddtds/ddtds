@@ -1,5 +1,5 @@
-import { readFileSync, writeFileSync, mkdirSync, rmSync } from "fs";
-import { join, relative, sep } from "path";
+import { readFileSync, writeFileSync, mkdirSync, rmSync } from "node:fs";
+import { join, relative, sep } from "node:path";
 import { globSync } from "tinyglobby";
 import { parseCodeFences, type CodeBlock } from "./blocks.ts";
 import { createLoggerFromEnv, type Logger } from "./logger.ts";

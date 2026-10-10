@@ -17,38 +17,38 @@ function parseAnnotation(meta: string): AnnotationResult {
 
 export class CodeBlock {
   readonly #code: string;
-  readonly lang: string;
+  public readonly lang: string;
   readonly #annotation: Annotation | null;
-  readonly line: number;
+  public readonly line: number;
 
-  constructor(code: string, lang: string, annotation: Annotation | null, line: number) {
+  public constructor(code: string, lang: string, annotation: Annotation | null, line: number) {
     this.#code = code;
     this.lang = lang;
     this.#annotation = annotation;
     this.line = line;
   }
 
-  get outputExtension(): "ts" | "tsx" {
+  public get outputExtension(): "ts" | "tsx" {
     return this.isJsx() ? "tsx" : "ts";
   }
 
-  get code(): string {
+  public get code(): string {
     return this.#code;
   }
 
-  isJsx(): boolean {
+  public isJsx(): boolean {
     return this.lang === "tsx" || this.lang === "jsx";
   }
 
-  isSkipped(): boolean {
+  public isSkipped(): boolean {
     return this.#annotation !== ANNOTATIONS.RUN && this.#annotation !== ANNOTATIONS.FAIL;
   }
 
-  shouldFail(): boolean {
+  public shouldFail(): boolean {
     return this.#annotation === ANNOTATIONS.FAIL;
   }
 
-  splitImports(): { imports: string[]; body: string } {
+  public splitImports(): { imports: string[]; body: string } {
     return splitImportsAndBlock(this);
   }
 }
@@ -67,7 +67,7 @@ export function parseCodeFences(source: string, log: Logger): CodeBlock[] {
       return;
     }
     if (result.tag === "none" || result.annotation === ANNOTATIONS.SKIP) return;
-    blocks.push(new CodeBlock(node.value, lang, result.annotation, node.position!.start.line));
+    blocks.push(new CodeBlock(node.value, lang, result.annotation, node.position?.start.line ?? 0));
   });
 
   return blocks;

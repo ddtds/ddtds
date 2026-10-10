@@ -1,6 +1,7 @@
 import { parseSync, type ParserOptions } from "oxc-parser";
+// oxlint-disable-next-line import/consistent-type-specifier-style -- @oxc-project/types ships no runtime JS; inline `type` specifiers break Vite's dev resolution for it
 import type { ExportDefaultDeclarationKind, Program } from "@oxc-project/types";
-import type { CodeBlock } from "./blocks.ts";
+import { type CodeBlock } from "./blocks.ts";
 
 type ParsedBodyNode = Program["body"][number];
 type SyntheticDefaultNode = {
@@ -54,7 +55,6 @@ function sanitizeStatement(node: ParsedBodyNode): BodyNode[] {
 
   if (node.type === "ExportDefaultDeclaration") {
     const decl = node.declaration;
-    if (!decl) return [];
 
     if (decl.type === "FunctionDeclaration" || decl.type === "ClassDeclaration") {
       return [decl];
@@ -75,6 +75,6 @@ function printBodyNode(source: string, node: BodyNode): string {
 }
 
 type Range = { start: number; end: number };
-function sliceSource(source: string, { start, end }: Range) {
+function sliceSource(source: string, { start, end }: Range): string {
   return source.slice(start, end).trimEnd();
 }

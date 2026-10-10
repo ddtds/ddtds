@@ -13,13 +13,50 @@
   "plugins": ["eslint", "typescript", "unicorn", "vitest", "import", "node", "promise", "oxc"],
   "rules": {
     "no-console": "error",
-    "no-shadow": "off"
+    "no-shadow": "off",
+    "typescript/no-non-null-assertion": "warn",
+    "typescript/explicit-member-accessibility": "warn",
+    "typescript/explicit-function-return-type": "warn",
+    "node/no-sync": "warn",
+    "node/no-process-env": "warn",
+    "import/consistent-type-specifier-style": ["warn", "prefer-inline"],
+    "unicorn/prefer-node-protocol": "warn",
+    "typescript/no-floating-promises": "warn",
+    "typescript/no-misused-promises": "warn",
+    "typescript/no-unnecessary-condition": "warn",
+    "typescript/switch-exhaustiveness-check": "warn",
+    "typescript/restrict-template-expressions": "warn",
+    "typescript/no-unnecessary-type-assertion": "warn",
+    "typescript/prefer-nullish-coalescing": "warn",
+    "typescript/await-thenable": "warn",
+    "no-duplicate-imports": "warn",
+    "unicorn/prefer-array-some": "warn"
   },
   "overrides": [
     {
       "files": ["packages/core/src/logger.ts"],
       "rules": {
-        "no-console": "off"
+        "no-console": "off",
+        "node/no-process-env": "off"
+      }
+    },
+    {
+      "files": ["packages/vitest/src/index.ts"],
+      "rules": {
+        "node/no-process-env": "off"
+      }
+    },
+    {
+      "files": ["packages/core/src/index.ts", "packages/core/src/parse.ts"],
+      "rules": {
+        "node/no-sync": "off"
+      }
+    },
+    {
+      "files": ["**/*.test.ts"],
+      "rules": {
+        "typescript/no-non-null-assertion": "off",
+        "typescript/explicit-function-return-type": "off"
       }
     }
   ],
