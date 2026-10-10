@@ -52,7 +52,7 @@ function formatParseError(block: CodeBlock, error: ParseError): string {
   return `${error.message} (line ${line})`;
 }
 
-/** The tsrx parser throws instead of reporting errors for some broken input. */
+// tsrx parser throws sometimes
 function parseTsrx(filename: string, code: string): ReturnType<typeof TsrxParser.parseSync> {
   const parser = tsrxParser();
   try {
@@ -67,7 +67,6 @@ const requireTsrxParser: (id: "@tsrx/oxc/parser") => typeof TsrxParser = createR
 );
 let cachedTsrxParser: typeof TsrxParser | undefined;
 
-/** `@tsrx/oxc` is an optional peer dependency, loaded only when a tsrx block shows up. */
 function tsrxParser(): typeof TsrxParser {
   try {
     cachedTsrxParser ??= requireTsrxParser("@tsrx/oxc/parser");
