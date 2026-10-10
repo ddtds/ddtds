@@ -3,7 +3,14 @@ import { parseSync } from "oxc-parser";
 import type * as TsrxParser from "@tsrx/oxc/parser";
 import type { ExportDefaultDeclarationKind, Program } from "@oxc-project/types";
 import type { CodeBlock } from "./blocks.ts";
-import { LANGS } from "./constants.ts";
+import { LANGS, type Parser } from "./constants.ts";
+import {
+  DdtCompileError,
+  type CompileDiagnostic,
+  type CompilePhase,
+  type ParserDetails,
+  type ParserError,
+} from "./compile-error.ts";
 
 type ParsedBodyNode = Program["body"][number];
 type SyntheticDefaultNode = {
@@ -29,42 +36,79 @@ export function splitImportsAndBlock(block: CodeBlock): PreparedBlock {
 }
 
 type ParsedBlock = { program: Program; staticImports: Range[] };
-type ParseError = { message: string; labels: Range[] };
 
 function parse(block: CodeBlock): ParsedBlock {
-  const lang = LANGS[block.lang].parser;
-  const filename = `block.${lang}`;
-  const { program, module, errors } =
-    lang === "tsrx"
-      ? parseTsrx(filename, block.code)
-      : parseSync(filename, block.code, { lang, sourceType: "module" });
-
+  const parser = LANGS[block.lang].parser;
+  const { program, module, errors } = runParser(block, parser);
   if (errors.length > 0 || !program || !module) {
-    throw new SyntaxError(errors.map((error) => formatParseError(block, error)).join("\n"));
+    throw compileError(
+      block,
+      parser,
+      "parse",
+      errors.map((error) => toDiagnostic(block, error)),
+    );
   }
   return { program, staticImports: module.staticImports };
 }
 
-function formatParseError(block: CodeBlock, error: ParseError): string {
-  const label = error.labels[0];
-  if (!label) return error.message;
-  const line = block.line + block.code.slice(0, label.start).split("\n").length;
-  return `${error.message} (line ${line})`;
-}
+type ParseResult = ReturnType<typeof parseSync> | ReturnType<typeof TsrxParser.parseSync>;
 
-// tsrx parser throws sometimes
-function parseTsrx(filename: string, code: string): ReturnType<typeof TsrxParser.parseSync> {
-  const parser = tsrxParser();
+function runParser(block: CodeBlock, parser: Parser): ParseResult {
+  const filename = `block.${parser}`;
+  const options = { sourceType: "module", showSemanticErrors: true } as const;
+  if (parser !== "tsrx") return parseSync(filename, block.code, { ...options, lang: parser });
+
+  const tsrx = tsrxParser();
   try {
-    return parser.parseSync(filename, code, { lang: "tsrx", sourceType: "module" });
+    return tsrx.parseSync(filename, block.code, { ...options, lang: parser });
   } catch (error) {
-    throw new SyntaxError(error instanceof Error ? error.message : String(error), { cause: error });
+    // tsrx parser throws sometimes
+    const message = error instanceof Error ? error.message : String(error);
+    throw compileError(block, parser, "parser-crash", [{ message, labels: [] }], {
+      cause: error,
+    });
   }
 }
 
-const requireTsrxParser: (id: "@tsrx/oxc/parser") => typeof TsrxParser = createRequire(
-  import.meta.url,
-);
+function compileError(
+  block: CodeBlock,
+  parser: Parser,
+  phase: CompilePhase,
+  diagnostics: CompileDiagnostic[],
+  options?: ErrorOptions,
+): DdtCompileError {
+  return new DdtCompileError(
+    { block: block.details, parser: parserDetails(parser), phase, diagnostics },
+    options,
+  );
+}
+
+const PARSER_PACKAGES = {
+  ts: "oxc-parser",
+  js: "oxc-parser",
+  tsx: "oxc-parser",
+  jsx: "oxc-parser",
+  tsrx: "@tsrx/oxc",
+} as const satisfies Record<Parser, string>;
+
+function parserDetails(name: Parser): ParserDetails {
+  const pkg = PARSER_PACKAGES[name];
+  return { name, package: pkg, version: requirePackageJson(`${pkg}/package.json`).version };
+}
+
+function toDiagnostic(block: CodeBlock, error: ParserError): CompileDiagnostic {
+  const labels = error.labels.map((label) => ({
+    ...(label.message ? { message: label.message } : {}),
+    start: block.positionAt(label.start),
+    end: block.positionAt(label.end),
+  }));
+  const help = error.helpMessage ? { help: error.helpMessage } : {};
+  return { message: error.message, ...help, labels, source: error };
+}
+
+const nodeRequire = createRequire(import.meta.url);
+const requireTsrxParser: (id: "@tsrx/oxc/parser") => typeof TsrxParser = nodeRequire;
+const requirePackageJson: (id: string) => { version: string } = nodeRequire;
 let cachedTsrxParser: typeof TsrxParser | undefined;
 
 function tsrxParser(): typeof TsrxParser {

@@ -31,6 +31,7 @@ export const ANNOTATIONS = {
   SKIP: "skip",
   RUN: "run",
   FAIL: "fail",
+  COMPILE_FAIL: "compile_fail",
 } as const;
 
 export type Annotation = (typeof ANNOTATIONS)[keyof typeof ANNOTATIONS];

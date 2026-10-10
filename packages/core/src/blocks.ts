@@ -9,6 +9,7 @@ import {
   isAnnotation,
   isLang,
 } from "./constants.ts";
+import type { BlockDetails, Position, SourceRange } from "./compile-error.ts";
 import { splitImportsAndBlock } from "./parse.ts";
 import type { Logger } from "./logger.ts";
 
@@ -23,17 +24,53 @@ function parseAnnotation(meta: string): AnnotationResult {
   return { tag: "unknown", raw: meta };
 }
 
+export type CodeBlockInit = {
+  code: string;
+  lang: Lang;
+  annotation: Annotation | null;
+  path: string;
+  range: SourceRange;
+  indent: number;
+};
+
 export class CodeBlock {
   readonly #code: string;
   public readonly lang: Lang;
   readonly #annotation: Annotation | null;
-  public readonly line: number;
+  readonly #path: string;
+  readonly #range: SourceRange;
+  readonly #indent: number;
 
-  public constructor(code: string, lang: Lang, annotation: Annotation | null, line: number) {
+  public constructor({ code, lang, annotation, path, range, indent }: CodeBlockInit) {
     this.#code = code;
     this.lang = lang;
     this.#annotation = annotation;
-    this.line = line;
+    this.#path = path;
+    this.#range = range;
+    this.#indent = indent;
+  }
+
+  public get line(): number {
+    return this.#range.start.line;
+  }
+
+  public get details(): BlockDetails {
+    return {
+      file: this.#path,
+      lang: this.lang,
+      annotation: this.#annotation,
+      range: this.#range,
+      indent: this.#indent,
+      contents: this.#code,
+    };
+  }
+
+  /** maps code block offset to file position */
+  public positionAt(offset: number): Position {
+    const before = this.#code.slice(0, offset);
+    const line = this.line + before.split("\n").length;
+    const column = offset - this.#code.lastIndexOf("\n", offset - 1) + this.#indent;
+    return { line, column };
   }
 
   public get outputExtension(): OutputExtension {
@@ -45,11 +82,15 @@ export class CodeBlock {
   }
 
   public isSkipped(): boolean {
-    return this.#annotation !== ANNOTATIONS.RUN && this.#annotation !== ANNOTATIONS.FAIL;
+    return this.#annotation === null || this.#annotation === ANNOTATIONS.SKIP;
   }
 
   public shouldFail(): boolean {
     return this.#annotation === ANNOTATIONS.FAIL;
+  }
+
+  public shouldFailToCompile(): boolean {
+    return this.#annotation === ANNOTATIONS.COMPILE_FAIL;
   }
 
   public splitImports(): { imports: string[]; body: string } {
@@ -57,7 +98,7 @@ export class CodeBlock {
   }
 }
 
-export function parseCodeFences(source: string, log: Logger): CodeBlock[] {
+export function parseCodeFences(source: string, path: string, log: Logger): CodeBlock[] {
   const tree = remark().parse(source);
   const blocks: CodeBlock[] = [];
 
@@ -75,7 +116,20 @@ export function parseCodeFences(source: string, log: Logger): CodeBlock[] {
       log.error(`code block missing position info, skipping`);
       return;
     }
-    blocks.push(new CodeBlock(node.value, lang, result.annotation, node.position.start.line));
+    const { start, end } = node.position;
+    blocks.push(
+      new CodeBlock({
+        code: node.value,
+        lang,
+        annotation: result.annotation,
+        path,
+        range: {
+          start: { line: start.line, column: start.column },
+          end: { line: end.line, column: end.column },
+        },
+        indent: start.column - 1,
+      }),
+    );
   });
 
   return blocks;

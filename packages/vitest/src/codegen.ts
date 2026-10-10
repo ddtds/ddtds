@@ -1,4 +1,4 @@
-import type { CodeBlock } from "@ddtds/core";
+import { DdtCompileError, type CodeBlock } from "@ddtds/core";
 
 function indent(code: string): string {
   return code
@@ -22,18 +22,40 @@ function wrapBody(inner: string): string {
   return `await wrapDdtTest(async () => {\n${indent(inner)}\n});`;
 }
 
-function compileErrorFile(name: string, error: SyntaxError): string {
-  const body = `throw new SyntaxError(${JSON.stringify(error.message)});`;
+function compileErrorFile(name: string, error: DdtCompileError): string {
+  const imports = "import { DdtCompileError, wrapDdtTest } from '@ddtds/vitest'";
+  const cause =
+    error.cause === undefined ? "" : `, { cause: ${JSON.stringify(serializeCause(error.cause))} }`;
+  const body = `throw new DdtCompileError(${JSON.stringify(error.details)}${cause});`;
+  return `${VITEST_IMPORT}\n${imports}\n${renderTest("test", name, wrapBody(body))}`;
+}
+
+function serializeCause(cause: unknown): unknown {
+  if (!(cause instanceof Error)) return cause;
+  const code = "code" in cause ? { code: cause.code } : {};
+  return { name: cause.name, message: cause.message, ...code };
+}
+
+function compiledFile(name: string): string {
+  const body = 'throw new Error("expected a compile_fail block to fail to compile");';
   return `${VITEST_IMPORT}\n${DDT_IMPORT}\n${renderTest("test", name, wrapBody(body))}`;
+}
+
+function failedToCompileFile(name: string): string {
+  return `${VITEST_IMPORT}\n${renderTest("test", name, "")}`;
 }
 
 export function generateBlockFile(mdPath: string, block: CodeBlock): string {
   const name = JSON.stringify(`${mdPath}:${block.line}`);
   try {
-    return blockFile(name, block);
+    const file = blockFile(name, block);
+    return block.shouldFailToCompile() ? compiledFile(name) : file;
   } catch (error) {
-    if (error instanceof SyntaxError) return compileErrorFile(name, error);
-    throw error;
+    if (!(error instanceof DdtCompileError)) throw error;
+    if (block.shouldFailToCompile() && error.details.phase === "parse") {
+      return failedToCompileFile(name);
+    }
+    return compileErrorFile(name, error);
   }
 }
 

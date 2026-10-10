@@ -8,7 +8,14 @@ function block(
   line = 1,
   lang: Lang = "ts",
 ): CodeBlock {
-  return new CodeBlock(code, lang, annotation, line);
+  return new CodeBlock({
+    code,
+    lang,
+    annotation,
+    path: "t.md",
+    range: { start: { line, column: 1 }, end: { line, column: 1 } },
+    indent: 0,
+  });
 }
 
 function assertTestRun(x: string) {
@@ -96,13 +103,37 @@ describe("generateBlockFile: annotations", () => {
 
   test("parse errors fail even with the fail annotation", () => {
     const out = generateBlockFile("t.md", block("const = 1;", ANNOTATIONS.FAIL));
-    expect(out).not.toContain("rejects");
+    expect(out.replace(/DdtCompileError\(\{.*\}\);/, "DdtCompileError(details);"))
+      .toMatchInlineSnapshot(`
+      "import { test, expect } from 'vitest';
+      import { DdtCompileError, wrapDdtTest } from '@ddtds/vitest'
+      test("t.md:1", async () => {
+        await wrapDdtTest(async () => {
+          throw new DdtCompileError(details);
+        });
+      });"
+    `);
+  });
+
+  test("compile_fail passes when the block does not parse", () => {
+    const out = generateBlockFile("t.md", block("const = 1;", ANNOTATIONS.COMPILE_FAIL));
+    expect(out).not.toContain("throw");
+    expect(out).toMatchInlineSnapshot(`
+      "import { test, expect } from 'vitest';
+      test("t.md:1", async () => {
+      });"
+    `);
+  });
+
+  test("compile_fail fails when the block parses", () => {
+    const out = generateBlockFile("t.md", block("const ok = 1;", ANNOTATIONS.COMPILE_FAIL));
+    expect(out).toContain("expected a compile_fail block");
     expect(out).toMatchInlineSnapshot(`
       "import { test, expect } from 'vitest';
       import { DdtTestError, wrapDdtTest } from '@ddtds/vitest'
       test("t.md:1", async () => {
         await wrapDdtTest(async () => {
-          throw new SyntaxError("Unexpected token (line 2)");
+          throw new Error("expected a compile_fail block to fail to compile");
         });
       });"
     `);

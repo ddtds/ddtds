@@ -11,7 +11,13 @@ import { generateBlockFile } from "./codegen.ts";
 import { createLogger, parseLogLevel, type LogLevel } from "@ddtds/core/log";
 
 export type { CodeBlock, DocsOptions, GenerateDeps, GenerateOptions } from "@ddtds/core";
-export { wrapDdtTest, defaultDocsInclude, defaultDocsExclude, defaultOutputDir } from "@ddtds/core";
+export {
+  DdtCompileError,
+  wrapDdtTest,
+  defaultDocsInclude,
+  defaultDocsExclude,
+  defaultOutputDir,
+} from "@ddtds/core";
 export type { LogLevel } from "@ddtds/core/log";
 
 export type DdtPluginOptions = DocsOptions & {

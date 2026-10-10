@@ -5,6 +5,7 @@ import { describe, test, expect, vi, onTestFinished } from "vitest";
 import {
   ANNOTATIONS,
   CodeBlock,
+  DdtCompileError,
   parseCodeFences,
   defaultDocsExclude,
   defaultDocsInclude,
@@ -14,6 +15,7 @@ import {
   type Annotation,
   type Lang,
 } from "./index";
+import { isLang } from "./constants";
 import { createLogger } from "./logger";
 
 const silent = createLogger("silent");
@@ -25,8 +27,13 @@ describe("parseBlocks", () => {
     ["tsx", ANNOTATIONS.RUN],
     ["jsx", ANNOTATIONS.RUN],
     ["ts", ANNOTATIONS.FAIL],
+    ["ts", ANNOTATIONS.COMPILE_FAIL],
   ])("collects %s blocks annotated %s", (lang, annotation) => {
-    const blocks = parseCodeFences(`\`\`\`${lang} ${annotation}\nconst x = 1\n\`\`\``, silent);
+    const blocks = parseCodeFences(
+      `\`\`\`${lang} ${annotation}\nconst x = 1\n\`\`\``,
+      "t.md",
+      silent,
+    );
     expect(blocks).toHaveLength(1);
     expect(blocks[0]!).toMatchObject({ lang });
   });
@@ -41,22 +48,24 @@ describe("parseBlocks", () => {
     const src = meta
       ? `\`\`\`${lang} ${meta}\nconst x = 1\n\`\`\``
       : `\`\`\`${lang}\nconst x = 1\n\`\`\``;
-    expect(parseCodeFences(src, silent)).toHaveLength(0);
+    expect(parseCodeFences(src, "t.md", silent)).toHaveLength(0);
   });
 });
 
-describe("CodeBlock.isSkipped / shouldFail", () => {
+describe("CodeBlock.isSkipped / shouldFail / shouldFailToCompile", () => {
   test.each([
-    [null, true, false],
-    [ANNOTATIONS.SKIP, true, false],
-    [ANNOTATIONS.RUN, false, false],
-    [ANNOTATIONS.FAIL, false, true],
+    [null, true, false, false],
+    [ANNOTATIONS.SKIP, true, false, false],
+    [ANNOTATIONS.RUN, false, false, false],
+    [ANNOTATIONS.FAIL, false, true, false],
+    [ANNOTATIONS.COMPILE_FAIL, false, false, true],
   ] as const)(
-    "annotation=%j → isSkipped=%s shouldFail=%s",
-    (annotation, expectedSkipped, expectedFail) => {
-      const b = new CodeBlock("x", "ts", annotation, 1);
+    "annotation=%j → isSkipped=%s shouldFail=%s shouldFailToCompile=%s",
+    (annotation, expectedSkipped, expectedFail, expectedCompileFail) => {
+      const b = block("x", annotation);
       expect(b.isSkipped()).toBe(expectedSkipped);
       expect(b.shouldFail()).toBe(expectedFail);
+      expect(b.shouldFailToCompile()).toBe(expectedCompileFail);
     },
   );
 });
@@ -71,7 +80,7 @@ describe("CodeBlock.outputExtension", () => {
     ["jsx", "tsx"],
     ["tsrx", "tsrx"],
   ] as const)("lang=%j → outputExtension=%j", (lang, ext) => {
-    expect(new CodeBlock("x", lang, ANNOTATIONS.RUN, 1).outputExtension).toBe(ext);
+    expect(block("x", ANNOTATIONS.RUN, 1, lang).outputExtension).toBe(ext);
   });
 });
 
@@ -89,7 +98,7 @@ describe("parseBlocks: line numbers", () => {
       "```",
     ].join("\n");
 
-    const blocks = parseCodeFences(source, silent);
+    const blocks = parseCodeFences(source, "t.md", silent);
     expect(blocks).toHaveLength(2);
     expect(blocks[0]!.line).toBe(1);
     expect(blocks[1]!.line).toBe(7);
@@ -102,7 +111,24 @@ function block(
   line = 1,
   lang: Lang = "ts",
 ): CodeBlock {
-  return new CodeBlock(code, lang, annotation, line);
+  return new CodeBlock({
+    code,
+    lang,
+    annotation,
+    path: "t.md",
+    range: { start: { line, column: 1 }, end: { line, column: 1 } },
+    indent: 0,
+  });
+}
+
+function compileError(b: CodeBlock): DdtCompileError {
+  try {
+    b.splitImports();
+  } catch (error) {
+    if (error instanceof DdtCompileError) return error;
+    throw error;
+  }
+  throw new Error("expected a DdtCompileError");
 }
 
 describe("CodeBlock.splitImports", () => {
@@ -143,15 +169,119 @@ describe("CodeBlock.splitImports", () => {
     });
   });
 
-  test("throws a SyntaxError with the markdown line on parse errors", () => {
-    const b = block("import { foo } from './foo'\nconst = 1;", null, 10);
-    expect(() => b.splitImports()).toThrowErrorMatchingInlineSnapshot(
-      `[SyntaxError: Unexpected token (line 12)]`,
+  test("renders a compile error for every language", () => {
+    const broken: Record<Lang, string> = {
+      ts: "const x: = 1;",
+      typescript: "const x: = 1;",
+      js: "const = 1;",
+      javascript: "const = 1;",
+      tsx: "const a = <div>;",
+      jsx: "const a = <div>;",
+      tsrx: "function Greeting() @{\n  <p>\n}",
+    };
+    const messages: Record<string, string> = {};
+    for (const [lang, code] of Object.entries(broken)) {
+      if (isLang(lang)) messages[lang] = compileError(block(code, null, 10, lang)).message;
+    }
+    expect(messages).toMatchInlineSnapshot(`
+      {
+        "javascript": "t.md:11:7 Unexpected token (javascript block at line 10)",
+        "js": "t.md:11:7 Unexpected token (js block at line 10)",
+        "jsx": "t.md:11:16 Unexpected token (jsx block at line 10)",
+        "ts": "t.md:11:10 Unexpected token (ts block at line 10)",
+        "tsrx": "t.md:12:3 unterminated JSX element starting at byte 25 (tsrx block at line 10)",
+        "tsx": "t.md:11:16 Unexpected token (tsx block at line 10)",
+        "typescript": "t.md:11:10 Unexpected token (typescript block at line 10)",
+      }
+    `);
+  });
+
+  test("adds the fence indent to columns", () => {
+    const source = "- step one:\n\n  ```ts run\n  const = 1;\n  ```\n";
+    const [b] = parseCodeFences(source, "t.md", silent);
+    expect(b && compileError(b).message).toMatchInlineSnapshot(
+      `"t.md:4:9 Unexpected token (ts block at line 3)"`,
     );
   });
 
-  test.each(["<p>", "function A() @{"])("throws a SyntaxError on broken tsrx: %s", (code) => {
-    expect(() => block(code, null, 1, "tsrx").splitImports()).toThrow(SyntaxError);
+  test("keeps every label and the raw parser error", () => {
+    const source = "# Guide\n\n```ts run\nlet x = 1;\nlet x = 2;\n```\n";
+    const [b] = parseCodeFences(source, "t.md", silent);
+    const error = b && compileError(b);
+    expect(error?.message).toMatchInlineSnapshot(
+      `"t.md:4:5 Identifier \`x\` has already been declared (ts block at line 3)"`,
+    );
+    expect(error?.details).toMatchInlineSnapshot(
+      {
+        parser: { version: expect.any(String) },
+        diagnostics: [{ source: expect.any(Object) }],
+      },
+      `
+      {
+        "block": {
+          "annotation": "run",
+          "contents": "let x = 1;
+      let x = 2;",
+          "file": "t.md",
+          "indent": 0,
+          "lang": "ts",
+          "range": {
+            "end": {
+              "column": 4,
+              "line": 6,
+            },
+            "start": {
+              "column": 1,
+              "line": 3,
+            },
+          },
+        },
+        "diagnostics": [
+          {
+            "labels": [
+              {
+                "end": {
+                  "column": 6,
+                  "line": 4,
+                },
+                "message": "\`x\` has already been declared here",
+                "start": {
+                  "column": 5,
+                  "line": 4,
+                },
+              },
+              {
+                "end": {
+                  "column": 6,
+                  "line": 5,
+                },
+                "message": "It can not be redeclared here",
+                "start": {
+                  "column": 5,
+                  "line": 5,
+                },
+              },
+            ],
+            "message": "Identifier \`x\` has already been declared",
+            "source": Any<Object>,
+          },
+        ],
+        "parser": {
+          "name": "ts",
+          "package": "oxc-parser",
+          "version": Any<String>,
+        },
+        "phase": "parse",
+      }
+    `,
+    );
+  });
+
+  test.each([
+    ["<p>", "parse"],
+    ["function A() @{", "parser-crash"],
+  ])("reports broken tsrx %j as %s", (code, phase) => {
+    expect(compileError(block(code, null, 1, "tsrx")).details.phase).toBe(phase);
   });
 });
 

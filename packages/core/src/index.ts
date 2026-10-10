@@ -17,6 +17,13 @@ export {
   defaultOutputDir,
 } from "./constants.ts";
 export { wrapDdtTest } from "./error.ts";
+export {
+  DdtCompileError,
+  type CompileDiagnostic,
+  type CompileErrorDetails,
+  type CompileLabel,
+  type Position,
+} from "./compile-error.ts";
 
 export type DocsOptions = {
   /** Globs of docs to test, relative to the root. Defaults to `defaultDocsInclude` when unset or empty. */
@@ -88,12 +95,11 @@ export function generate(
   let total = 0;
 
   for (const mdPath of docs) {
-    const source = readFile(mdPath);
-    const blocks = parseCodeFences(source, logger);
+    const relPath = relative(root, mdPath);
+    const blocks = parseCodeFences(readFile(mdPath), relPath, logger);
     if (blocks.length === 0) continue;
     total += blocks.length;
 
-    const relPath = relative(root, mdPath);
     const baseName = relPath.replaceAll(".", "_").replaceAll(sep, "_");
     logger.debug(`${relPath}: ${blocks.length} test${blocks.length === 1 ? "" : "s"}`);
 
