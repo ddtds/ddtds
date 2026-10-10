@@ -67,7 +67,11 @@ export function parseCodeFences(source: string, log: Logger): CodeBlock[] {
       return;
     }
     if (result.tag === "none" || result.annotation === ANNOTATIONS.SKIP) return;
-    blocks.push(new CodeBlock(node.value, lang, result.annotation, node.position?.start.line ?? 0));
+    if (!node.position) {
+      log.error(`code block missing position info, skipping`);
+      return;
+    }
+    blocks.push(new CodeBlock(node.value, lang, result.annotation, node.position.start.line));
   });
 
   return blocks;
