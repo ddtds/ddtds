@@ -15,6 +15,7 @@
     "test:examples": "pnpm --filter '@ddtds/example-*' test",
     "test:update-snapshots": "pnpm -r test -u",
     "knip": "knip",
+    "publint": "pnpm --filter './packages/*' exec publint",
     "sherif": "sherif",
     "validate:renovate": "renovate-config-validator renovate.json"
   },
@@ -25,6 +26,7 @@
     "oxfmt": "0.72.0",
     "oxlint": "1.87.0",
     "oxlint-tsgolint": "7.0.2003",
+    "publint": "0.3.25",
     "renovate": "44.138.0",
     "sherif": "1.13.0",
     "typescript": "catalog:dev"
