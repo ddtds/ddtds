@@ -2,8 +2,5 @@
   "name": "@ddtds/example-monorepo",
   "version": "0.0.0",
   "private": true,
-  "type": "module",
-  "scripts": {
-    "test": "pnpm --filter \"./packages/*\" test"
-  }
+  "type": "module"
 }
