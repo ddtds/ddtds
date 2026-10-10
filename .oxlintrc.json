@@ -13,6 +13,11 @@
   "plugins": ["eslint", "typescript", "unicorn", "vitest", "import", "node", "promise", "oxc"],
   "rules": {
     "no-console": "error",
+    "no-restricted-properties": [
+      "error",
+      { "object": "process", "property": "stdout", "message": "Use the logger." },
+      { "object": "process", "property": "stderr", "message": "Use the logger." }
+    ],
     "no-shadow": "off",
     "typescript/no-non-null-assertion": "warn",
     "typescript/explicit-member-accessibility": "warn",

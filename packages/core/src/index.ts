@@ -7,7 +7,6 @@ import { createLoggerFromEnv, type Logger } from "./logger.ts";
 
 export { CodeBlock, parseCodeFences } from "./blocks.ts";
 export {
-  SUPPORTED_LANGS,
   OUTPUT_EXTENSIONS,
   type Lang,
   ANNOTATIONS,

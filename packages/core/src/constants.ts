@@ -21,10 +21,8 @@ export const LANGS = {
 
 export type Lang = keyof typeof LANGS;
 
-export const SUPPORTED_LANGS: ReadonlySet<string> = new Set(Object.keys(LANGS));
-
 export function isLang(s: string): s is Lang {
-  return SUPPORTED_LANGS.has(s);
+  return Object.hasOwn(LANGS, s);
 }
 
 export const ANNOTATIONS = {
