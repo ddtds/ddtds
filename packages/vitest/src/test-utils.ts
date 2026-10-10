@@ -44,6 +44,7 @@ async function vitest(
       test,
     },
   );
+  // vitest v4 does not make vitest a Disposable
   return Object.assign(instance, { [Symbol.asyncDispose]: () => instance.close() });
 }
 

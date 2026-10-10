@@ -2,7 +2,7 @@ import { join, relative } from "node:path";
 import { defaultInclude, type Plugin } from "vitest/config";
 import {
   defaultOutDir,
-  indexDocs,
+  DocIndex,
   readDocs,
   resolveDocsOptions,
   writeFiles,
@@ -43,12 +43,16 @@ export function ddtPlugin({ logLevel, ...docs }: DdtPluginOptions = {}): Plugin 
         root: config.test?.root ?? config.root ?? process.cwd(),
       });
       const moduleDir = join(root, defaultOutDir);
-      const index = indexDocs(readDocs(root, include, exclude), { root, moduleDir, logger });
-      for (const { id, block } of index.fences.values()) {
+      const index = DocIndex.fromSources(readDocs(root, include, exclude), {
+        root,
+        moduleDir,
+        logger,
+      });
+      for (const { id, block } of index.fences()) {
         logger.debug(`${block.details.file}:${block.line} -> ${relative(root, id)}`);
       }
       writeFiles(moduleDir, moduleFiles(index, root));
-      logger.info(`Total: ${index.fences.size} tests`);
+      logger.info(`Total: ${index.size} tests`);
 
       const doctests = `${moduleDir}/**/*.test.ts`;
       return {

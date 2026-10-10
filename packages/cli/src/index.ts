@@ -3,12 +3,11 @@ import { cli, command, type Flags } from "cleye";
 import {
   defaultDocsExclude,
   defaultOutDir,
-  indexDocs,
   readDocs,
   resolveDocsOptions,
   writeFiles,
   type Annotation,
-  type DocIndex,
+  DocIndex,
   type Lang,
 } from "@ddtds/core";
 import { createLoggerFromEnv } from "@ddtds/core/log";
@@ -33,7 +32,11 @@ function load(include: string[], exclude?: string[], out = defaultOutDir): Loade
   const { root, ...docs } = resolveDocsOptions({ root: process.cwd(), include, exclude });
   const outDir = resolve(root, out);
   const sources = readDocs(root, docs.include, docs.exclude);
-  return { root, outDir, index: indexDocs(sources, { root, moduleDir: outDir, logger }) };
+  return {
+    root,
+    outDir,
+    index: DocIndex.fromSources(sources, { root, moduleDir: outDir, logger }),
+  };
 }
 
 type Entry = {
@@ -45,7 +48,7 @@ type Entry = {
 };
 
 function entries({ root, index }: Loaded): Entry[] {
-  return [...index.fences.values()].map(({ id, block }) => {
+  return [...index.fences()].map(({ id, block }) => {
     const { file, lang, annotation } = block.details;
     return { file, line: block.line, lang, annotation, module: relative(root, id) };
   });
@@ -54,7 +57,7 @@ function entries({ root, index }: Loaded): Entry[] {
 const buildCmd = command({ name: "build", parameters: ["[include...]"], flags }, (argv) => {
   const { root, outDir, index } = load(argv._.include, argv.flags.exclude, argv.flags.outDir);
   writeFiles(outDir, moduleFiles(index, root));
-  logger.info(`Total: ${index.fences.size} tests in ${relative(root, outDir)}`);
+  logger.info(`Total: ${index.size} tests in ${relative(root, outDir)}`);
 });
 
 const listCmd = command(

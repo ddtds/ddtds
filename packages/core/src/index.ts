@@ -13,7 +13,7 @@ export {
   defaultOutDir,
 } from "./constants.ts";
 export { DdtTestError, wrapDdtTest } from "./error.ts";
-export { docModuleName, indexDocs, type DocIndex, type Fence, type IndexOptions } from "./docs.ts";
+export { DocIndex, docModuleName, type Fence, type IndexOptions } from "./docs.ts";
 export {
   DdtCompileError,
   type CompileDiagnostic,

@@ -112,6 +112,7 @@ test("ddt build writes modules that vitest runs without the plugin", async () =>
   `);
 
   const vitest = await createVitest("test", { root, config: false, watch: false, reporters: [{}] });
+  // vitest v4 does not make vitest a Disposable
   await using _ = { [Symbol.asyncDispose]: () => vitest.close() };
   await vitest.start();
   const states = vitest.state

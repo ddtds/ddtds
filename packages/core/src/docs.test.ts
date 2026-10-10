@@ -1,5 +1,5 @@
 import { expect, test } from "vitest";
-import { docModuleName, indexDocs, type DocIndex } from "./docs.ts";
+import { DocIndex, docModuleName } from "./docs.ts";
 import { createLogger } from "./logger.ts";
 
 const options = {
@@ -10,19 +10,19 @@ const options = {
 const run = (code: string, lang = "ts") => `\`\`\`${lang} run\n${code}\n\`\`\`\n`;
 
 function index(sources: Record<string, string>): DocIndex {
-  return indexDocs(new Map(Object.entries(sources)), options);
+  return DocIndex.fromSources(new Map(Object.entries(sources)), options);
 }
 
-function summary({ docs }: DocIndex): Record<string, string[]> {
+function summary(index: DocIndex): Record<string, string[]> {
   return Object.fromEntries(
-    [...docs].map(([doc, fences]) => [
+    [...index.docs()].map(([doc, fences]) => [
       doc,
       fences.map((fence) => `${fence.block.line} ${fence.id}`),
     ]),
   );
 }
 
-test("indexDocs indexes runnable fences and skips docs without any", () => {
+test("fromSources indexes runnable fences and skips docs without any", () => {
   const docs = index({
     "/repo/docs/guide.md": `${run("1")}\n${run("<p />", "tsx")}`,
     "/repo/pkg/prose.md": "# no code\n",
@@ -35,6 +35,19 @@ test("indexDocs indexes runnable fences and skips docs without any", () => {
       ],
     }
   `);
+});
+
+test("withDoc replaces one doc's fences and drops docs without any", () => {
+  const before = index({ "/repo/pkg/a.md": run("1"), "/repo/pkg/b.md": run("1") });
+  const after = before.withDoc("/repo/pkg/a.md", `\n\n${run("2")}`).withDoc("/repo/pkg/b.md", "");
+  expect(summary(after)).toMatchInlineSnapshot(`
+    {
+      "/repo/pkg/a.md": [
+        "3 /repo/pkg/__doctests__/a_md_3.ts",
+      ],
+    }
+  `);
+  expect(summary(before)).toHaveProperty(["/repo/pkg/b.md"]);
 });
 
 test("docModuleName flattens the path relative to the root", () => {

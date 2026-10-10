@@ -80,7 +80,7 @@ export function docModule(fences: readonly Fence[], importPath: (fence: Fence) =
 
 export function moduleFiles(index: DocIndex, root: string): Map<string, string> {
   const files = new Map<string, string>();
-  for (const [doc, fences] of index.docs) {
+  for (const [doc, fences] of index.docs()) {
     for (const fence of fences) files.set(basename(fence.id), fenceModule(fence));
     files.set(
       docModuleName(root, doc),
