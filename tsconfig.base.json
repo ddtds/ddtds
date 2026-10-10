@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     "target": "es2023",
-    "lib": ["es2023", "esnext.disposable"],
+    "lib": ["es2023", "esnext.disposable", "esnext.iterator"],
     "module": "esnext",
     "moduleResolution": "bundler",
     "allowImportingTsExtensions": true,

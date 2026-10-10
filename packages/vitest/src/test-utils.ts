@@ -53,8 +53,9 @@ function outcomes(modules: readonly TestModule[]): Outcomes {
   for (const module of modules) {
     for (const error of module.errors()) results[module.moduleId] = error.message;
     for (const testCase of module.children.allTests()) {
-      const [error] = testCase.result().errors ?? [];
-      results[testCase.name] = !error ? "passed" : "kind" in error ? String(error.kind) : "failed";
+      const { state, errors } = testCase.result();
+      const kind = errors?.[0]?.kind;
+      results[testCase.name] = typeof kind === "string" ? kind : state;
     }
   }
   return results;
@@ -74,4 +75,21 @@ export async function run(root: string, plugin: DdtPluginOptions = {}): Promise<
   await using instance = await vitest(root, { plugin });
   await instance.start();
   return outcomes(instance.state.getTestModules());
+}
+
+export async function watch(root: string, edit: () => void): Promise<Outcomes[]> {
+  const runs: Outcomes[] = [];
+  let rerunFinished: (() => void) | undefined;
+  const reporter: Reporter = {
+    onTestRunEnd(modules): void {
+      runs.push(outcomes(modules));
+      rerunFinished?.();
+    },
+  };
+  await using instance = await vitest(root, { watch: true, reporter });
+  await instance.start();
+  const rerun = new Promise<void>((resolve) => (rerunFinished = resolve));
+  edit();
+  await rerun;
+  return runs;
 }
