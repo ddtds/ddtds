@@ -29,14 +29,16 @@ function compileErrorFile(name: string, error: SyntaxError): string {
 
 export function generateBlockFile(mdPath: string, block: CodeBlock): string {
   const name = JSON.stringify(`${mdPath}:${block.line}`);
-  let prepared: { imports: string[]; body: string };
   try {
-    prepared = block.splitImports();
+    return blockFile(name, block);
   } catch (error) {
     if (error instanceof SyntaxError) return compileErrorFile(name, error);
     throw error;
   }
-  const { imports, body } = prepared;
+}
+
+function blockFile(name: string, block: CodeBlock): string {
+  const { imports, body } = block.splitImports();
   const header = [VITEST_IMPORT, DDT_IMPORT, ...imports].join("\n") + "\n";
 
   if (block.shouldFail()) {
