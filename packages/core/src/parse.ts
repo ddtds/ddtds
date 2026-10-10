@@ -29,21 +29,27 @@ export function splitImportsAndBlock(block: CodeBlock): PreparedBlock {
 }
 
 type ParsedBlock = { program: Program; staticImports: Range[] };
+type ParseError = { message: string; labels: Range[] };
 
 function parse(block: CodeBlock): ParsedBlock {
   const lang = LANGS[block.lang].parser;
   const filename = `block.${lang}`;
-  if (lang !== "tsrx") {
-    const { program, module } = parseSync(filename, block.code, { lang, sourceType: "module" });
-    return { program, staticImports: module.staticImports };
-  }
+  const { program, module, errors } =
+    lang === "tsrx"
+      ? tsrxParser().parseSync(filename, block.code, { lang, sourceType: "module" })
+      : parseSync(filename, block.code, { lang, sourceType: "module" });
 
-  const { program, module, errors } = tsrxParser().parseSync(filename, block.code, {
-    lang,
-    sourceType: "module",
-  });
-  if (!program || !module) throw new SyntaxError(errors.map((error) => error.message).join("\n"));
+  if (errors.length > 0 || !program || !module) {
+    throw new SyntaxError(errors.map((error) => formatParseError(block, error)).join("\n"));
+  }
   return { program, staticImports: module.staticImports };
+}
+
+function formatParseError(block: CodeBlock, error: ParseError): string {
+  const label = error.labels[0];
+  if (!label) return error.message;
+  const line = block.line + block.code.slice(0, label.start).split("\n").length;
+  return `${error.message} (line ${line})`;
 }
 
 const requireTsrxParser: (id: "@tsrx/oxc/parser") => typeof TsrxParser = createRequire(

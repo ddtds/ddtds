@@ -142,6 +142,17 @@ describe("CodeBlock.splitImports", () => {
       body: "function A() @{\n  <p>{x}</p>\n}",
     });
   });
+
+  test("throws a SyntaxError with the markdown line on parse errors", () => {
+    const b = block("import { foo } from './foo'\nconst = 1;", null, 10);
+    expect(() => b.splitImports()).toThrowErrorMatchingInlineSnapshot(
+      `[SyntaxError: Unexpected token (line 12)]`,
+    );
+  });
+
+  test("throws a SyntaxError on tsrx parse errors", () => {
+    expect(() => block("function A() @{", null, 1, "tsrx").splitImports()).toThrow(SyntaxError);
+  });
 });
 
 describe("generate", () => {
