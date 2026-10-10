@@ -20,6 +20,7 @@ catalogs:
     "@types/node": 24.19.1
     typescript: ^7.0.2
     vitest: ^4.1.11
+    "@vitest/coverage-v8": ^4.1.11
   examples:
     "@angular/compiler": ^22.2.1
     "@angular/core": ^22.2.1
