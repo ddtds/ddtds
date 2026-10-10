@@ -15,7 +15,7 @@
     "test:examples": "pnpm --filter '@ddtds/example-*' test",
     "test:update-snapshots": "pnpm -r test -u",
     "knip": "knip",
-    "publint": "pnpm --filter ./packages/core --filter ./packages/cli --filter ./packages/vitest exec publint",
+    "publint": "pnpm --filter './packages/*' exec publint",
     "sherif": "sherif",
     "validate:renovate": "renovate-config-validator renovate.json"
   },
