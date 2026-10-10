@@ -4,41 +4,40 @@ import { join, relative } from "node:path";
 import { expect, onTestFinished, test } from "vitest";
 import type { ViteUserConfig } from "vitest/config";
 import { createVitest } from "vitest/node";
-import { ddtPlugin, defaultDocsExclude, type DdtPluginOptions } from "./index.ts";
+import { ddtPlugin, type DdtPluginOptions } from "./index.ts";
 
-async function collectTestFiles({
-  root = ".",
-  test = {},
-  plugin = {},
-}: {
-  root?: string;
-  test?: ViteUserConfig["test"];
-  plugin?: DdtPluginOptions;
-} = {}): Promise<string[]> {
+function fixture(): string {
   const dir = mkdtempSync(join(tmpdir(), "ddtds-"));
   onTestFinished(() => rmSync(dir, { recursive: true, force: true }));
   mkdirSync(join(dir, "nested"));
-  for (const doc of ["guide.md", "nested/guide.md", "CHANGELOG.md"]) {
-    writeFileSync(join(dir, doc), "```ts run\n1;\n```\n");
-  }
-  for (const unit of ["unit.test.ts", "unit.check.ts"]) writeFileSync(join(dir, unit), "");
+  writeFileSync(join(dir, "guide.md"), "```ts run\n1;\n```\n");
+  writeFileSync(join(dir, "nested/guide.md"), "```ts run\n1;\n```\n");
+  writeFileSync(join(dir, "unit.test.ts"), "");
+  writeFileSync(join(dir, "unit.check.ts"), "");
+  return dir;
+}
 
-  const vitestRoot = join(dir, root);
+async function collect(
+  root: string,
+  plugin: DdtPluginOptions = {},
+  test: ViteUserConfig["test"] = {},
+): Promise<string[]> {
+  const plugins = [ddtPlugin({ logLevel: "silent", ...plugin })];
   const vitest = await createVitest(
     "test",
-    { root: vitestRoot, config: false, watch: false },
-    { plugins: [ddtPlugin({ logLevel: "silent", ...plugin })], test },
+    { root, config: false, watch: false },
+    { plugins, test },
   );
   try {
     const specs = await vitest.globTestSpecifications();
-    return specs.map((spec) => relative(vitestRoot, spec.moduleId)).toSorted();
+    return specs.map((spec) => relative(root, spec.moduleId)).toSorted();
   } finally {
     await vitest.close();
   }
 }
 
 test("keeps vitest's default include when the user sets none", async () => {
-  expect(await collectTestFiles()).toMatchInlineSnapshot(`
+  expect(await collect(fixture())).toMatchInlineSnapshot(`
     [
       "__doctests__/guide.md_1.test.ts",
       "__doctests__/nested_guide.md_1.test.ts",
@@ -47,8 +46,8 @@ test("keeps vitest's default include when the user sets none", async () => {
   `);
 });
 
-test("appends doc tests to the user's include", async () => {
-  expect(await collectTestFiles({ test: { include: ["**/*.check.ts"] } })).toMatchInlineSnapshot(`
+test("appends doc tests to the user's test include", async () => {
+  expect(await collect(fixture(), {}, { include: ["**/*.check.ts"] })).toMatchInlineSnapshot(`
     [
       "__doctests__/guide.md_1.test.ts",
       "__doctests__/nested_guide.md_1.test.ts",
@@ -58,7 +57,7 @@ test("appends doc tests to the user's include", async () => {
 });
 
 test("finds doc tests when the user sets test.dir", async () => {
-  expect(await collectTestFiles({ test: { dir: "tests" } })).toMatchInlineSnapshot(`
+  expect(await collect(fixture(), {}, { dir: "tests" })).toMatchInlineSnapshot(`
     [
       "__doctests__/guide.md_1.test.ts",
       "__doctests__/nested_guide.md_1.test.ts",
@@ -66,27 +65,9 @@ test("finds doc tests when the user sets test.dir", async () => {
   `);
 });
 
-test("only tests docs matching include", async () => {
-  expect(await collectTestFiles({ plugin: { include: ["nested/*.md"] } })).toMatchInlineSnapshot(`
-    [
-      "__doctests__/nested_guide.md_1.test.ts",
-      "unit.test.ts",
-    ]
-  `);
-});
-
-test("tests docs outside the vitest root", async () => {
-  expect(await collectTestFiles({ root: "nested", plugin: { include: ["../*.md"] } }))
-    .toMatchInlineSnapshot(`
-    [
-      "__doctests__/___guide.md_1.test.ts",
-    ]
-  `);
-});
-
-test("skips docs matching exclude", async () => {
-  const exclude = [...defaultDocsExclude, "nested/**"];
-  expect(await collectTestFiles({ plugin: { exclude } })).toMatchInlineSnapshot(`
+test("passes include and exclude to findDocs", async () => {
+  const plugin = { include: ["**/*.md"], exclude: ["nested/**"] };
+  expect(await collect(fixture(), plugin)).toMatchInlineSnapshot(`
     [
       "__doctests__/guide.md_1.test.ts",
       "unit.test.ts",
