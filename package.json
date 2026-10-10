@@ -10,10 +10,11 @@
     "lint:fix": "oxlint . --fix",
     "bench": "pnpm --filter @ddtds/core bench",
     "typecheck": "pnpm -r run typecheck",
-    "test": "pnpm -r test",
+    "test": "vitest run",
     "test:packages": "pnpm --filter './packages/*' run test",
     "test:examples": "pnpm --filter '@ddtds/example-*' test",
-    "test:update-snapshots": "pnpm -r test -u",
+    "test:update-snapshots": "vitest run -u",
+    "test:coverage": "vitest run --coverage",
     "knip": "knip",
     "publint": "pnpm --filter './packages/*' exec publint",
     "sherif": "sherif",
@@ -21,6 +22,7 @@
   },
   "devDependencies": {
     "@types/node": "catalog:dev",
+    "@vitest/coverage-v8": "catalog:dev",
     "knip": "6.40.0",
     "lefthook": "2.1.17",
     "oxfmt": "0.72.0",
@@ -29,7 +31,8 @@
     "publint": "0.3.25",
     "renovate": "44.138.0",
     "sherif": "1.13.0",
-    "typescript": "catalog:dev"
+    "typescript": "catalog:dev",
+    "vitest": "catalog:dev"
   },
   "engines": {
     "node": ">=24",

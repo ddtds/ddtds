@@ -1,5 +1,6 @@
 **/__doctests__
 .fixture-*
+coverage
 
 # Logs
 logs
