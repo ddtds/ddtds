@@ -23,10 +23,9 @@ export class DocIndex {
   }
 
   public static fromSources(sources: ReadonlyMap<string, string>, options: IndexOptions): DocIndex {
-    const empty = new DocIndex(options, new Map());
     const docs = new Map<string, readonly Fence[]>();
     for (const [doc, source] of sources) {
-      const fences = empty.#parse(doc, source);
+      const fences = parseFences(options, doc, source);
       if (fences.length > 0) docs.set(doc, fences);
     }
     return new DocIndex(options, docs);
@@ -34,15 +33,19 @@ export class DocIndex {
 
   public withDoc(doc: string, source: string): DocIndex {
     const docs = new Map(this.#docs);
-    docs.set(doc, this.#parse(doc, source));
+    docs.set(doc, parseFences(this.#options, doc, source));
     return new DocIndex(this.#options, docs);
+  }
+
+  public get root(): string {
+    return this.#options.root;
   }
 
   public get size(): number {
     return this.#fences.size;
   }
 
-  public docs(): Iterable<readonly [string, readonly Fence[]]> {
+  public docs(): MapIterator<[string, readonly Fence[]]> {
     return this.#docs.entries();
   }
 
@@ -63,19 +66,22 @@ export class DocIndex {
   }
 
   public docModuleId(doc: string): string {
-    return join(this.#options.moduleDir, `${this.#flatName(doc)}.test.ts`);
+    return join(this.#options.moduleDir, `${flatName(this.#options.root, doc)}.test.ts`);
   }
+}
 
-  #parse(doc: string, source: string): Fence[] {
-    const { root, moduleDir, logger } = this.#options;
-    return parseCodeFences(source, relative(root, doc), logger).map((block) => ({
-      id: join(moduleDir, `${this.#flatName(doc)}_${block.line}.${block.outputExtension}`),
-      doc,
-      block,
-    }));
-  }
+function parseFences(
+  { root, moduleDir, logger }: IndexOptions,
+  doc: string,
+  source: string,
+): Fence[] {
+  return parseCodeFences(source, relative(root, doc), logger).map((block) => ({
+    id: join(moduleDir, `${flatName(root, doc)}_${block.line}.${block.outputExtension}`),
+    doc,
+    block,
+  }));
+}
 
-  #flatName(doc: string): string {
-    return relative(this.#options.root, doc).replaceAll(".", "_").replaceAll(sep, "_");
-  }
+function flatName(root: string, doc: string): string {
+  return relative(root, doc).replaceAll(".", "_").replaceAll(sep, "_");
 }
