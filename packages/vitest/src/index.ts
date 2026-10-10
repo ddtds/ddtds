@@ -1,5 +1,6 @@
 import { defaultInclude, type Plugin } from "vitest/config";
 import {
+  OUTPUT_EXTENSIONS,
   generate as generateCore,
   resolveDocsOptions,
   type DocsOptions,
@@ -35,7 +36,7 @@ export function ddtPlugin({ logLevel, ...docs }: DdtPluginOptions = {}): Plugin 
       const options = resolveDocsOptions({ ...docs, root: config.root ?? process.cwd() });
       generate(options, { logger });
 
-      const doctests = `${options.outputDir}/**/*.test.{ts,tsx,tsrx}`;
+      const doctests = `${options.outputDir}/**/*.test.{${OUTPUT_EXTENSIONS.join(",")}}`;
       const include = config.test?.include ? [doctests] : [...defaultInclude, doctests];
       return { test: { include } };
     },

@@ -12,6 +12,7 @@ import {
   generate,
   resolveDocsOptions,
   type Annotation,
+  type Lang,
 } from "./index";
 import { createLogger } from "./logger";
 
@@ -60,19 +61,17 @@ describe("CodeBlock.isSkipped / shouldFail", () => {
   );
 });
 
-describe("CodeBlock.outputExtension / isJsx", () => {
+describe("CodeBlock.outputExtension", () => {
   test.each([
-    ["ts", "ts", false],
-    ["typescript", "ts", false],
-    ["js", "ts", false],
-    ["javascript", "ts", false],
-    ["tsx", "tsx", true],
-    ["jsx", "tsx", true],
-    ["tsrx", "tsrx", true],
-  ])("lang=%j → outputExtension=%j isJsx=%s", (lang, ext, jsx) => {
-    const b = new CodeBlock("x", lang, ANNOTATIONS.RUN, 1);
-    expect(b.outputExtension).toBe(ext);
-    expect(b.isJsx()).toBe(jsx);
+    ["ts", "ts"],
+    ["typescript", "ts"],
+    ["js", "ts"],
+    ["javascript", "ts"],
+    ["tsx", "tsx"],
+    ["jsx", "tsx"],
+    ["tsrx", "tsrx"],
+  ] as const)("lang=%j → outputExtension=%j", (lang, ext) => {
+    expect(new CodeBlock("x", lang, ANNOTATIONS.RUN, 1).outputExtension).toBe(ext);
   });
 });
 
@@ -101,7 +100,7 @@ function block(
   code: string,
   annotation: Annotation | null = null,
   line = 1,
-  lang = "ts",
+  lang: Lang = "ts",
 ): CodeBlock {
   return new CodeBlock(code, lang, annotation, line);
 }

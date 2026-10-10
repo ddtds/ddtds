@@ -1,7 +1,9 @@
 import { createRequire } from "node:module";
 import { parseSync } from "oxc-parser";
+import type * as TsrxParser from "@tsrx/oxc/parser";
 import type { ExportDefaultDeclarationKind, Program } from "@oxc-project/types";
 import type { CodeBlock } from "./blocks.ts";
+import { LANGS } from "./constants.ts";
 
 type ParsedBodyNode = Program["body"][number];
 type SyntheticDefaultNode = {
@@ -16,11 +18,9 @@ export type PreparedBlock = {
 };
 
 export function splitImportsAndBlock(block: CodeBlock): PreparedBlock {
-  const lang = parserLang(block.lang);
-  const parse = lang === "tsrx" ? tsrxParseSync() : parseSync;
-  const { program, module } = parse(`block.${lang}`, block.code, { sourceType: "module" });
+  const { program, staticImports } = parse(block);
 
-  const imports = module.staticImports.map((staticImport) => sliceSource(block.code, staticImport));
+  const imports = staticImports.map((staticImport) => sliceSource(block.code, staticImport));
 
   const transformed = sanitizeProgram(program);
   const body = transformed.map((node) => printBodyNode(block.code, node)).join("\n");
@@ -28,18 +28,34 @@ export function splitImportsAndBlock(block: CodeBlock): PreparedBlock {
   return { imports, body };
 }
 
-function parserLang(lang: string): "js" | "ts" | "jsx" | "tsx" | "tsrx" {
-  if (lang === "javascript") return "js";
-  if (lang === "typescript") return "ts";
-  if (lang === "jsx") return "jsx";
-  if (lang === "tsx") return "tsx";
-  if (lang === "tsrx") return "tsrx";
-  return "ts";
+type ParsedBlock = { program: Program; staticImports: Range[] };
+
+function parse(block: CodeBlock): ParsedBlock {
+  const lang = LANGS[block.lang].parser;
+  const filename = `block.${lang}`;
+  if (lang !== "tsrx") {
+    const { program, module } = parseSync(filename, block.code, { lang, sourceType: "module" });
+    return { program, staticImports: module.staticImports };
+  }
+
+  const { program, module, errors } = tsrxParser().parseSync(filename, block.code, {
+    lang,
+    sourceType: "module",
+  });
+  if (!program || !module) throw new SyntaxError(errors.map((error) => error.message).join("\n"));
+  return { program, staticImports: module.staticImports };
 }
 
-function tsrxParseSync(): typeof parseSync {
+const requireTsrxParser: (id: "@tsrx/oxc/parser") => typeof TsrxParser = createRequire(
+  import.meta.url,
+);
+let cachedTsrxParser: typeof TsrxParser | undefined;
+
+/** `@tsrx/oxc` is an optional peer dependency, loaded only when a tsrx block shows up. */
+function tsrxParser(): typeof TsrxParser {
   try {
-    return createRequire(import.meta.url)("@tsrx/oxc/parser").parseSync;
+    cachedTsrxParser ??= requireTsrxParser("@tsrx/oxc/parser");
+    return cachedTsrxParser;
   } catch (error) {
     throw new Error('tsrx code blocks need "@tsrx/oxc" installed', { cause: error });
   }

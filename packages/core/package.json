@@ -12,8 +12,8 @@
     "typecheck": "tsc"
   },
   "dependencies": {
-    "@oxc-project/types": "^0.139.0",
-    "oxc-parser": "^0.134.0",
+    "@oxc-project/types": "^0.150.0",
+    "oxc-parser": "^0.150.0",
     "remark": "^15.0.1",
     "tinyglobby": "^0.2.16",
     "unist-util-visit": "^5.1.0"
