@@ -1,5 +1,5 @@
 import { cli, command } from "cleye";
-import { defaultDocsExclude, defaultDocsInclude, defaultOutputDir, generate } from "@ddtds/vitest";
+import { defaultDocsExclude, defaultOutputDir, generate } from "@ddtds/vitest";
 
 const buildCmd = command(
   {
@@ -8,13 +8,11 @@ const buildCmd = command(
     flags: {
       exclude: {
         type: [String],
-        default: defaultDocsExclude,
-        description: "Glob of docs to skip, replaces default",
+        description: `Glob of docs to skip, replaces default (default: ${JSON.stringify(defaultDocsExclude)})`,
       },
       output: {
         type: String,
-        default: defaultOutputDir,
-        description: "Directory for generated test files",
+        description: `Directory for generated test files (default: ${JSON.stringify(defaultOutputDir)})`,
       },
     },
   },
@@ -23,7 +21,7 @@ const buildCmd = command(
     const { exclude, output } = argv.flags;
     generate({
       root: process.cwd(),
-      include: include.length > 0 ? include : defaultDocsInclude,
+      include,
       exclude,
       outputDir: output,
     });

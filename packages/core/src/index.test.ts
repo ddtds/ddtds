@@ -7,8 +7,10 @@ import {
   CodeBlock,
   parseCodeFences,
   defaultDocsExclude,
+  defaultDocsInclude,
   findDocs,
   generate,
+  resolveDocsOptions,
   type Annotation,
 } from "./index";
 import { createLogger } from "./logger";
@@ -200,6 +202,22 @@ describe("findDocs", () => {
   });
 });
 
+describe("resolveDocsOptions", () => {
+  test.each([{}, { include: [], exclude: [] }])("defaults %j", (options) => {
+    expect(resolveDocsOptions({ root: "/repo", ...options })).toEqual({
+      root: "/repo",
+      include: defaultDocsInclude,
+      exclude: defaultDocsExclude,
+      outputDir: "/repo/__doctests__",
+    });
+  });
+
+  test("keeps given values", () => {
+    const options = { root: "/repo", include: ["a.md"], exclude: ["b.md"], outputDir: "out" };
+    expect(resolveDocsOptions(options)).toEqual({ ...options, outputDir: "/repo/out" });
+  });
+});
+
 function renderBlockFile(mdPath: string, codeBlock: CodeBlock): string {
   return `// ${mdPath}:${codeBlock.line}`;
 }
@@ -214,7 +232,7 @@ function fixture(): string {
   return dir;
 }
 
-function find(root: string, include?: string[], exclude?: string[]): string[] {
+function find(root: string, include = defaultDocsInclude, exclude = defaultDocsExclude): string[] {
   return findDocs(root, include, exclude)
     .map((doc) => relative(root, doc))
     .toSorted();

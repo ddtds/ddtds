@@ -17,19 +17,15 @@ export {
 export { wrapDdtTest } from "./error.ts";
 
 export type DocsOptions = {
-  /** Globs of docs to test, relative to the root. Defaults to `defaultDocsInclude`. */
+  /** Globs of docs to test, relative to the root. Defaults to `defaultDocsInclude` when unset or empty. */
   include?: string[];
-  /** Globs of docs to skip, relative to the root. Replaces `defaultDocsExclude`. */
+  /** Globs of docs to skip, relative to the root. Replaces `defaultDocsExclude` unless unset or empty. */
   exclude?: string[];
   /** Directory to write test files, relative to the root. Defaults to `defaultOutputDir`. */
   outputDir?: string;
 };
 
-export function findDocs(
-  root: string,
-  include: string[] = defaultDocsInclude,
-  exclude: string[] = defaultDocsExclude,
-): string[] {
+export function findDocs(root: string, include: string[], exclude: string[]): string[] {
   return globSync(include, { cwd: root, ignore: exclude, absolute: true });
 }
 
@@ -57,14 +53,28 @@ export type GenerateOptions = DocsOptions & {
   root: string;
 };
 
+export function resolveDocsOptions({
+  root,
+  include,
+  exclude,
+  outputDir,
+}: GenerateOptions): Required<GenerateOptions> {
+  return {
+    root,
+    include: include?.length ? include : defaultDocsInclude,
+    exclude: exclude?.length ? exclude : defaultDocsExclude,
+    outputDir: resolve(root, outputDir ?? defaultOutputDir),
+  };
+}
+
 export function generate(
-  { root, include, exclude, outputDir = defaultOutputDir }: GenerateOptions,
+  options: GenerateOptions,
   renderBlockFile: (mdPath: string, block: CodeBlock) => string,
   deps?: Partial<GenerateDeps>,
 ): number {
   const resolved = { ...defaultGenerateDeps, ...deps };
   const { findDocs, readFile, writeFile, clearDir, logger } = resolved;
-  const output = resolve(root, outputDir);
+  const { root, include, exclude, outputDir: output } = resolveDocsOptions(options);
 
   const docs = findDocs(root, include, exclude);
   if (docs.length === 0) {
