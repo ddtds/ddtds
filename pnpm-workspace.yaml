@@ -18,8 +18,4 @@ catalogs:
   prod: {}
   peer: {}
 
-# pnpm defaults minimumReleaseAge to 1440 (24h) since v11, even with zero
-# config, which blocks plain `pnpm install` on anything with a fast-moving
-# transitive tree (e.g. renovate's @aws-sdk/* deps release several times a
-# day). Disable it instead of pinning/excluding packages around it.
-minimumReleaseAge: 0
+minimumReleaseAgeStrict: false
