@@ -1,7 +1,6 @@
 import { parseSync, type OxcError, type ParserOptions } from "oxc-parser";
 import type { ExportDefaultDeclarationKind, Program } from "@oxc-project/types";
 import type { CodeBlock } from "./blocks.ts";
-import { DdtSyntaxError } from "./error.ts";
 
 type ParsedBodyNode = Program["body"][number];
 type SyntheticDefaultNode = {
@@ -23,7 +22,7 @@ export function splitImportsAndBlock(block: CodeBlock): PreparedBlock {
   });
 
   if (errors.length > 0) {
-    throw new DdtSyntaxError(errors.map((error) => formatParseError(block, error)).join("\n"));
+    throw new SyntaxError(errors.map((error) => formatParseError(block, error)).join("\n"));
   }
 
   const imports = module.staticImports.map((staticImport) => sliceSource(block.code, staticImport));

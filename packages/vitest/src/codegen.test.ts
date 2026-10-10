@@ -99,10 +99,10 @@ describe("generateBlockFile: annotations", () => {
     expect(out).not.toContain("rejects");
     expect(out).toMatchInlineSnapshot(`
       "import { test, expect } from 'vitest';
-      import { DdtSyntaxError, wrapDdtTest } from '@ddtds/vitest'
+      import { DdtTestError, wrapDdtTest } from '@ddtds/vitest'
       test("t.md:1", async () => {
         await wrapDdtTest(async () => {
-          throw new DdtSyntaxError("Unexpected token (line 2)");
+          throw new SyntaxError("Unexpected token (line 2)");
         });
       });"
     `);

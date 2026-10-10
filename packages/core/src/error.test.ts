@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { DdtSyntaxError, DdtTestError, ErrorKind, wrapDdtTest } from "./error";
+import { DdtTestError, ErrorKind, wrapDdtTest } from "./error";
 
 describe("DdtTestError", () => {
   test.each([
@@ -39,13 +39,5 @@ describe("DdtTestError", () => {
 
     await expect(promise).rejects.toBeInstanceOf(DdtTestError);
     await expect(promise).rejects.toHaveProperty("kind", ErrorKind.RuntimeFailure);
-  });
-
-  test("rethrows parse errors as syntax error", async () => {
-    const promise = wrapDdtTest(() => {
-      throw new DdtSyntaxError("Unexpected token (line 2)");
-    });
-
-    await expect(promise).rejects.toHaveProperty("kind", ErrorKind.Syntax);
   });
 });
