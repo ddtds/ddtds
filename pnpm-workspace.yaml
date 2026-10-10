@@ -12,10 +12,10 @@ allowBuilds:
 
 catalogs:
   dev:
-    "@types/node": ^24.19.2
+    "@types/node": 24.19.1
     typescript: ^7.0.2
     vitest: ^4.1.11
   prod: {}
   peer: {}
 
-minimumReleaseAgeStrict: false
+minimumReleaseAge: 4320
