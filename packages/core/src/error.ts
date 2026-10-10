@@ -7,6 +7,7 @@ export const ErrorKind = {
 
 export type ErrorKind = (typeof ErrorKind)[keyof typeof ErrorKind];
 
+// remove once typescript is added
 const ERROR_MESSAGES = [
   "Cannot use import statement outside a module",
   "Cannot find module",
@@ -14,22 +15,21 @@ const ERROR_MESSAGES = [
 ];
 
 function isCompileError(error: unknown): boolean {
-  if (error instanceof DdtCompileError || error instanceof SyntaxError) return true;
+  if (error instanceof DdtCompileError) return true;
   if (!(error instanceof Error)) return false;
 
   return ERROR_MESSAGES.some((message) => error.message.includes(message));
 }
 
 export class DdtTestError extends Error {
+  public readonly kind: ErrorKind;
+
   public constructor(sourceError: unknown) {
     const message = sourceError instanceof Error ? sourceError.message : String(sourceError);
     super(message, { cause: sourceError });
     this.name = "DdtTestError";
+    this.kind = isCompileError(sourceError) ? ErrorKind.Compile : ErrorKind.RuntimeFailure;
     Object.setPrototypeOf(this, DdtTestError.prototype);
-  }
-
-  public get kind(): ErrorKind {
-    return isCompileError(this.cause) ? ErrorKind.Compile : ErrorKind.RuntimeFailure;
   }
 }
 
