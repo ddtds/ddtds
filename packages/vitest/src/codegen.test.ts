@@ -143,7 +143,7 @@ describe("in-memory modules", () => {
     `);
   });
 
-  test("doc module imports each fence inside its test", () => {
+  test("doc module loads every fence before its tests run", () => {
     const fences = [1, 5].map((line) => ({
       block: block("1;", null, line),
       doc: "/root/t.md",
@@ -154,18 +154,22 @@ describe("in-memory modules", () => {
     expect(out).toMatchInlineSnapshot(`
       "import { test } from 'vitest';
       import { wrapDdtTest } from '@ddtds/vitest';
-      test("t.md:1", () =>
-        wrapDdtTest(async () => {
-          const { default: run } = await import("/root/f1.ts");
-          await run();
-        }),
-      );
-      test("t.md:5", () =>
-        wrapDdtTest(async () => {
-          const { default: run } = await import("/root/f5.ts");
-          await run();
-        }),
-      );"
+      const fences = await Promise.all([
+        import("/root/f1.ts").then(
+          ({ default: run }) => run,
+          (error) => () => {
+            throw error;
+          },
+        ),
+        import("/root/f5.ts").then(
+          ({ default: run }) => run,
+          (error) => () => {
+            throw error;
+          },
+        ),
+      ]);
+      test("t.md:1", () => wrapDdtTest(() => fences[0]()));
+      test("t.md:5", () => wrapDdtTest(() => fences[1]()));"
     `);
   });
 });
