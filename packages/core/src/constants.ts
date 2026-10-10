@@ -1,6 +1,6 @@
 export const defaultDocsInclude = ["**/*.{md,mdx}"];
 export const defaultDocsExclude = ["**/node_modules/**", "**/CHANGELOG.md"];
-export const defaultOutputDir = "__doctests__";
+export const defaultOutDir = "__doctests__";
 
 const PARSERS = ["ts", "js", "tsx", "jsx", "tsrx"] as const;
 export type Parser = (typeof PARSERS)[number];

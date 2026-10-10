@@ -1,8 +1,8 @@
-import { relative } from "node:path";
+import { relative, resolve } from "node:path";
 import { cli, command } from "cleye";
 import {
   defaultDocsExclude,
-  defaultOutputDir,
+  defaultOutDir,
   indexDocs,
   readDocs,
   resolveDocsOptions,
@@ -22,18 +22,19 @@ const flags = {
     type: [String] as [StringConstructor],
     description: `Glob of docs to skip, replaces default (default: ${JSON.stringify(defaultDocsExclude)})`,
   },
-  output: {
+  outDir: {
     type: String,
-    description: `Directory for generated test files (default: ${JSON.stringify(defaultOutputDir)})`,
+    description: `Directory for generated test files (default: ${JSON.stringify(defaultOutDir)})`,
   },
 };
 
-type Loaded = { root: string; outputDir: string; index: DocIndex };
+type Loaded = { root: string; outDir: string; index: DocIndex };
 
-function load(include: string[], exclude?: string[], output?: string): Loaded {
-  const options = resolveDocsOptions({ root: process.cwd(), include, exclude, outputDir: output });
-  const sources = readDocs(options.root, options.include, options.exclude);
-  return { ...options, index: indexDocs(sources, { ...options, logger }) };
+function load(include: string[], exclude?: string[], out = defaultOutDir): Loaded {
+  const { root, ...docs } = resolveDocsOptions({ root: process.cwd(), include, exclude });
+  const outDir = resolve(root, out);
+  const sources = readDocs(root, docs.include, docs.exclude);
+  return { root, outDir, index: indexDocs(sources, { root, moduleDir: outDir, logger }) };
 }
 
 type Entry = {
@@ -52,9 +53,9 @@ function entries({ root, index }: Loaded): Entry[] {
 }
 
 const buildCmd = command({ name: "build", parameters, flags }, (argv) => {
-  const { root, outputDir, index } = load(argv._.include, argv.flags.exclude, argv.flags.output);
-  writeFiles(outputDir, moduleFiles(index, root));
-  logger.info(`Total: ${index.fences.size} tests in ${relative(root, outputDir)}`);
+  const { root, outDir, index } = load(argv._.include, argv.flags.exclude, argv.flags.outDir);
+  writeFiles(outDir, moduleFiles(index, root));
+  logger.info(`Total: ${index.fences.size} tests in ${relative(root, outDir)}`);
 });
 
 const listCmd = command(
@@ -64,7 +65,7 @@ const listCmd = command(
     flags: { ...flags, json: { type: Boolean, description: "Print as JSON" } },
   },
   (argv) => {
-    const list = entries(load(argv._.include, argv.flags.exclude, argv.flags.output));
+    const list = entries(load(argv._.include, argv.flags.exclude, argv.flags.outDir));
     const lines = argv.flags.json
       ? [JSON.stringify(list, null, 2)]
       : list.map(({ file, line, lang, annotation }) => `${file}:${line} ${lang} ${annotation}`);

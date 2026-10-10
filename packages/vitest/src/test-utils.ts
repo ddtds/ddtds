@@ -7,7 +7,6 @@ import { ddtPlugin, type DdtPluginOptions } from "./index.ts";
 
 type Outcomes = Record<string, string>;
 
-// inside the package so generated tests can import `vitest`
 export function fixture(files: Record<string, string>): string {
   const root = mkdtempSync(join(import.meta.dirname, "../.fixture-"));
   onTestFinished(() => rmSync(root, { recursive: true, force: true }));
@@ -47,7 +46,6 @@ async function vitest(
   );
 }
 
-/** Each test's outcome: `passed` or the failure kind. */
 function outcomes(modules: readonly TestModule[]): Outcomes {
   const results: Outcomes = {};
   for (const module of modules) {

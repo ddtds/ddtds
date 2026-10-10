@@ -18,7 +18,6 @@ function ddt(cwd: string, ...args: string[]): string {
   return stripVTControlCharacters(out);
 }
 
-// inside the package so built tests can import `vitest` and `@ddtds/vitest`
 function fixture(markdown: string): string {
   const root = mkdtempSync(join(import.meta.dirname, "../.fixture-"));
   onTestFinished(() => rmSync(root, { recursive: true, force: true }));
@@ -57,7 +56,7 @@ test("ddt build --help", () => {
     FLAGS:
           --exclude <string>        Glob of docs to skip, replaces default (default: ["**/node_modules/**","**/CHANGELOG.md"])
       -h, --help                    Show help
-          --output <string>         Directory for generated test files (default: "__doctests__")
+          --out-dir <string>        Directory for generated test files (default: "__doctests__")
 
     "
   `);
@@ -74,7 +73,7 @@ test("ddt list --help", () => {
           --exclude <string>        Glob of docs to skip, replaces default (default: ["**/node_modules/**","**/CHANGELOG.md"])
       -h, --help                    Show help
           --json                    Print as JSON
-          --output <string>         Directory for generated test files (default: "__doctests__")
+          --out-dir <string>        Directory for generated test files (default: "__doctests__")
 
     "
   `);

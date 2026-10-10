@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { ANNOTATIONS, CodeBlock, type Annotation, type Lang } from "@ddtds/core";
+import { ANNOTATIONS, CodeBlock, type Annotation, type Fence, type Lang } from "@ddtds/core";
 import { docModule, fenceModule } from "./codegen";
 
 function block(
@@ -18,6 +18,14 @@ function block(
   });
 }
 
+function fence(code: string, annotation: Annotation | null = null): Fence {
+  return {
+    id: "/repo/__doctests__/t_md_1.ts",
+    doc: "/repo/docs/t.md",
+    block: block(code, annotation),
+  };
+}
+
 function assertTestRun(x: string) {
   expect(x).toContain("test");
   expect(x).not.toContain("skip");
@@ -32,7 +40,7 @@ function assertTestReject(x: string) {
 
 describe("generateBlockFile: basic", () => {
   test("emits body directly into the generated test", () => {
-    const output = fenceModule(block("const hi = '10';\nexpect(hi).toBe('10');"));
+    const output = fenceModule(fence("const hi = '10';\nexpect(hi).toBe('10');"));
 
     assertTestRun(output);
     expect(output).toContain("expect(hi).toBe('10');");
@@ -53,7 +61,7 @@ describe("generateBlockFile: basic", () => {
 describe("generateBlockFile: imports", () => {
   test("hoists multiline imports", () => {
     const code = "import {\n  foo,\n  bar,\n  baz,\n} from './utils'\nfoo()";
-    const out = fenceModule(block(code));
+    const out = fenceModule(fence(code));
 
     assertTestRun(out);
     expect(out).toMatchInlineSnapshot(`
@@ -63,7 +71,7 @@ describe("generateBlockFile: imports", () => {
         foo,
         bar,
         baz,
-      } from './utils'
+      } from "/repo/docs/utils"
       export default async function () {
         await wrapDdtTest(async () => {
           foo()
@@ -73,15 +81,20 @@ describe("generateBlockFile: imports", () => {
   });
 });
 
+test("fence module imports relative paths from the doc", () => {
+  const out = fenceModule(fence("import { a } from './a.ts'\na"));
+  expect(out).toContain('from "/repo/docs/a.ts"');
+});
+
 describe("generateBlockFile: annotations", () => {
   test("run annotation generates plain test", () => {
-    const out = fenceModule(block("expect(1).toBe(1)", ANNOTATIONS.RUN));
+    const out = fenceModule(fence("expect(1).toBe(1)", ANNOTATIONS.RUN));
     assertTestRun(out);
     expect(out).not.toContain("rejects");
   });
 
   test("fail annotation wraps in rejects.toThrow", () => {
-    const out = fenceModule(block('throw new Error("boom")', ANNOTATIONS.FAIL));
+    const out = fenceModule(fence('throw new Error("boom")', ANNOTATIONS.FAIL));
 
     assertTestReject(out);
     expect(out).toContain(".rejects.toThrow();");
@@ -99,7 +112,7 @@ describe("generateBlockFile: annotations", () => {
   });
 
   test("parse errors fail even with the fail annotation", () => {
-    const out = fenceModule(block("const = 1;", ANNOTATIONS.FAIL));
+    const out = fenceModule(fence("const = 1;", ANNOTATIONS.FAIL));
     expect(out.replace(/DdtCompileError\(\{.*\}\);/, "DdtCompileError(details);"))
       .toMatchInlineSnapshot(`
         "import { expect } from 'vitest';
@@ -113,7 +126,7 @@ describe("generateBlockFile: annotations", () => {
   });
 
   test("compile_fail passes when the block does not parse", () => {
-    const out = fenceModule(block("const = 1;", ANNOTATIONS.COMPILE_FAIL));
+    const out = fenceModule(fence("const = 1;", ANNOTATIONS.COMPILE_FAIL));
     expect(out).not.toContain("throw");
     expect(out).toMatchInlineSnapshot(`
       "import { expect } from 'vitest';
@@ -122,7 +135,7 @@ describe("generateBlockFile: annotations", () => {
   });
 
   test("compile_fail fails when the block parses", () => {
-    const out = fenceModule(block("const ok = 1;", ANNOTATIONS.COMPILE_FAIL));
+    const out = fenceModule(fence("const ok = 1;", ANNOTATIONS.COMPILE_FAIL));
     expect(out).toContain("expected a compile_fail block");
     expect(out).toMatchInlineSnapshot(`
       "import { expect } from 'vitest';
@@ -138,12 +151,12 @@ describe("generateBlockFile: annotations", () => {
 
 describe("in-memory modules", () => {
   test("fence module exports the fence as a function", () => {
-    const out = fenceModule(block("import { foo } from './foo'\nfoo()"));
+    const out = fenceModule(fence("import { foo } from './foo'\nfoo()"));
     expect(out).toContain("export default async function");
     expect(out).toMatchInlineSnapshot(`
       "import { expect } from 'vitest';
       import { DdtTestError, wrapDdtTest } from '@ddtds/vitest'
-      import { foo } from './foo'
+      import { foo } from "/repo/docs/foo"
       export default async function () {
         await wrapDdtTest(async () => {
           foo()

@@ -1,4 +1,5 @@
 import { createRequire } from "node:module";
+import { resolve } from "node:path";
 import { parseSync } from "oxc-parser";
 import type * as TsrxParser from "@tsrx/oxc/parser";
 import type { ExportDefaultDeclarationKind, Program } from "@oxc-project/types";
@@ -24,10 +25,12 @@ export type PreparedBlock = {
   body: string;
 };
 
-export function splitImportsAndBlock(block: CodeBlock): PreparedBlock {
+export function splitImportsAndBlock(block: CodeBlock, importsFrom?: string): PreparedBlock {
   const { program, staticImports } = parse(block);
 
-  const imports = staticImports.map((staticImport) => sliceSource(block.code, staticImport));
+  const imports = staticImports.map((staticImport) =>
+    importText(block.code, staticImport, importsFrom),
+  );
 
   const transformed = sanitizeProgram(program);
   const body = transformed.map((node) => printBodyNode(block.code, node)).join("\n");
@@ -35,7 +38,8 @@ export function splitImportsAndBlock(block: CodeBlock): PreparedBlock {
   return { imports, body };
 }
 
-type ParsedBlock = { program: Program; staticImports: Range[] };
+type StaticImport = Range & { moduleRequest: Range & { value: string } };
+type ParsedBlock = { program: Program; staticImports: StaticImport[] };
 
 function parse(block: CodeBlock): ParsedBlock {
   const parser = LANGS[block.lang].parser;
@@ -157,6 +161,18 @@ function printBodyNode(source: string, node: BodyNode): string {
 }
 
 type Range = { start: number; end: number };
+function importText(code: string, staticImport: StaticImport, importsFrom?: string): string {
+  const { start, end, moduleRequest } = staticImport;
+  if (importsFrom === undefined || !moduleRequest.value.startsWith(".")) {
+    return sliceSource(code, staticImport);
+  }
+  const specifier = JSON.stringify(resolve(importsFrom, moduleRequest.value));
+  return sliceSource(
+    `${code.slice(start, moduleRequest.start)}${specifier}${code.slice(moduleRequest.end, end)}`,
+    { start: 0, end: Infinity },
+  );
+}
+
 function sliceSource(source: string, { start, end }: Range): string {
   return source.slice(start, end).trimEnd();
 }

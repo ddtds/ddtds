@@ -4,7 +4,7 @@ import { createLogger } from "./logger.ts";
 
 const options = {
   root: "/repo/pkg",
-  outputDir: "/repo/pkg/__doctests__",
+  moduleDir: "/repo/pkg/__doctests__",
   logger: createLogger("silent"),
 };
 const run = (code: string, lang = "ts") => `\`\`\`${lang} run\n${code}\n\`\`\`\n`;

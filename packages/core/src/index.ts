@@ -1,7 +1,7 @@
 import { mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
-import { join, resolve } from "node:path";
+import { join } from "node:path";
 import { globSync } from "tinyglobby";
-import { defaultDocsExclude, defaultDocsInclude, defaultOutputDir } from "./constants.ts";
+import { defaultDocsExclude, defaultDocsInclude } from "./constants.ts";
 
 export { CodeBlock, parseCodeFences } from "./blocks.ts";
 export {
@@ -12,7 +12,7 @@ export {
   type Annotation,
   defaultDocsInclude,
   defaultDocsExclude,
-  defaultOutputDir,
+  defaultOutDir,
 } from "./constants.ts";
 export { wrapDdtTest } from "./error.ts";
 export { docModuleName, indexDocs, type DocIndex, type Fence, type IndexOptions } from "./docs.ts";
@@ -29,8 +29,6 @@ export type DocsOptions = {
   include?: string[];
   /** Globs of docs to skip, relative to the root. Replaces `defaultDocsExclude` unless unset or empty. */
   exclude?: string[];
-  /** Directory for generated modules, relative to the root: written by `ddt build`, virtual in the plugin. Defaults to `defaultOutputDir`. */
-  outputDir?: string;
 };
 
 export function findDocs(root: string, include: string[], exclude: string[]): string[] {
@@ -38,21 +36,15 @@ export function findDocs(root: string, include: string[], exclude: string[]): st
 }
 
 export type DocsConfig = DocsOptions & {
-  /** Directory that `include`, `exclude` and `outputDir` are relative to. */
+  /** Directory that `include` and `exclude` are relative to. */
   root: string;
 };
 
-export function resolveDocsOptions({
-  root,
-  include,
-  exclude,
-  outputDir,
-}: DocsConfig): Required<DocsConfig> {
+export function resolveDocsOptions({ root, include, exclude }: DocsConfig): Required<DocsConfig> {
   return {
     root,
     include: include?.length ? include : defaultDocsInclude,
     exclude: exclude?.length ? exclude : defaultDocsExclude,
-    outputDir: resolve(root, outputDir ?? defaultOutputDir),
   };
 }
 
@@ -60,7 +52,6 @@ export function readDocs(root: string, include: string[], exclude: string[]): Ma
   return new Map(findDocs(root, include, exclude).map((doc) => [doc, readFileSync(doc, "utf8")]));
 }
 
-/** Replaces the directory's contents with the given files. */
 export function writeFiles(dir: string, files: ReadonlyMap<string, string>): void {
   rmSync(dir, { recursive: true, force: true });
   mkdirSync(dir, { recursive: true });

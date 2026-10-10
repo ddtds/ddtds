@@ -138,6 +138,14 @@ describe("CodeBlock.splitImports", () => {
     expect(body).not.toContain("import {");
   });
 
+  test("makes relative imports absolute from importsFrom", () => {
+    const b = block("import { a } from './a.ts'\nimport { b } from \"pkg\"\na + b");
+    expect(b.splitImports("/repo/docs").imports).toEqual([
+      'import { a } from "/repo/docs/a.ts"',
+      'import { b } from "pkg"',
+    ]);
+  });
+
   test("strips export modifiers from runtime declarations", () => {
     const b = block("export const base = 2;\nexport function addOne(x: number) { return x + 1; }");
     const { body } = b.splitImports();
@@ -317,13 +325,12 @@ describe("resolveDocsOptions", () => {
       root: "/repo",
       include: defaultDocsInclude,
       exclude: defaultDocsExclude,
-      outputDir: "/repo/__doctests__",
     });
   });
 
   test("keeps given values", () => {
-    const options = { root: "/repo", include: ["a.md"], exclude: ["b.md"], outputDir: "out" };
-    expect(resolveDocsOptions(options)).toEqual({ ...options, outputDir: "/repo/out" });
+    const options = { root: "/repo", include: ["a.md"], exclude: ["b.md"] };
+    expect(resolveDocsOptions(options)).toEqual(options);
   });
 });
 

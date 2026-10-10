@@ -1,4 +1,4 @@
-import { basename } from "node:path";
+import { basename, dirname } from "node:path";
 import {
   DdtCompileError,
   docModuleName,
@@ -43,8 +43,8 @@ function compiledCode(): FenceCode {
   return { imports: [DDT_IMPORT], body: wrapBody(body) };
 }
 
-function blockCode(block: CodeBlock): FenceCode {
-  const { imports, body } = block.splitImports();
+function blockCode(block: CodeBlock, importsFrom: string): FenceCode {
+  const { imports, body } = block.splitImports(importsFrom);
 
   if (block.shouldFail()) {
     const inner = `await expect(async () => {\n${indent(body)}\n}).rejects.toThrow();`;
@@ -54,9 +54,9 @@ function blockCode(block: CodeBlock): FenceCode {
   return { imports: [DDT_IMPORT, ...imports], body: wrapBody(body) };
 }
 
-function fenceCode(block: CodeBlock): FenceCode {
+function fenceCode({ doc, block }: Fence): FenceCode {
   try {
-    const code = blockCode(block);
+    const code = blockCode(block, dirname(doc));
     return block.shouldFailToCompile() ? compiledCode() : code;
   } catch (error) {
     if (!(error instanceof DdtCompileError)) throw error;
@@ -67,8 +67,8 @@ function fenceCode(block: CodeBlock): FenceCode {
   }
 }
 
-export function fenceModule(block: CodeBlock): string {
-  const { imports, body } = fenceCode(block);
+export function fenceModule(fence: Fence): string {
+  const { imports, body } = fenceCode(fence);
   const header = ["import { expect } from 'vitest';", ...imports].join("\n");
   const run = body.length === 0 ? "" : `\n${indent(body)}\n`;
   return `${header}\nexport default async function () {${run}}`;
@@ -87,11 +87,10 @@ export function docModule(fences: readonly Fence[], importPath: (fence: Fence) =
   ].join("\n");
 }
 
-/** Files for `ddt build`: one doc module per doc, importing its fence modules next to it. */
 export function moduleFiles(index: DocIndex, root: string): Map<string, string> {
   const files = new Map<string, string>();
   for (const [doc, fences] of index.docs) {
-    for (const fence of fences) files.set(basename(fence.id), fenceModule(fence.block));
+    for (const fence of fences) files.set(basename(fence.id), fenceModule(fence));
     files.set(
       docModuleName(root, doc),
       docModule(fences, (fence) => `./${basename(fence.id)}`),
