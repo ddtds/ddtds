@@ -1,5 +1,5 @@
 import { expect, test } from "vitest";
-import { collect, fence, fixture } from "./test-utils.ts";
+import { collect, fence, fixture, run } from "./test-utils.ts";
 
 const files = {
   "guide.md": fence("1;"),
@@ -46,4 +46,12 @@ test("passes include and exclude to findDocs", async () => {
       "unit.test.ts",
     ]
   `);
+});
+
+test("resolves relative imports from the doc", async () => {
+  const root = fixture({
+    "docs/two.ts": "export const two = 2;",
+    "docs/guide.md": fence('import { two } from "./two.ts";\nexpect(two).toBe(2);'),
+  });
+  expect(await run(root)).toEqual({ "docs/guide.md:1": "passed" });
 });
