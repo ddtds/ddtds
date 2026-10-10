@@ -55,20 +55,23 @@ test("ignores stale files from ddt build", async () => {
   expect(await collect(root)).not.toContain("__doctests__/stale.test.ts");
 });
 
-test("resolves packages from the root and relative imports from the doc", async () => {
+test("fails docs that import relative paths", async () => {
+  const root = fixture({
+    "docs/two.ts": "export const two = 2;",
+    "docs/guide.md": fence('import { two } from "./two.ts";\nexpect(two).toBe(2);'),
+  });
+  expect(await run(root)).toEqual({ "docs/guide.md:1": "compile-error" });
+});
+
+test("resolves packages from the root for docs outside it", async () => {
   const root = fixture({
     "pkg/node_modules/local-dep/package.json": '{ "name": "local-dep", "main": "index.js" }',
     "pkg/node_modules/local-dep/index.js": "export const one = 1;",
-    "docs/two.ts": "export const two = 2;",
-    "docs/guide.md": fence(
-      'import { one } from "local-dep";\nimport { two } from "./two.ts";\nexpect(one + two).toBe(3);',
-    ),
+    "docs/guide.md": fence('import { one } from "local-dep";\nexpect(one).toBe(1);'),
   });
-  expect(await run(join(root, "pkg"), { include: ["../docs/*.md"] })).toMatchInlineSnapshot(`
-    {
-      "../docs/guide.md:1": "passed",
-    }
-  `);
+  expect(await run(join(root, "pkg"), { include: ["../docs/*.md"] })).toEqual({
+    "../docs/guide.md:1": "passed",
+  });
 });
 
 test("reruns a doc when it is edited in watch mode", async () => {

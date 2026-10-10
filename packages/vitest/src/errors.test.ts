@@ -6,7 +6,7 @@ test("classifies how doc tests fail", async () => {
     "parse-error.md": fence("const = 1;"),
     "runtime-syntax-error.md": fence('JSON.parse("{");'),
     "undeclared-name.md": fence("missingFn();"),
-    "missing-static-import.md": fence('import { x } from "./missing.ts";\nx;'),
+    "missing-static-import.md": fence('import { x } from "missing-package";\nx;'),
     "missing-dynamic-import.md": fence('await import("./missing.ts");'),
     "failed-assertion.md": fence("expect(1).toBe(2);"),
     "passes.md": fence("expect(1).toBe(1);"),

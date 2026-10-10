@@ -89,8 +89,8 @@ export class CodeBlock {
     return this.#annotation === ANNOTATIONS.COMPILE_FAIL;
   }
 
-  public splitImports(importsFrom?: string): { imports: string[]; body: string } {
-    return splitImportsAndBlock(this, importsFrom);
+  public splitImports(): { imports: string[]; body: string } {
+    return splitImportsAndBlock(this);
   }
 }
 
