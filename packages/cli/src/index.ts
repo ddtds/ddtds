@@ -10,7 +10,7 @@ const buildCmd = command(
         type: [String],
         default: defaultDocsExclude,
         placeholder: "<glob>",
-        description: "Glob of docs to skip (repeatable, replaces default)",
+        description: "Glob of docs to skip, replaces default",
       },
       output: {
         type: String,

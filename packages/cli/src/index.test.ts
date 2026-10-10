@@ -40,7 +40,7 @@ test("ddt build --help", () => {
       ddt build [flags...] [include...]
 
     Flags:
-          --exclude <glob>        Glob of docs to skip (repeatable, replaces default) (default: ["**/node_modules/**","**/CHANGELOG.md"])
+          --exclude <glob>        Glob of docs to skip, replaces default (default: ["**/node_modules/**","**/CHANGELOG.md"])
       -h, --help                  Show help
           --output <dir>          Directory to write test files to (default: "__doctests__")
 
