@@ -150,8 +150,8 @@ describe("CodeBlock.splitImports", () => {
     );
   });
 
-  test("throws a SyntaxError on tsrx parse errors", () => {
-    expect(() => block("function A() @{", null, 1, "tsrx").splitImports()).toThrow(SyntaxError);
+  test.each(["<p>", "function A() @{"])("throws a SyntaxError on broken tsrx: %s", (code) => {
+    expect(() => block(code, null, 1, "tsrx").splitImports()).toThrow(SyntaxError);
   });
 });
 

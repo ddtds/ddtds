@@ -36,7 +36,7 @@ function parse(block: CodeBlock): ParsedBlock {
   const filename = `block.${lang}`;
   const { program, module, errors } =
     lang === "tsrx"
-      ? tsrxParser().parseSync(filename, block.code, { lang, sourceType: "module" })
+      ? parseTsrx(filename, block.code)
       : parseSync(filename, block.code, { lang, sourceType: "module" });
 
   if (errors.length > 0 || !program || !module) {
@@ -50,6 +50,16 @@ function formatParseError(block: CodeBlock, error: ParseError): string {
   if (!label) return error.message;
   const line = block.line + block.code.slice(0, label.start).split("\n").length;
   return `${error.message} (line ${line})`;
+}
+
+/** The tsrx parser throws instead of reporting errors for some broken input. */
+function parseTsrx(filename: string, code: string): ReturnType<typeof TsrxParser.parseSync> {
+  const parser = tsrxParser();
+  try {
+    return parser.parseSync(filename, code, { lang: "tsrx", sourceType: "module" });
+  } catch (error) {
+    throw new SyntaxError(error instanceof Error ? error.message : String(error), { cause: error });
+  }
 }
 
 const requireTsrxParser: (id: "@tsrx/oxc/parser") => typeof TsrxParser = createRequire(
