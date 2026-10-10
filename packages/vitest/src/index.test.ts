@@ -48,10 +48,10 @@ test("passes include and exclude to findDocs", async () => {
   `);
 });
 
-test("resolves relative imports from the doc", async () => {
+test("fails docs that import relative paths", async () => {
   const root = fixture({
     "docs/two.ts": "export const two = 2;",
     "docs/guide.md": fence('import { two } from "./two.ts";\nexpect(two).toBe(2);'),
   });
-  expect(await run(root)).toEqual({ "docs/guide.md:1": "passed" });
+  expect(await run(root)).toEqual({ "docs/guide.md:1": "compile-error" });
 });

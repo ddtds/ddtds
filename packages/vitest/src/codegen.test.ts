@@ -57,7 +57,7 @@ describe("generateBlockFile: basic", () => {
 
 describe("generateBlockFile: imports", () => {
   test("hoists multiline imports", () => {
-    const code = "import {\n  foo,\n  bar,\n  baz,\n} from './utils'\nfoo()";
+    const code = "import {\n  foo,\n  bar,\n  baz,\n} from 'utils'\nfoo()";
     const out = fenceModule(fence(code));
 
     assertTestRun(out);
@@ -67,17 +67,12 @@ describe("generateBlockFile: imports", () => {
         foo,
         bar,
         baz,
-      } from "/repo/docs/utils"
+      } from 'utils'
       export default async function () {
         foo()
       }"
     `);
   });
-});
-
-test("fence module imports relative paths from the doc", () => {
-  const out = fenceModule(fence("import { a } from './a.ts'\na"));
-  expect(out).toContain('from "/repo/docs/a.ts"');
 });
 
 describe("generateBlockFile: annotations", () => {
@@ -137,11 +132,11 @@ describe("generateBlockFile: annotations", () => {
 
 describe("in-memory modules", () => {
   test("fence module exports the fence as a function", () => {
-    const out = fenceModule(fence("import { foo } from './foo'\nfoo()"));
+    const out = fenceModule(fence("import { foo } from 'foo'\nfoo()"));
     expect(out).toContain("export default async function");
     expect(out).toMatchInlineSnapshot(`
       "import { expect } from 'vitest';
-      import { foo } from "/repo/docs/foo"
+      import { foo } from 'foo'
       export default async function () {
         foo()
       }"
