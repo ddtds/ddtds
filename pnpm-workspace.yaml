@@ -1,6 +1,7 @@
 packages:
   - "packages/*"
   - "examples/*"
+  - "examples/monorepo/packages/*"
 
 allowBuilds:
   # no-op/warning-only postinstall scripts, nothing to build
@@ -18,6 +19,30 @@ catalogs:
     "@types/node": 24.19.1
     typescript: ^7.0.2
     vitest: ^4.1.11
+  examples:
+    "@angular/compiler": ^22.2.1
+    "@angular/core": ^22.2.1
+    "@angular/platform-browser": ^22.2.1
+    "@oxc-project/runtime": ^0.153.0
+    "@preact/preset-vite": ^2.10.6
+    "@sveltejs/vite-plugin-svelte": ^7.3.1
+    "@testing-library/jest-dom": ^7.0.1
+    "@testing-library/react": ^16.3.3
+    "@types/react": ^19.3.0
+    "@types/react-dom": ^19.3.0
+    "@vitejs/plugin-react": ^6.1.2
+    "@vitejs/plugin-vue": ^6.0.9
+    happy-dom: 20.14.5
+    lit: ^3.3.3
+    octane: ^0.10.0
+    preact: ^11.0.0
+    react: ^19.3.0
+    react-dom: ^19.3.0
+    rxjs: ^7.8.2
+    solid-js: ^1.9.16
+    svelte: ^5.57.2
+    vite-plugin-solid: ^2.11.14
+    vue: ^3.5.43
   prod: {}
   peer: {}
 

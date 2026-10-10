@@ -1,0 +1,25 @@
+{
+  "name": "@ddtds/react-greet",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.tsx"
+  },
+  "scripts": {
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@ddtds/greet": "workspace:*",
+    "react": "catalog:examples",
+    "react-dom": "catalog:examples"
+  },
+  "devDependencies": {
+    "@ddtds/vitest": "workspace:*",
+    "@types/react": "catalog:examples",
+    "@types/react-dom": "catalog:examples",
+    "@vitejs/plugin-react": "catalog:examples",
+    "happy-dom": "catalog:examples",
+    "vitest": "catalog:dev"
+  }
+}

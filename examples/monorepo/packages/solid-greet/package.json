@@ -1,18 +1,23 @@
 {
-  "name": "@ddtds/example-react",
+  "name": "@ddtds/solid-greet",
   "version": "0.0.0",
   "private": true,
   "type": "module",
+  "exports": {
+    ".": "./src/index.tsx"
+  },
   "scripts": {
     "test": "vitest run"
+  },
+  "dependencies": {
+    "@ddtds/greet": "workspace:*",
+    "solid-js": "catalog:examples"
   },
   "devDependencies": {
     "@ddtds/vitest": "workspace:*",
     "@testing-library/jest-dom": "catalog:examples",
-    "@testing-library/react": "catalog:examples",
     "happy-dom": "catalog:examples",
-    "react": "catalog:examples",
-    "react-dom": "catalog:examples",
+    "vite-plugin-solid": "catalog:examples",
     "vitest": "catalog:dev"
   }
 }

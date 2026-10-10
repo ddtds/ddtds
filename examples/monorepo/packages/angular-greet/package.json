@@ -1,0 +1,25 @@
+{
+  "name": "@ddtds/angular-greet",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@angular/core": "catalog:examples",
+    "@angular/platform-browser": "catalog:examples",
+    "@ddtds/greet": "workspace:*",
+    "rxjs": "catalog:examples"
+  },
+  "devDependencies": {
+    "@angular/compiler": "catalog:examples",
+    "@ddtds/vitest": "workspace:*",
+    "@oxc-project/runtime": "catalog:examples",
+    "happy-dom": "catalog:examples",
+    "vitest": "catalog:dev"
+  }
+}
