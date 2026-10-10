@@ -1,5 +1,4 @@
 import { mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
-import { join } from "node:path";
 import { globSync } from "tinyglobby";
 import { defaultDocsExclude, defaultDocsInclude } from "./constants.ts";
 
@@ -13,7 +12,7 @@ export {
   defaultOutDir,
 } from "./constants.ts";
 export { DdtTestError, wrapDdtTest } from "./error.ts";
-export { DocIndex, docModuleName, type Fence, type IndexOptions } from "./docs.ts";
+export { DocIndex, type Fence, type IndexOptions } from "./docs.ts";
 export {
   DdtCompileError,
   type CompileDiagnostic,
@@ -53,5 +52,5 @@ export function readDocs(root: string, include: string[], exclude: string[]): Ma
 export function writeFiles(dir: string, files: ReadonlyMap<string, string>): void {
   rmSync(dir, { recursive: true, force: true });
   mkdirSync(dir, { recursive: true });
-  for (const [name, content] of files) writeFileSync(join(dir, name), content);
+  for (const [path, content] of files) writeFileSync(path, content);
 }

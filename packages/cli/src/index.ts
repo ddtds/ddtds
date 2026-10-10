@@ -56,7 +56,7 @@ function entries({ root, index }: Loaded): Entry[] {
 
 const buildCmd = command({ name: "build", parameters: ["[include...]"], flags }, (argv) => {
   const { root, outDir, index } = load(argv._.include, argv.flags.exclude, argv.flags.outDir);
-  writeFiles(outDir, moduleFiles(index, root));
+  writeFiles(outDir, moduleFiles(index));
   logger.info(`Total: ${index.size} tests in ${relative(root, outDir)}`);
 });
 

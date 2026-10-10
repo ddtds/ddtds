@@ -1,11 +1,5 @@
-import { basename, dirname } from "node:path";
-import {
-  DdtCompileError,
-  docModuleName,
-  type CodeBlock,
-  type DocIndex,
-  type Fence,
-} from "@ddtds/core";
+import { dirname } from "node:path";
+import { DdtCompileError, type CodeBlock, type DocIndex, type Fence } from "@ddtds/core";
 
 type DdtVitestExports = keyof typeof import("./index.ts");
 
@@ -69,23 +63,20 @@ export function fenceModule(fence: Fence): string {
   return `${header}\nexport default async function () {${run}}`;
 }
 
-export function docModule(fences: readonly Fence[], importPath: (fence: Fence) => string): string {
+export function docModule(fences: readonly Fence[]): string {
   const tests = fences.map((fence) => {
     const name = JSON.stringify(`${fence.block.details.file}:${fence.block.line}`);
-    const load = `const { default: run } = await import(${JSON.stringify(importPath(fence))});`;
+    const load = `const { default: run } = await import(${JSON.stringify(fence.id)});`;
     return `test(${name}, () =>\n  wrapDdtTest(async () => {\n    ${load}\n    await run();\n  }),\n);`;
   });
   return ["import { test } from 'vitest';", ddtImport("wrapDdtTest"), ...tests].join("\n");
 }
 
-export function moduleFiles(index: DocIndex, root: string): Map<string, string> {
+export function moduleFiles(index: DocIndex): Map<string, string> {
   const files = new Map<string, string>();
   for (const [doc, fences] of index.docs()) {
-    for (const fence of fences) files.set(basename(fence.id), fenceModule(fence));
-    files.set(
-      docModuleName(root, doc),
-      docModule(fences, (fence) => `./${basename(fence.id)}`),
-    );
+    for (const fence of fences) files.set(fence.id, fenceModule(fence));
+    files.set(index.docModuleId(doc), docModule(fences));
   }
   return files;
 }

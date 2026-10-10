@@ -8,43 +8,7 @@ export type Fence = Readonly<{
   block: CodeBlock;
 }>;
 
-export type IndexOptions = { root: string; moduleDir: string; logger: Logger };
-
-function flatName(root: string, doc: string): string {
-  return relative(root, doc).replaceAll(".", "_").replaceAll(sep, "_");
-}
-
-export function docModuleName(root: string, doc: string): string {
-  return `${flatName(root, doc)}.test.ts`;
-}
-
-function fencesOf(doc: string, source: string, options: IndexOptions): Fence[] {
-  const { root, moduleDir, logger } = options;
-  return parseCodeFences(source, relative(root, doc), logger).map((block) => ({
-    id: join(moduleDir, `${flatName(root, doc)}_${block.line}.${block.outputExtension}`),
-    doc,
-    block,
-  }));
-}
-
-/** Transform docs map into a map of fence ids and code fences */
-function buildFenceIdsFromDocs(docs: ReadonlyMap<string, readonly Fence[]>): Map<string, Fence> {
-  return new Map([...docs.values()].flat().map((fence) => [fence.id, fence]));
-}
-
-function withSources(
-  docs: ReadonlyMap<string, readonly Fence[]>,
-  sources: ReadonlyMap<string, string>,
-  options: IndexOptions,
-): Map<string, readonly Fence[]> {
-  const next = new Map(docs);
-  for (const [doc, source] of sources) {
-    const fences = fencesOf(doc, source, options);
-    if (fences.length > 0) next.set(doc, fences);
-    else next.delete(doc);
-  }
-  return next;
-}
+export type IndexOptions = Readonly<{ root: string; moduleDir: string; logger: Logger }>;
 
 export class DocIndex {
   readonly #options: IndexOptions;
@@ -54,15 +18,22 @@ export class DocIndex {
   private constructor(options: IndexOptions, docs: ReadonlyMap<string, readonly Fence[]>) {
     this.#options = options;
     this.#docs = docs;
-    this.#fences = buildFenceIdsFromDocs(docs);
+    /** Transform docs map into a map of fence ids and code fences */
+    this.#fences = new Map([...docs.values()].flat().map((fence) => [fence.id, fence]));
   }
 
   public static fromSources(sources: ReadonlyMap<string, string>, options: IndexOptions): DocIndex {
-    return new DocIndex(options, withSources(new Map(), sources, options));
+    return [...sources].reduce(
+      (index, [doc, source]) => index.withDoc(doc, source),
+      new DocIndex(options, new Map()),
+    );
   }
 
   public withDoc(doc: string, source: string): DocIndex {
-    const docs = withSources(this.#docs, new Map([[doc, source]]), this.#options);
+    const docs = new Map(this.#docs);
+    const fences = this.#parse(doc, source);
+    if (fences.length > 0) docs.set(doc, fences);
+    else docs.delete(doc);
     return new DocIndex(this.#options, docs);
   }
 
@@ -76,5 +47,22 @@ export class DocIndex {
 
   public fences(): Iterable<Fence> {
     return this.#fences.values();
+  }
+
+  public docModuleId(doc: string): string {
+    return join(this.#options.moduleDir, `${this.#flatName(doc)}.test.ts`);
+  }
+
+  #parse(doc: string, source: string): Fence[] {
+    const { root, moduleDir, logger } = this.#options;
+    return parseCodeFences(source, relative(root, doc), logger).map((block) => ({
+      id: join(moduleDir, `${this.#flatName(doc)}_${block.line}.${block.outputExtension}`),
+      doc,
+      block,
+    }));
+  }
+
+  #flatName(doc: string): string {
+    return relative(this.#options.root, doc).replaceAll(".", "_").replaceAll(sep, "_");
   }
 }

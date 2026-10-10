@@ -51,7 +51,7 @@ export function ddtPlugin({ logLevel, ...docs }: DdtPluginOptions = {}): Plugin 
       for (const { id, block } of index.fences()) {
         logger.debug(`${block.details.file}:${block.line} -> ${relative(root, id)}`);
       }
-      writeFiles(moduleDir, moduleFiles(index, root));
+      writeFiles(moduleDir, moduleFiles(index));
       logger.info(`Total: ${index.size} tests`);
 
       const doctests = `${moduleDir}/**/*.test.ts`;

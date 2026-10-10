@@ -1,5 +1,5 @@
 import { expect, test } from "vitest";
-import { DocIndex, docModuleName } from "./docs.ts";
+import { DocIndex } from "./docs.ts";
 import { createLogger } from "./logger.ts";
 
 const options = {
@@ -50,6 +50,8 @@ test("withDoc replaces one doc's fences and drops docs without any", () => {
   expect(summary(before)).toHaveProperty(["/repo/pkg/b.md"]);
 });
 
-test("docModuleName flattens the path relative to the root", () => {
-  expect(docModuleName(options.root, "/repo/docs/guide.md")).toBe("___docs_guide_md.test.ts");
+test("docModuleId flattens the doc path relative to the root", () => {
+  expect(index({}).docModuleId("/repo/docs/guide.md")).toBe(
+    "/repo/pkg/__doctests__/___docs_guide_md.test.ts",
+  );
 });
