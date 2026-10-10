@@ -35,8 +35,7 @@ export function splitImportsAndBlock(block: CodeBlock): PreparedBlock {
   return { imports, body };
 }
 
-type StaticImport = Range & { moduleRequest: Range & { value: string } };
-type ParsedBlock = { program: Program; staticImports: StaticImport[] };
+type ParsedBlock = { program: Program; staticImports: Range[] };
 
 function parse(block: CodeBlock): ParsedBlock {
   const parser = LANGS[block.lang].parser;
@@ -47,26 +46,6 @@ function parse(block: CodeBlock): ParsedBlock {
       parser,
       "parse",
       errors.map((error) => toDiagnostic(block, error)),
-    );
-  }
-  const paths = module.staticImports.filter(({ moduleRequest }) =>
-    /^[./]/.test(moduleRequest.value),
-  );
-  if (paths.length > 0) {
-    throw compileError(
-      block,
-      parser,
-      "imports",
-      paths.map(({ moduleRequest }) => ({
-        message: `Docs can only import packages, not "${moduleRequest.value}"`,
-        help: "Import from the package name, as users of the package would.",
-        labels: [
-          {
-            start: block.positionAt(moduleRequest.start),
-            end: block.positionAt(moduleRequest.end),
-          },
-        ],
-      })),
     );
   }
   return { program, staticImports: module.staticImports };

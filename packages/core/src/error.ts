@@ -11,7 +11,6 @@ export type ErrorKind = (typeof ErrorKind)[keyof typeof ErrorKind];
 const ERROR_MESSAGES = [
   "Cannot use import statement outside a module",
   "Cannot find module",
-  "Cannot find package",
   "is not defined",
 ];
 
