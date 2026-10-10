@@ -7,6 +7,10 @@ const config: KnipConfig = {
   // optional peer for tsrx parsing
   ignoreDependencies: ["publint", "@tsrx/oxc"],
   workspaces: {
+    "examples/ts": {
+      // imported by relative-imports.md
+      entry: ["docs/math.ts"],
+    },
     "examples/react": {
       // used in generated tests
       ignoreDependencies: ["react", "react-dom", "@testing-library/react"],
