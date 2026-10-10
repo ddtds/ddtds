@@ -1,4 +1,4 @@
-import { type CodeBlock } from "@ddtds/core";
+import type { CodeBlock } from "@ddtds/core";
 
 function indent(code: string): string {
   return code

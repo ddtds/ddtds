@@ -2,7 +2,7 @@ import { remark } from "remark";
 import { visit } from "unist-util-visit";
 import { SUPPORTED_LANGS, ANNOTATIONS, type Annotation, isAnnotation } from "./constants.ts";
 import { splitImportsAndBlock } from "./parse.ts";
-import { type Logger } from "./logger.ts";
+import type { Logger } from "./logger.ts";
 
 type AnnotationResult =
   | { tag: "ok"; annotation: Annotation }

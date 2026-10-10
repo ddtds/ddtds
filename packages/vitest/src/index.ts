@@ -1,4 +1,4 @@
-import { type Plugin } from "vitest/config";
+import type { Plugin } from "vitest/config";
 import { generate as generateCore, type GenerateDeps } from "@ddtds/core";
 import { generateBlockFile } from "./codegen.ts";
 import { createLogger, parseLogLevel, type LogLevel } from "@ddtds/core/log";
