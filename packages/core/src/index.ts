@@ -1,9 +1,7 @@
-import { readFileSync, writeFileSync, mkdirSync, rmSync } from "node:fs";
-import { join, relative, resolve, sep } from "node:path";
+import { mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { join, resolve } from "node:path";
 import { globSync } from "tinyglobby";
-import { parseCodeFences, type CodeBlock } from "./blocks.ts";
 import { defaultDocsExclude, defaultDocsInclude, defaultOutputDir } from "./constants.ts";
-import { createLoggerFromEnv, type Logger } from "./logger.ts";
 
 export { CodeBlock, parseCodeFences } from "./blocks.ts";
 export {
@@ -17,6 +15,7 @@ export {
   defaultOutputDir,
 } from "./constants.ts";
 export { wrapDdtTest } from "./error.ts";
+export { docModuleName, indexDocs, type DocIndex, type Fence, type IndexOptions } from "./docs.ts";
 export {
   DdtCompileError,
   type CompileDiagnostic,
@@ -30,7 +29,7 @@ export type DocsOptions = {
   include?: string[];
   /** Globs of docs to skip, relative to the root. Replaces `defaultDocsExclude` unless unset or empty. */
   exclude?: string[];
-  /** Directory to write test files, relative to the root. Defaults to `defaultOutputDir`. */
+  /** Directory for generated modules, relative to the root: written by `ddt build`, virtual in the plugin. Defaults to `defaultOutputDir`. */
   outputDir?: string;
 };
 
@@ -38,26 +37,7 @@ export function findDocs(root: string, include: string[], exclude: string[]): st
   return globSync(include, { cwd: root, ignore: exclude, absolute: true });
 }
 
-export interface GenerateDeps {
-  findDocs: typeof findDocs;
-  readFile: (path: string) => string;
-  writeFile: (path: string, content: string) => void;
-  clearDir: (path: string) => void;
-  logger: Logger;
-}
-
-const defaultGenerateDeps: GenerateDeps = {
-  findDocs,
-  readFile: (path) => readFileSync(path, "utf8"),
-  writeFile: writeFileSync,
-  clearDir: (path) => {
-    rmSync(path, { recursive: true, force: true });
-    mkdirSync(path, { recursive: true });
-  },
-  logger: createLoggerFromEnv(),
-};
-
-export type GenerateOptions = DocsOptions & {
+export type DocsConfig = DocsOptions & {
   /** Directory that `include`, `exclude` and `outputDir` are relative to. */
   root: string;
 };
@@ -67,7 +47,7 @@ export function resolveDocsOptions({
   include,
   exclude,
   outputDir,
-}: GenerateOptions): Required<GenerateOptions> {
+}: DocsConfig): Required<DocsConfig> {
   return {
     root,
     include: include?.length ? include : defaultDocsInclude,
@@ -76,41 +56,13 @@ export function resolveDocsOptions({
   };
 }
 
-export function generate(
-  options: GenerateOptions,
-  renderBlockFile: (mdPath: string, block: CodeBlock) => string,
-  deps?: Partial<GenerateDeps>,
-): number {
-  const resolved = { ...defaultGenerateDeps, ...deps };
-  const { findDocs, readFile, writeFile, clearDir, logger } = resolved;
-  const { root, include, exclude, outputDir: output } = resolveDocsOptions(options);
+export function readDocs(root: string, include: string[], exclude: string[]): Map<string, string> {
+  return new Map(findDocs(root, include, exclude).map((doc) => [doc, readFileSync(doc, "utf8")]));
+}
 
-  const docs = findDocs(root, include, exclude);
-  if (docs.length === 0) {
-    logger.info(`No docs found under ${root}`);
-    return 0;
-  }
-
-  clearDir(output);
-  let total = 0;
-
-  for (const mdPath of docs) {
-    const relPath = relative(root, mdPath);
-    const blocks = parseCodeFences(readFile(mdPath), relPath, logger);
-    if (blocks.length === 0) continue;
-    total += blocks.length;
-
-    const baseName = relPath.replaceAll(".", "_").replaceAll(sep, "_");
-    logger.debug(`${relPath}: ${blocks.length} test${blocks.length === 1 ? "" : "s"}`);
-
-    for (const block of blocks) {
-      const outName = `${baseName}_${block.line}.test.${block.outputExtension}`;
-      const outPath = join(output, outName);
-      writeFile(outPath, renderBlockFile(relPath, block));
-      logger.trace(`  ${relPath}:${block.line} -> ${outPath}`);
-    }
-  }
-
-  logger.info(`Total: ${total} tests`);
-  return total;
+/** Replaces the directory's contents with the given files. */
+export function writeFiles(dir: string, files: ReadonlyMap<string, string>): void {
+  rmSync(dir, { recursive: true, force: true });
+  mkdirSync(dir, { recursive: true });
+  for (const [name, content] of files) writeFileSync(join(dir, name), content);
 }

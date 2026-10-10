@@ -1,7 +1,7 @@
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join, relative } from "node:path";
-import { describe, test, expect, vi, onTestFinished } from "vitest";
+import { describe, test, expect, onTestFinished } from "vitest";
 import {
   ANNOTATIONS,
   CodeBlock,
@@ -10,7 +10,6 @@ import {
   defaultDocsExclude,
   defaultDocsInclude,
   findDocs,
-  generate,
   resolveDocsOptions,
   type Annotation,
   type Lang,
@@ -285,45 +284,6 @@ describe("CodeBlock.splitImports", () => {
   });
 });
 
-describe("generate", () => {
-  test("returns 0 when no docs are found", () => {
-    expect(
-      generate({ root: "/docs" }, renderBlockFile, { findDocs: () => [], logger: silent }),
-    ).toBe(0);
-  });
-
-  test("writes one file per runnable block named by line number", () => {
-    const writes: Array<{ path: string; content: string }> = [];
-    const total = generate({ root: "/repo" }, renderBlockFile, {
-      findDocs: () => ["/repo/guide.md", "/repo/prose.md"],
-      readFile: (path) =>
-        path.endsWith("guide.md") ? "```ts run\nconst x = 1\n```" : "# prose only",
-      writeFile: (path, content) => writes.push({ path, content }),
-      clearDir: vi.fn<() => void>(),
-      logger: silent,
-    });
-
-    expect(total).toBe(1);
-    expect(writes).toHaveLength(1);
-    expect(writes[0]!.path).toBe("/repo/__doctests__/guide_md_1.test.ts");
-    expect(writes[0]!.content).toContain("// guide.md:1");
-  });
-
-  test("replaces . and path separators with _ in file names", () => {
-    const writes: Array<{ path: string; content: string }> = [];
-    generate({ root: "/repo/pkg" }, renderBlockFile, {
-      findDocs: () => ["/repo/docs/guide.md"],
-      readFile: () => "```ts run\nconst x = 1\n```",
-      writeFile: (path, content) => writes.push({ path, content }),
-      clearDir: vi.fn<() => void>(),
-      logger: silent,
-    });
-
-    expect(writes[0]!.path).toBe("/repo/pkg/__doctests__/___docs_guide_md_1.test.ts");
-    expect(writes[0]!.content).toContain("// ../docs/guide.md:1");
-  });
-});
-
 describe("findDocs", () => {
   test("skips node_modules and CHANGELOG by default", () => {
     expect(find(fixture())).toEqual(["guide.md", "nested/guide.md"]);
@@ -366,10 +326,6 @@ describe("resolveDocsOptions", () => {
     expect(resolveDocsOptions(options)).toEqual({ ...options, outputDir: "/repo/out" });
   });
 });
-
-function renderBlockFile(mdPath: string, codeBlock: CodeBlock): string {
-  return `// ${mdPath}:${codeBlock.line}`;
-}
 
 function fixture(): string {
   const dir = mkdtempSync(join(tmpdir(), "ddtds-"));

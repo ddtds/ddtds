@@ -1,16 +1,10 @@
+import { relative } from "node:path";
 import { defaultInclude, type Plugin } from "vitest/config";
-import {
-  OUTPUT_EXTENSIONS,
-  generate as generateCore,
-  resolveDocsOptions,
-  type DocsOptions,
-  type GenerateDeps,
-  type GenerateOptions,
-} from "@ddtds/core";
-import { generateBlockFile } from "./codegen.ts";
+import { indexDocs, readDocs, resolveDocsOptions, writeFiles, type DocsOptions } from "@ddtds/core";
+import { moduleFiles } from "./codegen.ts";
 import { createLogger, parseLogLevel, type LogLevel } from "@ddtds/core/log";
 
-export type { CodeBlock, DocsOptions, GenerateDeps, GenerateOptions } from "@ddtds/core";
+export type { CodeBlock, DocIndex, DocsOptions, Fence } from "@ddtds/core";
 export {
   DdtCompileError,
   wrapDdtTest,
@@ -18,6 +12,7 @@ export {
   defaultDocsExclude,
   defaultOutputDir,
 } from "@ddtds/core";
+export { moduleFiles } from "./codegen.ts";
 export type { LogLevel } from "@ddtds/core/log";
 
 export type DdtPluginOptions = DocsOptions & {
@@ -30,21 +25,26 @@ export type DdtPluginOptions = DocsOptions & {
   logLevel?: LogLevel;
 };
 
-export function generate(options: GenerateOptions, deps?: Partial<GenerateDeps>): number {
-  return generateCore(options, generateBlockFile, deps);
-}
-
 export function ddtPlugin({ logLevel, ...docs }: DdtPluginOptions = {}): Plugin {
+  const logger = createLogger(parseLogLevel(process.env.DDT_LOG_LEVEL ?? logLevel));
   return {
     name: "vite-plugin-ddtds",
     config(config) {
-      const logger = createLogger(parseLogLevel(process.env.DDT_LOG_LEVEL ?? logLevel));
-      const options = resolveDocsOptions({ ...docs, root: config.root ?? process.cwd() });
-      generate(options, { logger });
+      const { root, include, exclude, outputDir } = resolveDocsOptions({
+        ...docs,
+        root: config.root ?? process.cwd(),
+      });
+      const index = indexDocs(readDocs(root, include, exclude), { root, outputDir, logger });
+      for (const { id, block } of index.fences.values()) {
+        logger.debug(`${block.details.file}:${block.line} -> ${relative(root, id)}`);
+      }
+      writeFiles(outputDir, moduleFiles(index, root));
+      logger.info(`Total: ${index.fences.size} tests`);
 
-      const doctests = `${options.outputDir}/**/*.test.{${OUTPUT_EXTENSIONS.join(",")}}`;
-      const include = config.test?.include ? [doctests] : [...defaultInclude, doctests];
-      return { test: { include } };
+      const doctests = `${outputDir}/**/*.test.ts`;
+      return {
+        test: { include: config.test?.include ? [doctests] : [...defaultInclude, doctests] },
+      };
     },
   };
 }
