@@ -1,3 +1,7 @@
+export const defaultDocsInclude = ["**/*.{md,mdx}"];
+export const defaultDocsExclude = ["**/node_modules/**", "**/CHANGELOG.md"];
+export const defaultOutputDir = "__doctests__";
+
 export const SUPPORTED_LANGS = new Set(["ts", "typescript", "tsx", "jsx", "js", "javascript"]);
 
 export const ANNOTATIONS = {

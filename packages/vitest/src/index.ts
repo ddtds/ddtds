@@ -1,14 +1,20 @@
 import { resolve } from "node:path";
 import { defaultInclude, type Plugin } from "vitest/config";
-import { generate as generateCore, type GenerateDeps } from "@ddtds/core";
+import {
+  defaultOutputDir,
+  generate as generateCore,
+  type DocsOptions,
+  type GenerateDeps,
+  type GenerateOptions,
+} from "@ddtds/core";
 import { generateBlockFile } from "./codegen.ts";
 import { createLogger, parseLogLevel, type LogLevel } from "@ddtds/core/log";
 
-export type { CodeBlock, GenerateDeps } from "@ddtds/core";
-export { wrapDdtTest } from "@ddtds/core";
+export type { CodeBlock, DocsOptions, GenerateDeps, GenerateOptions } from "@ddtds/core";
+export { wrapDdtTest, defaultDocsInclude, defaultDocsExclude, defaultOutputDir } from "@ddtds/core";
 export type { LogLevel } from "@ddtds/core/log";
 
-export type DdtPluginOptions = {
+export type DdtPluginOptions = DocsOptions & {
   /**
    * Precedence (highest to lowest):
    *   1. `DDT_LOG_LEVEL` environment variable
@@ -18,31 +24,18 @@ export type DdtPluginOptions = {
   logLevel?: LogLevel;
 };
 
-export function generate(
-  searchDir: string,
-  outputDir: string,
-  deps?: Partial<GenerateDeps>,
-): number {
-  return generateCore(searchDir, outputDir, generateBlockFile, deps);
+export function generate(options: GenerateOptions, deps?: Partial<GenerateDeps>): number {
+  return generateCore(options, generateBlockFile, deps);
 }
 
-/**
- * @param searchDir Directory to scan for `.md` and `.mdx` files. Defaults to `"."`
- * @param outputDir Directory to write test files. Defaults to `"__doctests__"`
- */
-export function ddtPlugin(
-  searchDir: string = ".",
-  outputDir: string = "__doctests__",
-  options?: DdtPluginOptions,
-): Plugin {
+export function ddtPlugin({ logLevel, ...docs }: DdtPluginOptions = {}): Plugin {
   return {
     name: "vite-plugin-ddtds",
     config(config) {
-      const level = parseLogLevel(process.env.DDT_LOG_LEVEL ?? options?.logLevel);
-      const logger = createLogger(level);
-
+      const logger = createLogger(parseLogLevel(process.env.DDT_LOG_LEVEL ?? logLevel));
       const root = config.root ?? process.cwd();
-      generate(resolve(root, searchDir), resolve(root, outputDir), { logger });
+      const outputDir = resolve(root, docs.outputDir ?? defaultOutputDir);
+      generate({ ...docs, root, outputDir }, { logger });
 
       const doctests = `${outputDir}/**/*.test.{ts,tsx}`;
       const include = config.test?.include ? [doctests] : [...defaultInclude, doctests];

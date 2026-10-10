@@ -6,7 +6,7 @@
   },
   "type": "module",
   "scripts": {
-    "test": "vitest run --passWithNoTests",
+    "test": "vitest run",
     "typecheck": "tsc"
   },
   "dependencies": {

@@ -4,6 +4,7 @@ const config: KnipConfig = {
   rules: {
     types: "off",
   },
+  ignoreDependencies: ["publint"],
   workspaces: {
     "examples/react": {
       // used in generated tests
