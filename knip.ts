@@ -4,7 +4,8 @@ const config: KnipConfig = {
   rules: {
     types: "off",
   },
-  ignoreDependencies: ["publint"],
+  // @tsrx/oxc: optional peer of @ddtds/core, loaded with require for tsrx code blocks
+  ignoreDependencies: ["publint", "@tsrx/oxc"],
   workspaces: {
     "examples/react": {
       // used in generated tests

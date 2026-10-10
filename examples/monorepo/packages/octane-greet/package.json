@@ -15,6 +15,7 @@
   },
   "devDependencies": {
     "@ddtds/vitest": "workspace:*",
+    "@tsrx/oxc": "catalog:dev",
     "jsdom": "catalog:examples",
     "vitest": "catalog:dev"
   }

@@ -1,4 +1,5 @@
-import { parseSync, type ParserOptions } from "oxc-parser";
+import { createRequire } from "node:module";
+import { parseSync } from "oxc-parser";
 import type { ExportDefaultDeclarationKind, Program } from "@oxc-project/types";
 import type { CodeBlock } from "./blocks.ts";
 
@@ -16,10 +17,8 @@ export type PreparedBlock = {
 
 export function splitImportsAndBlock(block: CodeBlock): PreparedBlock {
   const lang = parserLang(block.lang);
-  const { program, module } = parseSync(`block.${lang}`, block.code, {
-    lang,
-    sourceType: "module",
-  });
+  const parse = lang === "tsrx" ? tsrxParseSync() : parseSync;
+  const { program, module } = parse(`block.${lang}`, block.code, { sourceType: "module" });
 
   const imports = module.staticImports.map((staticImport) => sliceSource(block.code, staticImport));
 
@@ -29,12 +28,21 @@ export function splitImportsAndBlock(block: CodeBlock): PreparedBlock {
   return { imports, body };
 }
 
-function parserLang(lang: string): NonNullable<ParserOptions["lang"]> {
+function parserLang(lang: string): "js" | "ts" | "jsx" | "tsx" | "tsrx" {
   if (lang === "javascript") return "js";
   if (lang === "typescript") return "ts";
   if (lang === "jsx") return "jsx";
   if (lang === "tsx") return "tsx";
+  if (lang === "tsrx") return "tsrx";
   return "ts";
+}
+
+function tsrxParseSync(): typeof parseSync {
+  try {
+    return createRequire(import.meta.url)("@tsrx/oxc/parser").parseSync;
+  } catch (error) {
+    throw new Error('tsrx code blocks need "@tsrx/oxc" installed', { cause: error });
+  }
 }
 
 function sanitizeProgram(program: Program): BodyNode[] {

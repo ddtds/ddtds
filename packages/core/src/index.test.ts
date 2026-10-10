@@ -68,6 +68,7 @@ describe("CodeBlock.outputExtension / isJsx", () => {
     ["javascript", "ts", false],
     ["tsx", "tsx", true],
     ["jsx", "tsx", true],
+    ["tsrx", "tsrx", true],
   ])("lang=%j → outputExtension=%j isJsx=%s", (lang, ext, jsx) => {
     const b = new CodeBlock("x", lang, ANNOTATIONS.RUN, 1);
     expect(b.outputExtension).toBe(ext);
@@ -133,6 +134,14 @@ describe("CodeBlock.splitImports", () => {
     const b = block("export default 1;");
     const { body } = b.splitImports();
     expect(body).toMatchInlineSnapshot(`"const ______default_that_does_not_conflict = 1;"`);
+  });
+
+  test("parses tsrx with @tsrx/oxc", () => {
+    const b = block("import { x } from './x'\nfunction A() @{\n  <p>{x}</p>\n}", null, 1, "tsrx");
+    expect(b.splitImports()).toEqual({
+      imports: ["import { x } from './x'"],
+      body: "function A() @{\n  <p>{x}</p>\n}",
+    });
   });
 });
 
