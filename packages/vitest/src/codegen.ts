@@ -1,4 +1,3 @@
-import { dirname } from "node:path";
 import { DdtCompileError, type CodeBlock, type DocIndex, type Fence } from "@ddtds/core";
 
 type DdtVitestExports = keyof typeof import("./index.ts");
@@ -36,16 +35,16 @@ function compiledCode(): FenceCode {
   };
 }
 
-function blockCode(block: CodeBlock, importsFrom: string): FenceCode {
-  const { imports, body } = block.splitImports(importsFrom);
+function blockCode(block: CodeBlock): FenceCode {
+  const { imports, body } = block.splitImports();
   if (!block.shouldFail()) return { imports, body };
   const rejects = `await expect(async () => {\n${indent(body)}\n}).rejects.toThrow();`;
   return { imports, body: rejects };
 }
 
-function fenceCode({ doc, block }: Fence): FenceCode {
+function fenceCode({ block }: Fence): FenceCode {
   try {
-    const code = blockCode(block, dirname(doc));
+    const code = blockCode(block);
     return block.shouldFailToCompile() ? compiledCode() : code;
   } catch (error) {
     if (!(error instanceof DdtCompileError)) throw error;
