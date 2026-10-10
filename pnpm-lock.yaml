@@ -531,6 +531,9 @@ importers:
 
   packages/cli:
     dependencies:
+      '@ddtds/core':
+        specifier: workspace:*
+        version: link:../core
       '@ddtds/vitest':
         specifier: workspace:*
         version: link:../vitest

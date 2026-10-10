@@ -1,4 +1,5 @@
-import { DdtCompileError, type CodeBlock } from "@ddtds/core";
+import { dirname } from "node:path";
+import { DdtCompileError, type CodeBlock, type DocIndex, type Fence } from "@ddtds/core";
 
 type DdtVitestExports = keyof typeof import("./index.ts");
 
@@ -9,32 +10,17 @@ function indent(code: string): string {
     .join("\n");
 }
 
-function renderTest(kind: "test" | "test.skip", name: string, body: string): string {
-  if (body.length === 0) {
-    return `${kind}(${name}, async () => {\n});`;
-  }
-
-  return `${kind}(${name}, async () => {\n${indent(body)}\n});`;
-}
-
-const VITEST_IMPORT = "import { test, expect } from 'vitest';";
-
 function ddtImport(...names: readonly DdtVitestExports[]): string {
   return `import { ${names.join(", ")} } from '@ddtds/vitest';`;
 }
 
-const DDT_IMPORT = ddtImport("wrapDdtTest");
+type FenceCode = { imports: string[]; body: string };
 
-function wrapBody(inner: string): string {
-  return `await wrapDdtTest(async () => {\n${indent(inner)}\n});`;
-}
-
-function compileErrorFile(name: string, error: DdtCompileError): string {
-  const imports = ddtImport("DdtCompileError", "wrapDdtTest");
+function compileErrorCode(error: DdtCompileError): FenceCode {
   const cause =
     error.cause === undefined ? "" : `, { cause: ${JSON.stringify(serializeCause(error.cause))} }`;
   const body = `throw new DdtCompileError(${JSON.stringify(error.details)}${cause});`;
-  return `${VITEST_IMPORT}\n${imports}\n${renderTest("test", name, wrapBody(body))}`;
+  return { imports: [ddtImport("DdtCompileError")], body };
 }
 
 function serializeCause(cause: unknown): unknown {
@@ -43,37 +29,54 @@ function serializeCause(cause: unknown): unknown {
   return { name: cause.name, message: cause.message, ...code };
 }
 
-function compiledFile(name: string): string {
-  const body = 'throw new Error("expected a compile_fail block to fail to compile");';
-  return `${VITEST_IMPORT}\n${DDT_IMPORT}\n${renderTest("test", name, wrapBody(body))}`;
+function compiledCode(): FenceCode {
+  return {
+    imports: [],
+    body: 'throw new Error("expected a compile_fail block to fail to compile");',
+  };
 }
 
-function failedToCompileFile(name: string): string {
-  return `${VITEST_IMPORT}\n${renderTest("test", name, "")}`;
+function blockCode(block: CodeBlock, importsFrom: string): FenceCode {
+  const { imports, body } = block.splitImports(importsFrom);
+  if (!block.shouldFail()) return { imports, body };
+  const rejects = `await expect(async () => {\n${indent(body)}\n}).rejects.toThrow();`;
+  return { imports, body: rejects };
 }
 
-export function generateBlockFile(mdPath: string, block: CodeBlock): string {
-  const name = JSON.stringify(`${mdPath}:${block.line}`);
+function fenceCode({ doc, block }: Fence): FenceCode {
   try {
-    const file = blockFile(name, block);
-    return block.shouldFailToCompile() ? compiledFile(name) : file;
+    const code = blockCode(block, dirname(doc));
+    return block.shouldFailToCompile() ? compiledCode() : code;
   } catch (error) {
     if (!(error instanceof DdtCompileError)) throw error;
     if (block.shouldFailToCompile() && error.details.phase === "parse") {
-      return failedToCompileFile(name);
+      return { imports: [], body: "" };
     }
-    return compileErrorFile(name, error);
+    return compileErrorCode(error);
   }
 }
 
-function blockFile(name: string, block: CodeBlock): string {
-  const { imports, body } = block.splitImports();
-  const header = [VITEST_IMPORT, DDT_IMPORT, ...imports].join("\n") + "\n";
+export function fenceModule(fence: Fence): string {
+  const { imports, body } = fenceCode(fence);
+  const header = ["import { expect } from 'vitest';", ...imports].join("\n");
+  const run = body.length === 0 ? "" : `\n${indent(body)}\n`;
+  return `${header}\nexport default async function () {${run}}`;
+}
 
-  if (block.shouldFail()) {
-    const inner = `await expect(async () => {\n${indent(body)}\n}).rejects.toThrow();`;
-    return `${header}${renderTest("test", name, wrapBody(inner))}`;
+export function docModule(fences: readonly Fence[]): string {
+  const tests = fences.map((fence) => {
+    const name = JSON.stringify(`${fence.block.details.file}:${fence.block.line}`);
+    const load = `const { default: run } = await import(${JSON.stringify(fence.id)});`;
+    return `test(${name}, () =>\n  wrapDdtTest(async () => {\n    ${load}\n    await run();\n  }),\n);`;
+  });
+  return ["import { test } from 'vitest';", ddtImport("wrapDdtTest"), ...tests].join("\n");
+}
+
+export function moduleFiles(index: DocIndex): Map<string, string> {
+  const files = new Map<string, string>();
+  for (const [doc, fences] of index.docs()) {
+    for (const fence of fences) files.set(fence.id, fenceModule(fence));
+    files.set(index.docModuleId(doc), docModule(fences));
   }
-
-  return `${header}${renderTest("test", name, wrapBody(body))}`;
+  return files;
 }

@@ -10,6 +10,7 @@
     "typecheck": "tsc"
   },
   "dependencies": {
+    "@ddtds/core": "workspace:*",
     "@ddtds/vitest": "workspace:*",
     "cleye": "^2.6.0"
   },
