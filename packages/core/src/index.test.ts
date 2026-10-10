@@ -134,6 +134,13 @@ describe("CodeBlock.splitImports", () => {
     const { body } = b.splitImports();
     expect(body).toMatchInlineSnapshot(`"const ______default_that_does_not_conflict = 1;"`);
   });
+
+  test("throws a SyntaxError with the markdown line on parse errors", () => {
+    const b = block("import { foo } from './foo'\nconst = 1;", null, 10);
+    expect(() => b.splitImports()).toThrowErrorMatchingInlineSnapshot(
+      `[SyntaxError: Unexpected token (line 12)]`,
+    );
+  });
 });
 
 describe("generate", () => {
