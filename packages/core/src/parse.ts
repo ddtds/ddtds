@@ -161,16 +161,15 @@ function printBodyNode(source: string, node: BodyNode): string {
 }
 
 type Range = { start: number; end: number };
+
 function importText(code: string, staticImport: StaticImport, importsFrom?: string): string {
   const { start, end, moduleRequest } = staticImport;
   if (importsFrom === undefined || !moduleRequest.value.startsWith(".")) {
     return sliceSource(code, staticImport);
   }
   const specifier = JSON.stringify(resolve(importsFrom, moduleRequest.value));
-  return sliceSource(
-    `${code.slice(start, moduleRequest.start)}${specifier}${code.slice(moduleRequest.end, end)}`,
-    { start: 0, end: Infinity },
-  );
+  const after = sliceSource(code, { start: moduleRequest.end, end });
+  return `${code.slice(start, moduleRequest.start)}${specifier}${after}`;
 }
 
 function sliceSource(source: string, { start, end }: Range): string {

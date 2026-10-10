@@ -7,6 +7,8 @@ import {
   type Fence,
 } from "@ddtds/core";
 
+type DdtVitestExports = keyof typeof import("./index.ts");
+
 function indent(code: string): string {
   return code
     .split("\n")
@@ -18,7 +20,11 @@ function wrapBody(inner: string): string {
   return `await wrapDdtTest(async () => {\n${indent(inner)}\n});`;
 }
 
-const DDT_IMPORT = "import { DdtTestError, wrapDdtTest } from '@ddtds/vitest'";
+function ddtImport(...names: readonly DdtVitestExports[]): string {
+  return `import { ${names.join(", ")} } from '@ddtds/vitest';`;
+}
+
+const DDT_IMPORT = ddtImport("DdtTestError", "wrapDdtTest");
 
 type FenceCode = { imports: string[]; body: string };
 
@@ -27,7 +33,7 @@ function compileErrorCode(error: DdtCompileError): FenceCode {
     error.cause === undefined ? "" : `, { cause: ${JSON.stringify(serializeCause(error.cause))} }`;
   const body = `throw new DdtCompileError(${JSON.stringify(error.details)}${cause});`;
   return {
-    imports: ["import { DdtCompileError, wrapDdtTest } from '@ddtds/vitest'"],
+    imports: [ddtImport("DdtCompileError", "wrapDdtTest")],
     body: wrapBody(body),
   };
 }
@@ -45,13 +51,10 @@ function compiledCode(): FenceCode {
 
 function blockCode(block: CodeBlock, importsFrom: string): FenceCode {
   const { imports, body } = block.splitImports(importsFrom);
-
-  if (block.shouldFail()) {
-    const inner = `await expect(async () => {\n${indent(body)}\n}).rejects.toThrow();`;
-    return { imports: [DDT_IMPORT, ...imports], body: wrapBody(inner) };
-  }
-
-  return { imports: [DDT_IMPORT, ...imports], body: wrapBody(body) };
+  const inner = block.shouldFail()
+    ? `await expect(async () => {\n${indent(body)}\n}).rejects.toThrow();`
+    : body;
+  return { imports: [DDT_IMPORT, ...imports], body: wrapBody(inner) };
 }
 
 function fenceCode({ doc, block }: Fence): FenceCode {
@@ -80,11 +83,7 @@ export function docModule(fences: readonly Fence[], importPath: (fence: Fence) =
     const load = `await wrapDdtTest(() => import(${JSON.stringify(importPath(fence))}))`;
     return `test(${name}, async () => {\n  const { default: run } = ${load};\n  await run();\n});`;
   });
-  return [
-    "import { test } from 'vitest';",
-    "import { wrapDdtTest } from '@ddtds/vitest'",
-    ...tests,
-  ].join("\n");
+  return ["import { test } from 'vitest';", ddtImport("wrapDdtTest"), ...tests].join("\n");
 }
 
 export function moduleFiles(index: DocIndex, root: string): Map<string, string> {

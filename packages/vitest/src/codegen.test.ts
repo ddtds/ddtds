@@ -47,7 +47,7 @@ describe("generateBlockFile: basic", () => {
 
     expect(output).toMatchInlineSnapshot(`
       "import { expect } from 'vitest';
-      import { DdtTestError, wrapDdtTest } from '@ddtds/vitest'
+      import { DdtTestError, wrapDdtTest } from '@ddtds/vitest';
       export default async function () {
         await wrapDdtTest(async () => {
           const hi = '10';
@@ -66,7 +66,7 @@ describe("generateBlockFile: imports", () => {
     assertTestRun(out);
     expect(out).toMatchInlineSnapshot(`
       "import { expect } from 'vitest';
-      import { DdtTestError, wrapDdtTest } from '@ddtds/vitest'
+      import { DdtTestError, wrapDdtTest } from '@ddtds/vitest';
       import {
         foo,
         bar,
@@ -100,7 +100,7 @@ describe("generateBlockFile: annotations", () => {
     expect(out).toContain(".rejects.toThrow();");
     expect(out).toMatchInlineSnapshot(`
       "import { expect } from 'vitest';
-      import { DdtTestError, wrapDdtTest } from '@ddtds/vitest'
+      import { DdtTestError, wrapDdtTest } from '@ddtds/vitest';
       export default async function () {
         await wrapDdtTest(async () => {
           await expect(async () => {
@@ -116,7 +116,7 @@ describe("generateBlockFile: annotations", () => {
     expect(out.replace(/DdtCompileError\(\{.*\}\);/, "DdtCompileError(details);"))
       .toMatchInlineSnapshot(`
         "import { expect } from 'vitest';
-        import { DdtCompileError, wrapDdtTest } from '@ddtds/vitest'
+        import { DdtCompileError, wrapDdtTest } from '@ddtds/vitest';
         export default async function () {
           await wrapDdtTest(async () => {
             throw new DdtCompileError(details);
@@ -139,7 +139,7 @@ describe("generateBlockFile: annotations", () => {
     expect(out).toContain("expected a compile_fail block");
     expect(out).toMatchInlineSnapshot(`
       "import { expect } from 'vitest';
-      import { DdtTestError, wrapDdtTest } from '@ddtds/vitest'
+      import { DdtTestError, wrapDdtTest } from '@ddtds/vitest';
       export default async function () {
         await wrapDdtTest(async () => {
           throw new Error("expected a compile_fail block to fail to compile");
@@ -155,7 +155,7 @@ describe("in-memory modules", () => {
     expect(out).toContain("export default async function");
     expect(out).toMatchInlineSnapshot(`
       "import { expect } from 'vitest';
-      import { DdtTestError, wrapDdtTest } from '@ddtds/vitest'
+      import { DdtTestError, wrapDdtTest } from '@ddtds/vitest';
       import { foo } from "/repo/docs/foo"
       export default async function () {
         await wrapDdtTest(async () => {
@@ -175,7 +175,7 @@ describe("in-memory modules", () => {
     expect(out).toContain('import("/root/f5.ts")');
     expect(out).toMatchInlineSnapshot(`
       "import { test } from 'vitest';
-      import { wrapDdtTest } from '@ddtds/vitest'
+      import { wrapDdtTest } from '@ddtds/vitest';
       test("t.md:1", async () => {
         const { default: run } = await wrapDdtTest(() => import("/root/f1.ts"));
         await run();

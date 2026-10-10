@@ -14,6 +14,7 @@ import { createLogger, parseLogLevel, type LogLevel } from "@ddtds/core/log";
 export type { CodeBlock, DocIndex, DocsOptions, Fence } from "@ddtds/core";
 export {
   DdtCompileError,
+  DdtTestError,
   wrapDdtTest,
   defaultDocsInclude,
   defaultDocsExclude,
@@ -39,7 +40,7 @@ export function ddtPlugin({ logLevel, ...docs }: DdtPluginOptions = {}): Plugin 
     config(config) {
       const { root, include, exclude } = resolveDocsOptions({
         ...docs,
-        root: config.root ?? process.cwd(),
+        root: config.test?.root ?? config.root ?? process.cwd(),
       });
       const moduleDir = join(root, defaultOutDir);
       const index = indexDocs(readDocs(root, include, exclude), { root, moduleDir, logger });

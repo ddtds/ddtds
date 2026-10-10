@@ -14,7 +14,7 @@ export {
   defaultDocsExclude,
   defaultOutDir,
 } from "./constants.ts";
-export { wrapDdtTest } from "./error.ts";
+export { DdtTestError, wrapDdtTest } from "./error.ts";
 export { docModuleName, indexDocs, type DocIndex, type Fence, type IndexOptions } from "./docs.ts";
 export {
   DdtCompileError,
