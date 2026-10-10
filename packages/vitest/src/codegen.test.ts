@@ -117,6 +117,7 @@ describe("generateBlockFile: annotations", () => {
 
   test("compile_fail passes when the block does not parse", () => {
     const out = generateBlockFile("t.md", block("const = 1;", ANNOTATIONS.COMPILE_FAIL));
+    expect(out).not.toContain("throw");
     expect(out).toMatchInlineSnapshot(`
       "import { test, expect } from 'vitest';
       test("t.md:1", async () => {
@@ -126,6 +127,7 @@ describe("generateBlockFile: annotations", () => {
 
   test("compile_fail fails when the block parses", () => {
     const out = generateBlockFile("t.md", block("const ok = 1;", ANNOTATIONS.COMPILE_FAIL));
+    expect(out).toContain("expected a compile_fail block");
     expect(out).toMatchInlineSnapshot(`
       "import { test, expect } from 'vitest';
       import { DdtTestError, wrapDdtTest } from '@ddtds/vitest'
