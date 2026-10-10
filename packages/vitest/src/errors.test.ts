@@ -8,7 +8,7 @@ const fences = {
   "parse error": "const = 1;",
   "runtime syntax error": 'JSON.parse("{");',
   "undeclared name": "missingFn();",
-  "missing static import": 'import { x } from "./missing.ts";\nx;',
+  "missing static import": 'import { x } from "missing-package";\nx;',
   "missing dynamic import": 'await import("./missing.ts");',
   "failed assertion": "expect(1).toBe(2);",
   passes: "expect(1).toBe(1);",
