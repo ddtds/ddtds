@@ -13,6 +13,7 @@ import { createLogger, parseLogLevel, type LogLevel } from "@ddtds/core/log";
 export type { CodeBlock, DocsOptions, GenerateDeps, GenerateOptions } from "@ddtds/core";
 export {
   DdtCompileError,
+  DdtTestError,
   wrapDdtTest,
   defaultDocsInclude,
   defaultDocsExclude,
