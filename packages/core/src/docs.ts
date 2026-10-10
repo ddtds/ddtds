@@ -32,7 +32,8 @@ function fencesOf(doc: string, source: string, options: IndexOptions): Fence[] {
   }));
 }
 
-function fromDocs(docs: ReadonlyMap<string, readonly Fence[]>): DocIndex {
+/** Transform docs map into a map of fence ids and code fences */
+function buildFenceIdsFromDocs(docs: ReadonlyMap<string, readonly Fence[]>): DocIndex {
   const fences = new Map([...docs.values()].flat().map((fence) => [fence.id, fence]));
   return { docs, fences };
 }
@@ -43,5 +44,5 @@ export function indexDocs(sources: ReadonlyMap<string, string>, options: IndexOp
     const fences = fencesOf(doc, source, options);
     if (fences.length > 0) docs.set(doc, fences);
   }
-  return fromDocs(docs);
+  return buildFenceIdsFromDocs(docs);
 }
