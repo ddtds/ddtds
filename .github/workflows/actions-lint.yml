@@ -24,7 +24,7 @@ jobs:
         run: actionlint -color
 
   zizmor:
-    runs-on: ubuntu-slim
+    runs-on: ubuntu-latest
     permissions:
       security-events: write
       contents: read
