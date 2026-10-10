@@ -10,6 +10,10 @@ allowBuilds:
   protobufjs: false
   # optional native regex binding for renovate; falls back to RegExp fine
   re2: false
+  # angular build tooling; ship prebuilt binaries, build scripts only compile fallbacks
+  "@parcel/watcher": false
+  lmdb: false
+  msgpackr-extract: false
   # actually need these: esbuild downloads its binary, lefthook syncs git hooks
   esbuild: true
   lefthook: true
@@ -20,7 +24,13 @@ catalogs:
     typescript: ^7.0.2
     vitest: ^4.1.11
   examples:
+    "@analogjs/vite-plugin-angular": ^2.8.0
+    "@angular/build": ^22.2.1
+    "@angular/common": ^22.2.1
+    "@angular/compiler": ^22.2.1
+    "@angular/compiler-cli": ^22.2.1
     "@angular/core": ^22.2.1
+    "@angular/platform-browser": ^22.2.1
     "@preact/preset-vite": ^2.10.6
     "@sveltejs/vite-plugin-svelte": ^7.3.1
     "@testing-library/jest-dom": ^7.0.1
@@ -45,3 +55,9 @@ catalogs:
   peer: {}
 
 minimumReleaseAge: 4320 # 3 days
+
+packageExtensions:
+  # imports typescript without declaring it
+  "@analogjs/vite-plugin-angular":
+    peerDependencies:
+      typescript: "*"

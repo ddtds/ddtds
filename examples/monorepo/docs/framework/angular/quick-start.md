@@ -1,13 +1,15 @@
 # Angular Quick Start
 
 ```ts run
-import { signal } from "@angular/core";
-import { greeting } from "@ddtds/angular-greet";
+import { createComponent } from "@angular/core";
+import { createApplication } from "@angular/platform-browser";
+import { Greeting } from "@ddtds/angular-greet";
 
-const name = signal("Ada");
-const message = greeting(name);
-expect(message()).toBe("Hello, Ada!");
+const app = await createApplication();
+const greeting = createComponent(Greeting, { environmentInjector: app.injector });
+greeting.setInput("name", "Ada");
+greeting.changeDetectorRef.detectChanges();
 
-name.set("Grace");
-expect(message()).toBe("Hello, Grace!");
+expect(greeting.location.nativeElement.textContent).toBe("Hello, Ada!");
+app.destroy();
 ```

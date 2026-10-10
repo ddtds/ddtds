@@ -10,13 +10,20 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@angular/common": "catalog:examples",
     "@angular/core": "catalog:examples",
+    "@angular/platform-browser": "catalog:examples",
     "@ddtds/greet": "workspace:*",
     "rxjs": "catalog:examples"
   },
   "devDependencies": {
+    "@analogjs/vite-plugin-angular": "catalog:examples",
+    "@angular/build": "catalog:examples",
+    "@angular/compiler": "catalog:examples",
+    "@angular/compiler-cli": "catalog:examples",
     "@ddtds/vitest": "workspace:*",
     "jsdom": "catalog:examples",
+    "typescript": "~6.0.0",
     "vitest": "catalog:dev"
   }
 }

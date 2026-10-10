@@ -1,7 +1,11 @@
 # Octane Quick Start
 
-```ts run
-import { greet } from "@ddtds/octane-greet";
+```tsx run
+import { createRoot, flushSync } from "octane";
+import { Greeting } from "@ddtds/octane-greet";
 
-expect(greet("Ada")).toBe("Hello, Ada!");
+const container = document.createElement("div");
+flushSync(() => createRoot(container).render(<Greeting name="Ada" />));
+
+expect(container.textContent).toBe("Hello, Ada!");
 ```
