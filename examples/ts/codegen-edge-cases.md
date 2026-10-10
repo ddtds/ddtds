@@ -101,3 +101,11 @@ export { foo };
 
 expect(foo).toBe("ok");
 ```
+
+## Parse Errors Fail
+
+Code that does not parse fails its test instead of silently running nothing.
+
+```ts fail
+const = 1;
+```

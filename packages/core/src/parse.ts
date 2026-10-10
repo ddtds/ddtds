@@ -16,10 +16,19 @@ export type PreparedBlock = {
 
 export function splitImportsAndBlock(block: CodeBlock): PreparedBlock {
   const lang = parserLang(block.lang);
-  const { program, module } = parseSync(`block.${lang}`, block.code, {
+  const { program, module, errors } = parseSync(`block.${lang}`, block.code, {
     lang,
     sourceType: "module",
   });
+
+  if (errors.length > 0) {
+    const messages = errors.map((error) => {
+      const start = error.labels[0]?.start ?? 0;
+      const line = block.line + block.code.slice(0, start).split("\n").length;
+      return `${error.message} (line ${line})`;
+    });
+    return { imports: [], body: `throw new SyntaxError(${JSON.stringify(messages.join("\n"))});` };
+  }
 
   const imports = module.staticImports.map((staticImport) => sliceSource(block.code, staticImport));
 
