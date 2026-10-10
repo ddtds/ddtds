@@ -17,8 +17,6 @@
     "typescript/no-non-null-assertion": "warn",
     "typescript/explicit-member-accessibility": "warn",
     "typescript/explicit-function-return-type": "warn",
-    "node/no-sync": "warn",
-    "node/no-process-env": "warn",
     "import/consistent-type-specifier-style": ["warn", "prefer-inline"],
     "unicorn/prefer-node-protocol": "warn",
     "typescript/no-floating-promises": "warn",
@@ -36,20 +34,7 @@
     {
       "files": ["packages/core/src/logger.ts"],
       "rules": {
-        "no-console": "off",
-        "node/no-process-env": "off"
-      }
-    },
-    {
-      "files": ["packages/vitest/src/index.ts"],
-      "rules": {
-        "node/no-process-env": "off"
-      }
-    },
-    {
-      "files": ["packages/core/src/index.ts", "packages/core/src/parse.ts"],
-      "rules": {
-        "node/no-sync": "off"
+        "no-console": "off"
       }
     },
     {
