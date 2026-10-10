@@ -30,6 +30,20 @@
       "matchUpdateTypes": ["major"],
       "automerge": false,
       "minimumReleaseAge": "14 days"
+    },
+    {
+      "matchPackageNames": ["/^oxc-parser$/", "/^@oxc-project//"],
+      "matchDepTypes": ["dependencies"],
+      "groupName": "oxc (minor + patch)",
+      "matchUpdateTypes": ["patch", "minor"],
+      "automerge": false
+    },
+    {
+      "matchPackageNames": ["/^oxc-parser$/", "/^@oxc-project//"],
+      "matchDepTypes": ["dependencies"],
+      "groupName": "oxc (major)",
+      "matchUpdateTypes": ["major"],
+      "automerge": false
     }
   ],
   "lockFileMaintenance": {
