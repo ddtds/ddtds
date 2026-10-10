@@ -1,4 +1,4 @@
-import type { Plugin } from "vitest/config";
+import { defaultInclude, type Plugin } from "vitest/config";
 import { generate as generateCore, type GenerateDeps } from "@ddtds/core";
 import { generateBlockFile } from "./codegen.ts";
 import { createLogger, parseLogLevel } from "@ddtds/core/log";
@@ -37,13 +37,15 @@ export function ddtPlugin(
 ): Plugin {
   return {
     name: "vite-plugin-ddtds",
-    config() {
+    config(config) {
       const level = parseLogLevel(process.env.DDT_LOG_LEVEL ?? options?.logLevel);
       const logger = createLogger(level);
 
       generate(searchDir, outputDir, { logger });
 
-      return { test: { include: [`${outputDir}/**/*.test.{ts,tsx}`] } };
+      const doctests = `${outputDir}/**/*.test.{ts,tsx}`;
+      const include = config.test?.include ? [doctests] : [...defaultInclude, doctests];
+      return { test: { include } };
     },
   };
 }
