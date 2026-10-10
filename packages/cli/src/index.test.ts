@@ -13,14 +13,14 @@ test("ddt --help", () => {
   expect(help()).toMatchInlineSnapshot(`
     "ddt
 
-    Usage:
+    USAGE:
       ddt [flags...]
       ddt <command>
 
-    Commands:
+    COMMANDS:
       build        
 
-    Flags:
+    FLAGS:
       -h, --help        Show help
 
     "
@@ -31,10 +31,10 @@ test("ddt build --help", () => {
   expect(help("build")).toMatchInlineSnapshot(`
     "ddt build
 
-    Usage:
+    USAGE:
       ddt build [flags...] [include...]
 
-    Flags:
+    FLAGS:
           --exclude <string>        Glob of docs to skip, replaces default (default: ["**/node_modules/**","**/CHANGELOG.md"])
       -h, --help                    Show help
           --output <string>         Directory for generated test files (default: "__doctests__")
