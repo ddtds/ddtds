@@ -69,11 +69,11 @@ export function ddtPlugin({ logLevel, ...docs }: DdtPluginOptions = {}): Plugin 
       };
     },
     watchChange(id) {
-      if (index?.fencesOf(id)) index = index.withDoc(id, readFileSync(id, "utf8"));
+      if (index?.hasDoc(id)) index = index.withDoc(id, readFileSync(id, "utf8"));
     },
     resolveId(source, importer, resolveOptions) {
       if (index?.fence(source)) return source;
-      if (!importer || !index?.fencesOf(importer)) return undefined;
+      if (!importer || !index?.hasDoc(importer)) return undefined;
       const fromRoot = join(root, "package.json");
       return this.resolve(source, fromRoot, { ...resolveOptions, skipSelf: true });
     },

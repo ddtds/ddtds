@@ -37,7 +37,7 @@ test("fromSources indexes runnable fences and skips docs without any", () => {
   `);
 });
 
-test("withDoc replaces one doc's fences and drops docs without any", () => {
+test("withDoc replaces one doc's fences and keeps docs that lose them all", () => {
   const before = index({ "/repo/pkg/a.md": run("1"), "/repo/pkg/b.md": run("1") });
   const after = before.withDoc("/repo/pkg/a.md", `\n\n${run("2")}`).withDoc("/repo/pkg/b.md", "");
   expect(summary(after)).toMatchInlineSnapshot(`
@@ -45,6 +45,7 @@ test("withDoc replaces one doc's fences and drops docs without any", () => {
       "/repo/pkg/a.md": [
         "3 /repo/pkg/__doctests__/a_md_3.ts",
       ],
+      "/repo/pkg/b.md": [],
     }
   `);
   expect(summary(before)).toHaveProperty(["/repo/pkg/b.md"]);

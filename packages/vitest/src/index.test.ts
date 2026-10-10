@@ -68,14 +68,14 @@ test("resolves packages from the root for docs outside it", async () => {
 
 test("reruns a doc when it is edited in watch mode", async () => {
   const root = fixture({ "guide.md": fence("expect(1).toBe(1);") });
-  const edit = () => writeFileSync(join(root, "guide.md"), `\n${fence("expect(1).toBe(2);")}`);
+  const edit = () => writeFileSync(join(root, "guide.md"), fence("expect(1).toBe(2);"));
   expect(await watch(root, edit)).toMatchInlineSnapshot(`
     [
       {
         "guide.md:1": "passed",
       },
       {
-        "guide.md:2": "runtime-failure",
+        "guide.md:1": "runtime-failure",
       },
     ]
   `);

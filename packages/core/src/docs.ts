@@ -23,17 +23,18 @@ export class DocIndex {
   }
 
   public static fromSources(sources: ReadonlyMap<string, string>, options: IndexOptions): DocIndex {
-    return [...sources].reduce(
-      (index, [doc, source]) => index.withDoc(doc, source),
-      new DocIndex(options, new Map()),
-    );
+    const empty = new DocIndex(options, new Map());
+    const docs = new Map<string, readonly Fence[]>();
+    for (const [doc, source] of sources) {
+      const fences = empty.#parse(doc, source);
+      if (fences.length > 0) docs.set(doc, fences);
+    }
+    return new DocIndex(options, docs);
   }
 
   public withDoc(doc: string, source: string): DocIndex {
     const docs = new Map(this.#docs);
-    const fences = this.#parse(doc, source);
-    if (fences.length > 0) docs.set(doc, fences);
-    else docs.delete(doc);
+    docs.set(doc, this.#parse(doc, source));
     return new DocIndex(this.#options, docs);
   }
 
@@ -47,6 +48,10 @@ export class DocIndex {
 
   public fences(): Iterable<Fence> {
     return this.#fences.values();
+  }
+
+  public hasDoc(doc: string): boolean {
+    return this.#docs.has(doc);
   }
 
   public fencesOf(doc: string): readonly Fence[] | undefined {
