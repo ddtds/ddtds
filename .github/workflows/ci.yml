@@ -18,7 +18,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: ./.github/actions/setup
+      - uses: $/.github/actions/setup
       - run: pnpm run validate:renovate
       - run: pnpm run lint
       - run: pnpm run sherif
@@ -42,6 +42,6 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: ./.github/actions/setup
+      - uses: $/.github/actions/setup
       - run: pnpm add -D vitest@${{ matrix.vitest-version }} --filter @ddtds/vitest --lockfile=false
       - run: pnpm --filter @ddtds/vitest test
