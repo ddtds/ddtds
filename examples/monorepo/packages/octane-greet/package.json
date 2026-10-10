@@ -15,7 +15,7 @@
   },
   "devDependencies": {
     "@ddtds/vitest": "workspace:*",
-    "jsdom": "catalog:examples",
+    "happy-dom": "catalog:examples",
     "vitest": "catalog:dev"
   }
 }
