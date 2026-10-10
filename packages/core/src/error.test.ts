@@ -1,4 +1,5 @@
 import { describe, expect, test } from "vitest";
+import { DdtCompileError } from "./compile-error";
 import { DdtTestError, ErrorKind, wrapDdtTest } from "./error";
 
 describe("DdtTestError", () => {
@@ -39,5 +40,26 @@ describe("DdtTestError", () => {
 
     await expect(promise).rejects.toBeInstanceOf(DdtTestError);
     await expect(promise).rejects.toHaveProperty("kind", ErrorKind.RuntimeFailure);
+  });
+
+  test("rethrows DdtCompileError as compile error", async () => {
+    const promise = wrapDdtTest(() => {
+      throw new DdtCompileError({
+        block: {
+          file: "t.md",
+          lang: "ts",
+          meta: "run",
+          annotation: "run",
+          range: { start: { line: 1, column: 1 }, end: { line: 3, column: 4 } },
+          indent: 0,
+          contents: "",
+        },
+        parser: { name: "ts", package: "oxc-parser", version: "0.150.0" },
+        phase: "parse",
+        diagnostics: [],
+      });
+    });
+
+    await expect(promise).rejects.toHaveProperty("kind", ErrorKind.Compile);
   });
 });

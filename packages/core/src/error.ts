@@ -1,3 +1,5 @@
+import { DdtCompileError } from "./compile-error.ts";
+
 export const ErrorKind = {
   Compile: "compile-error",
   RuntimeFailure: "runtime-failure",
@@ -12,7 +14,7 @@ const ERROR_MESSAGES = [
 ];
 
 function isCompileError(error: unknown): boolean {
-  if (error instanceof SyntaxError) return true;
+  if (error instanceof DdtCompileError || error instanceof SyntaxError) return true;
   if (!(error instanceof Error)) return false;
 
   return ERROR_MESSAGES.some((message) => error.message.includes(message));

@@ -8,7 +8,15 @@ function block(
   line = 1,
   lang: Lang = "ts",
 ): CodeBlock {
-  return new CodeBlock(code, lang, annotation, line);
+  return new CodeBlock({
+    code,
+    lang,
+    annotation,
+    meta: annotation ?? "",
+    path: "t.md",
+    range: { start: { line, column: 1 }, end: { line, column: 1 } },
+    indent: 0,
+  });
 }
 
 function assertTestRun(x: string) {
@@ -96,13 +104,14 @@ describe("generateBlockFile: annotations", () => {
 
   test("parse errors fail even with the fail annotation", () => {
     const out = generateBlockFile("t.md", block("const = 1;", ANNOTATIONS.FAIL));
-    expect(out).not.toContain("rejects");
-    expect(out).toMatchInlineSnapshot(`
+    // details are covered in core
+    expect(out.replace(/DdtCompileError\(\{.*\}\);/, "DdtCompileError(details);"))
+      .toMatchInlineSnapshot(`
       "import { test, expect } from 'vitest';
-      import { DdtTestError, wrapDdtTest } from '@ddtds/vitest'
+      import { DdtCompileError, wrapDdtTest } from '@ddtds/vitest'
       test("t.md:1", async () => {
         await wrapDdtTest(async () => {
-          throw new SyntaxError("Unexpected token (line 2)");
+          throw new DdtCompileError(details);
         });
       });"
     `);

@@ -9,6 +9,7 @@ import {
   isAnnotation,
   isLang,
 } from "./constants.ts";
+import type { SourceRange } from "./compile-error.ts";
 import { splitImportsAndBlock } from "./parse.ts";
 import type { Logger } from "./logger.ts";
 
@@ -23,17 +24,37 @@ function parseAnnotation(meta: string): AnnotationResult {
   return { tag: "unknown", raw: meta };
 }
 
+export type CodeBlockInit = {
+  code: string;
+  lang: Lang;
+  annotation: Annotation | null;
+  meta: string;
+  path: string;
+  range: SourceRange;
+  indent: number;
+};
+
 export class CodeBlock {
   readonly #code: string;
   public readonly lang: Lang;
-  readonly #annotation: Annotation | null;
-  public readonly line: number;
+  public readonly annotation: Annotation | null;
+  public readonly meta: string;
+  public readonly path: string;
+  public readonly range: SourceRange;
+  public readonly indent: number;
 
-  public constructor(code: string, lang: Lang, annotation: Annotation | null, line: number) {
+  public constructor({ code, lang, annotation, meta, path, range, indent }: CodeBlockInit) {
     this.#code = code;
     this.lang = lang;
-    this.#annotation = annotation;
-    this.line = line;
+    this.annotation = annotation;
+    this.meta = meta;
+    this.path = path;
+    this.range = range;
+    this.indent = indent;
+  }
+
+  public get line(): number {
+    return this.range.start.line;
   }
 
   public get outputExtension(): OutputExtension {
@@ -45,11 +66,11 @@ export class CodeBlock {
   }
 
   public isSkipped(): boolean {
-    return this.#annotation !== ANNOTATIONS.RUN && this.#annotation !== ANNOTATIONS.FAIL;
+    return this.annotation !== ANNOTATIONS.RUN && this.annotation !== ANNOTATIONS.FAIL;
   }
 
   public shouldFail(): boolean {
-    return this.#annotation === ANNOTATIONS.FAIL;
+    return this.annotation === ANNOTATIONS.FAIL;
   }
 
   public splitImports(): { imports: string[]; body: string } {
@@ -57,7 +78,7 @@ export class CodeBlock {
   }
 }
 
-export function parseCodeFences(source: string, log: Logger): CodeBlock[] {
+export function parseCodeFences(source: string, path: string, log: Logger): CodeBlock[] {
   const tree = remark().parse(source);
   const blocks: CodeBlock[] = [];
 
@@ -75,7 +96,21 @@ export function parseCodeFences(source: string, log: Logger): CodeBlock[] {
       log.error(`code block missing position info, skipping`);
       return;
     }
-    blocks.push(new CodeBlock(node.value, lang, result.annotation, node.position.start.line));
+    const { start, end } = node.position;
+    blocks.push(
+      new CodeBlock({
+        code: node.value,
+        lang,
+        annotation: result.annotation,
+        meta,
+        path,
+        range: {
+          start: { line: start.line, column: start.column },
+          end: { line: end.line, column: end.column },
+        },
+        indent: start.column - 1,
+      }),
+    );
   });
 
   return blocks;

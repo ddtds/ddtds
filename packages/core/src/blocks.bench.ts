@@ -37,6 +37,14 @@ expect(new Greeter("world").greet()).toBe("hello world");`;
 
 describe("CodeBlock.splitImports", () => {
   bench("split imports and sanitize block", () => {
-    new CodeBlock(code, "ts", null, 1).splitImports();
+    new CodeBlock({
+      code,
+      lang: "ts",
+      annotation: null,
+      meta: "",
+      path: "bench.md",
+      range: { start: { line: 1, column: 1 }, end: { line: 1, column: 1 } },
+      indent: 0,
+    }).splitImports();
   });
 });

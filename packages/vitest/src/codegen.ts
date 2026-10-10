@@ -1,4 +1,4 @@
-import type { CodeBlock } from "@ddtds/core";
+import { DdtCompileError, type CodeBlock } from "@ddtds/core";
 
 function indent(code: string): string {
   return code
@@ -22,9 +22,18 @@ function wrapBody(inner: string): string {
   return `await wrapDdtTest(async () => {\n${indent(inner)}\n});`;
 }
 
-function compileErrorFile(name: string, error: SyntaxError): string {
-  const body = `throw new SyntaxError(${JSON.stringify(error.message)});`;
-  return `${VITEST_IMPORT}\n${DDT_IMPORT}\n${renderTest("test", name, wrapBody(body))}`;
+function compileErrorFile(name: string, error: DdtCompileError): string {
+  const imports = "import { DdtCompileError, wrapDdtTest } from '@ddtds/vitest'";
+  const cause =
+    error.cause === undefined ? "" : `, { cause: ${JSON.stringify(serializeCause(error.cause))} }`;
+  const body = `throw new DdtCompileError(${JSON.stringify(error.details)}${cause});`;
+  return `${VITEST_IMPORT}\n${imports}\n${renderTest("test", name, wrapBody(body))}`;
+}
+
+function serializeCause(cause: unknown): unknown {
+  if (!(cause instanceof Error)) return cause;
+  const code = "code" in cause ? { code: cause.code } : {};
+  return { name: cause.name, message: cause.message, ...code };
 }
 
 export function generateBlockFile(mdPath: string, block: CodeBlock): string {
@@ -32,7 +41,7 @@ export function generateBlockFile(mdPath: string, block: CodeBlock): string {
   try {
     return blockFile(name, block);
   } catch (error) {
-    if (error instanceof SyntaxError) return compileErrorFile(name, error);
+    if (error instanceof DdtCompileError) return compileErrorFile(name, error);
     throw error;
   }
 }
