@@ -1,6 +1,6 @@
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { dirname, join, relative } from "node:path";
-import { onTestFinished } from "vitest";
+import { onTestFinished, type ParsedStack } from "vitest";
 import type { ViteUserConfig } from "vitest/config";
 import { createVitest, type Reporter, type TestModule, type Vitest } from "vitest/node";
 import { ddtPlugin, type DdtPluginOptions } from "./index.ts";
@@ -78,6 +78,10 @@ export async function run(root: string, plugin: DdtPluginOptions = {}): Promise<
 
 type Failure = { error: string; diff?: string; frames: string[] };
 
+function frame(root: string, { file, line }: ParsedStack): string {
+  return `${relative(root, file).replace(/__ddtds__-\w+/, "__ddtds__")}:${line}`;
+}
+
 /** The first error of each failed test, with only the stack frames inside the fixture */
 export async function failures(root: string): Promise<Record<string, Failure>> {
   await using instance = await vitest(root);
@@ -89,10 +93,7 @@ export async function failures(root: string): Promise<Record<string, Failure>> {
       if (!error) continue;
       const frames = (error.stacks ?? [])
         .filter(({ file }) => file.startsWith(root))
-        .map(
-          ({ file, line }) =>
-            `${relative(root, file).replace(/__ddtds__-\w+/, "__ddtds__")}:${line}`,
-        );
+        .map((stack) => frame(root, stack));
       results[testCase.name] = {
         error: `${error.name}: ${error.message}`,
         diff: error.diff,
