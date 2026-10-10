@@ -104,7 +104,6 @@ describe("generateBlockFile: annotations", () => {
 
   test("parse errors fail even with the fail annotation", () => {
     const out = generateBlockFile("t.md", block("const = 1;", ANNOTATIONS.FAIL));
-    // details are covered in core
     expect(out.replace(/DdtCompileError\(\{.*\}\);/, "DdtCompileError(details);"))
       .toMatchInlineSnapshot(`
       "import { test, expect } from 'vitest';
@@ -112,6 +111,28 @@ describe("generateBlockFile: annotations", () => {
       test("t.md:1", async () => {
         await wrapDdtTest(async () => {
           throw new DdtCompileError(details);
+        });
+      });"
+    `);
+  });
+
+  test("compile_fail passes when the block does not parse", () => {
+    const out = generateBlockFile("t.md", block("const = 1;", ANNOTATIONS.COMPILE_FAIL));
+    expect(out).toMatchInlineSnapshot(`
+      "import { test, expect } from 'vitest';
+      test("t.md:1", async () => {
+      });"
+    `);
+  });
+
+  test("compile_fail fails when the block parses", () => {
+    const out = generateBlockFile("t.md", block("const ok = 1;", ANNOTATIONS.COMPILE_FAIL));
+    expect(out).toMatchInlineSnapshot(`
+      "import { test, expect } from 'vitest';
+      import { DdtTestError, wrapDdtTest } from '@ddtds/vitest'
+      test("t.md:1", async () => {
+        await wrapDdtTest(async () => {
+          throw new Error("expected a compile_fail block to fail to compile");
         });
       });"
     `);

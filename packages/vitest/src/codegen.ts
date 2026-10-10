@@ -36,13 +36,26 @@ function serializeCause(cause: unknown): unknown {
   return { name: cause.name, message: cause.message, ...code };
 }
 
+function compiledFile(name: string): string {
+  const body = 'throw new Error("expected a compile_fail block to fail to compile");';
+  return `${VITEST_IMPORT}\n${DDT_IMPORT}\n${renderTest("test", name, wrapBody(body))}`;
+}
+
+function failedToCompileFile(name: string): string {
+  return `${VITEST_IMPORT}\n${renderTest("test", name, "")}`;
+}
+
 export function generateBlockFile(mdPath: string, block: CodeBlock): string {
   const name = JSON.stringify(`${mdPath}:${block.line}`);
   try {
-    return blockFile(name, block);
+    const file = blockFile(name, block);
+    return block.shouldFailToCompile() ? compiledFile(name) : file;
   } catch (error) {
-    if (error instanceof DdtCompileError) return compileErrorFile(name, error);
-    throw error;
+    if (!(error instanceof DdtCompileError)) throw error;
+    if (block.shouldFailToCompile() && error.details.phase === "parse") {
+      return failedToCompileFile(name);
+    }
+    return compileErrorFile(name, error);
   }
 }
 

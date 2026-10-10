@@ -27,6 +27,7 @@ describe("parseBlocks", () => {
     ["tsx", ANNOTATIONS.RUN],
     ["jsx", ANNOTATIONS.RUN],
     ["ts", ANNOTATIONS.FAIL],
+    ["ts", ANNOTATIONS.COMPILE_FAIL],
   ])("collects %s blocks annotated %s", (lang, annotation) => {
     const blocks = parseCodeFences(
       `\`\`\`${lang} ${annotation}\nconst x = 1\n\`\`\``,
@@ -51,18 +52,20 @@ describe("parseBlocks", () => {
   });
 });
 
-describe("CodeBlock.isSkipped / shouldFail", () => {
+describe("CodeBlock.isSkipped / shouldFail / shouldFailToCompile", () => {
   test.each([
-    [null, true, false],
-    [ANNOTATIONS.SKIP, true, false],
-    [ANNOTATIONS.RUN, false, false],
-    [ANNOTATIONS.FAIL, false, true],
+    [null, true, false, false],
+    [ANNOTATIONS.SKIP, true, false, false],
+    [ANNOTATIONS.RUN, false, false, false],
+    [ANNOTATIONS.FAIL, false, true, false],
+    [ANNOTATIONS.COMPILE_FAIL, false, false, true],
   ] as const)(
-    "annotation=%j → isSkipped=%s shouldFail=%s",
-    (annotation, expectedSkipped, expectedFail) => {
+    "annotation=%j → isSkipped=%s shouldFail=%s shouldFailToCompile=%s",
+    (annotation, expectedSkipped, expectedFail, expectedCompileFail) => {
       const b = block("x", annotation);
       expect(b.isSkipped()).toBe(expectedSkipped);
       expect(b.shouldFail()).toBe(expectedFail);
+      expect(b.shouldFailToCompile()).toBe(expectedCompileFail);
     },
   );
 });

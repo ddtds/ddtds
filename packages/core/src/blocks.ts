@@ -66,11 +66,15 @@ export class CodeBlock {
   }
 
   public isSkipped(): boolean {
-    return this.annotation !== ANNOTATIONS.RUN && this.annotation !== ANNOTATIONS.FAIL;
+    return this.annotation === null || this.annotation === ANNOTATIONS.SKIP;
   }
 
   public shouldFail(): boolean {
     return this.annotation === ANNOTATIONS.FAIL;
+  }
+
+  public shouldFailToCompile(): boolean {
+    return this.annotation === ANNOTATIONS.COMPILE_FAIL;
   }
 
   public splitImports(): { imports: string[]; body: string } {

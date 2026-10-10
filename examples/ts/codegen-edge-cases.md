@@ -101,3 +101,17 @@ export { foo };
 
 expect(foo).toBe("ok");
 ```
+
+## Compile Fail
+
+`compile_fail` blocks pass only when the code does not parse.
+
+```ts compile_fail
+const = 1;
+```
+
+```tsrx compile_fail
+function Greeting() @{
+  <p>
+}
+```
