@@ -1,13 +1,17 @@
 {
-  "name": "@ddtds/example-js",
+  "name": "@ddtds/greet",
   "version": "0.0.0",
   "private": true,
   "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
   "scripts": {
     "test": "vitest run"
   },
   "devDependencies": {
     "@ddtds/vitest": "workspace:*",
+    "jsdom": "^30.1.2",
     "vitest": "catalog:dev"
   }
 }

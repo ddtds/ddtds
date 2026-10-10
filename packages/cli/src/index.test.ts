@@ -5,7 +5,12 @@ import { expect, test } from "vitest";
 
 function help(...args: string[]): string {
   const bin = fileURLToPath(new URL("index.ts", import.meta.url));
-  const out = execFileSync(process.execPath, [bin, ...args, "--help"], { encoding: "utf8" });
+  // Force no-color so the help output is deterministic across environments
+  // (cleye renders section titles differently depending on color support).
+  const out = execFileSync(process.execPath, [bin, ...args, "--help"], {
+    encoding: "utf8",
+    env: { ...process.env, NO_COLOR: "1" },
+  });
   return stripVTControlCharacters(out);
 }
 
@@ -13,14 +18,14 @@ test("ddt --help", () => {
   expect(help()).toMatchInlineSnapshot(`
     "ddt
 
-    Usage:
+    USAGE:
       ddt [flags...]
       ddt <command>
 
-    Commands:
+    COMMANDS:
       build        
 
-    Flags:
+    FLAGS:
       -h, --help        Show help
 
     "
@@ -31,10 +36,10 @@ test("ddt build --help", () => {
   expect(help("build")).toMatchInlineSnapshot(`
     "ddt build
 
-    Usage:
+    USAGE:
       ddt build [flags...] [include...]
 
-    Flags:
+    FLAGS:
           --exclude <string>        Glob of docs to skip, replaces default (default: ["**/node_modules/**","**/CHANGELOG.md"])
       -h, --help                    Show help
           --output <string>         Directory for generated test files (default: "__doctests__")

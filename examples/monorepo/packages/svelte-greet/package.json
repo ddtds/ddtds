@@ -1,0 +1,22 @@
+{
+  "name": "@ddtds/svelte-greet",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@ddtds/greet": "workspace:*",
+    "svelte": "^5.57.2"
+  },
+  "devDependencies": {
+    "@ddtds/vitest": "workspace:*",
+    "@sveltejs/vite-plugin-svelte": "^7.3.1",
+    "jsdom": "^30.1.2",
+    "vitest": "catalog:dev"
+  }
+}

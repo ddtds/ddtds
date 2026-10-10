@@ -1,0 +1,22 @@
+{
+  "name": "@ddtds/octane-greet",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@ddtds/greet": "workspace:*",
+    "octane": "^0.10.0"
+  },
+  "devDependencies": {
+    "@ddtds/vitest": "workspace:*",
+    "@tsrx/oxc": "0.20.0",
+    "jsdom": "^30.1.2",
+    "vitest": "catalog:dev"
+  }
+}

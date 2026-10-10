@@ -1,13 +1,12 @@
 {
-  "name": "@ddtds/example-js",
+  "name": "@ddtds/example-monorepo",
   "version": "0.0.0",
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "vitest run"
+    "test": "pnpm --filter \"./packages/*\" test"
   },
   "devDependencies": {
-    "@ddtds/vitest": "workspace:*",
     "vitest": "catalog:dev"
   }
 }
