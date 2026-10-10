@@ -57,8 +57,8 @@ export class DocIndex {
     return this.#docs.has(doc);
   }
 
-  public fencesOf(doc: string): readonly Fence[] | undefined {
-    return this.#docs.get(doc);
+  public fencesOf(doc: string): readonly Fence[] {
+    return this.#docs.get(doc) ?? [];
   }
 
   public fence(id: string): Fence | undefined {

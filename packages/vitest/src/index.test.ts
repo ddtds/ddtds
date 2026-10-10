@@ -80,3 +80,13 @@ test("reruns a doc when it is edited in watch mode", async () => {
     ]
   `);
 });
+
+test("keeps the user's test.exclude and still skips ddt build output", async () => {
+  const root = fixture({ ...files, "__doctests__/stale.test.ts": "" });
+  expect(await collect(root, {}, { exclude: ["unit.test.ts"] })).toMatchInlineSnapshot(`
+    [
+      "guide.md",
+      "nested/guide.md",
+    ]
+  `);
+});

@@ -8,6 +8,7 @@ import {
   readDocs,
   resolveDocsOptions,
   type DocsOptions,
+  type IndexOptions,
 } from "@ddtds/core";
 import { docModule, fenceModule } from "./codegen.ts";
 import { createLogger, parseLogLevel, type LogLevel } from "@ddtds/core/log";
@@ -37,7 +38,12 @@ export type DdtPluginOptions = DocsOptions & {
 export function ddtPlugin({ logLevel, ...docs }: DdtPluginOptions = {}): Plugin {
   const logger = createLogger(parseLogLevel(process.env.DDT_LOG_LEVEL ?? logLevel));
   const moduleDirName = `__ddtds__-${randomUUID().slice(0, 8)}`;
-  let index: DocIndex | undefined;
+  const indexOptions = (root: string): IndexOptions => ({
+    root,
+    moduleDir: join(root, moduleDirName),
+    logger,
+  });
+  let index = DocIndex.fromSources(new Map(), indexOptions(process.cwd()));
 
   return {
     name: "vite-plugin-ddtds",
@@ -47,11 +53,7 @@ export function ddtPlugin({ logLevel, ...docs }: DdtPluginOptions = {}): Plugin 
         ...docs,
         root: config.test?.root ?? config.root ?? process.cwd(),
       });
-      index = DocIndex.fromSources(readDocs(root, include, exclude), {
-        root,
-        moduleDir: join(root, moduleDirName),
-        logger,
-      });
+      index = DocIndex.fromSources(readDocs(root, include, exclude), indexOptions(root));
       for (const { id, block } of index.fences()) {
         logger.debug(`${block.details.file}:${block.line} -> ${relative(root, id)}`);
       }
@@ -70,19 +72,16 @@ export function ddtPlugin({ logLevel, ...docs }: DdtPluginOptions = {}): Plugin 
       };
     },
     watchChange(id) {
-      if (index?.hasDoc(id)) index = index.withDoc(id, readFileSync(id, "utf8"));
+      if (index.hasDoc(id)) index = index.withDoc(id, readFileSync(id, "utf8"));
     },
     resolveId(source, importer, resolveOptions) {
-      if (!index) return undefined;
       if (index.fence(source)) return source;
       if (!importer || !index.hasDoc(importer)) return undefined;
       const fromRoot = join(index.root, "package.json");
       return this.resolve(source, fromRoot, { ...resolveOptions, skipSelf: true });
     },
     load(id) {
-      if (!index) return undefined;
-      const fences = index.fencesOf(id);
-      if (fences) return docModule(fences);
+      if (index.hasDoc(id)) return docModule(index.fencesOf(id));
       const fence = index.fence(id);
       if (!fence) return undefined;
       this.addWatchFile(fence.doc);
