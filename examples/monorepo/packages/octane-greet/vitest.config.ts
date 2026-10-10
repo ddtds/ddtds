@@ -7,5 +7,5 @@ export default defineConfig({
     octane({ ssr: false }),
     ddtPlugin({ include: ["../../docs/framework/octane/**/*.md"] }),
   ],
-  test: { dir: "./tests", environment: "happy-dom", testTimeout: 20_000 },
+  test: { dir: "./tests", environment: "happy-dom" },
 });

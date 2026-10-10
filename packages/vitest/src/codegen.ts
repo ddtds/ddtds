@@ -63,12 +63,22 @@ export function fenceModule(fence: Fence): string {
 }
 
 export function docModule(fences: readonly Fence[]): string {
-  const tests = fences.map((fence) => {
+  const loads = fences.map(
+    ({ id }) =>
+      `  import(${JSON.stringify(id)}).then(\n    ({ default: run }) => run,\n    (error) => () => {\n      throw error;\n    },\n  ),`,
+  );
+  const tests = fences.map((fence, i) => {
     const name = JSON.stringify(`${fence.block.details.file}:${fence.block.line}`);
-    const load = `const { default: run } = await import(${JSON.stringify(fence.id)});`;
-    return `test(${name}, () =>\n  wrapDdtTest(async () => {\n    ${load}\n    await run();\n  }),\n);`;
+    return `test(${name}, () => wrapDdtTest(() => fences[${i}]()));`;
   });
-  return ["import { test } from 'vitest';", ddtImport("wrapDdtTest"), ...tests].join("\n");
+  return [
+    "import { test } from 'vitest';",
+    ddtImport("wrapDdtTest"),
+    "const fences = await Promise.all([",
+    ...loads,
+    "]);",
+    ...tests,
+  ].join("\n");
 }
 
 export function moduleFiles(index: DocIndex): Map<string, string> {
