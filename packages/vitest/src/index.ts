@@ -1,14 +1,15 @@
+import { randomUUID } from "node:crypto";
+import { readFileSync } from "node:fs";
 import { join, relative } from "node:path";
-import { defaultInclude, type Plugin } from "vitest/config";
+import { defaultExclude, defaultInclude, type Plugin } from "vitest/config";
 import {
   defaultOutDir,
   DocIndex,
   readDocs,
   resolveDocsOptions,
-  writeFiles,
   type DocsOptions,
 } from "@ddtds/core";
-import { moduleFiles } from "./codegen.ts";
+import { docModule, fenceModule } from "./codegen.ts";
 import { createLogger, parseLogLevel, type LogLevel } from "@ddtds/core/log";
 
 export type { CodeBlock, DocIndex, DocsOptions, Fence } from "@ddtds/core";
@@ -35,29 +36,54 @@ export type DdtPluginOptions = DocsOptions & {
 
 export function ddtPlugin({ logLevel, ...docs }: DdtPluginOptions = {}): Plugin {
   const logger = createLogger(parseLogLevel(process.env.DDT_LOG_LEVEL ?? logLevel));
+  const moduleDirName = `__ddtds__-${randomUUID().slice(0, 8)}`;
+  let root = process.cwd();
+  let index: DocIndex | undefined;
+
   return {
     name: "vite-plugin-ddtds",
+    enforce: "pre",
     config(config) {
-      const { root, include, exclude } = resolveDocsOptions({
+      const options = resolveDocsOptions({
         ...docs,
         root: config.test?.root ?? config.root ?? process.cwd(),
       });
-      const moduleDir = join(root, defaultOutDir);
-      const index = DocIndex.fromSources(readDocs(root, include, exclude), {
+      root = options.root;
+      index = DocIndex.fromSources(readDocs(root, options.include, options.exclude), {
         root,
-        moduleDir,
+        moduleDir: join(root, moduleDirName),
         logger,
       });
       for (const { id, block } of index.fences()) {
         logger.debug(`${block.details.file}:${block.line} -> ${relative(root, id)}`);
       }
-      writeFiles(moduleDir, moduleFiles(index));
       logger.info(`Total: ${index.size} tests`);
 
-      const doctests = `${moduleDir}/**/*.test.ts`;
+      const docFiles = [...index.docs()].map(([doc]) => doc);
+      const built = join(root, defaultOutDir, "**");
       return {
-        test: { include: config.test?.include ? [doctests] : [...defaultInclude, doctests] },
+        test: {
+          include: config.test?.include ? docFiles : [...defaultInclude, ...docFiles],
+          exclude: config.test?.exclude ? [built] : [...defaultExclude, built],
+        },
       };
+    },
+    watchChange(id) {
+      if (index?.fencesOf(id)) index = index.withDoc(id, readFileSync(id, "utf8"));
+    },
+    resolveId(source, importer, resolveOptions) {
+      if (index?.fence(source)) return source;
+      if (!importer || !index?.fencesOf(importer)) return undefined;
+      const fromRoot = join(root, "package.json");
+      return this.resolve(source, fromRoot, { ...resolveOptions, skipSelf: true });
+    },
+    load(id) {
+      const fences = index?.fencesOf(id);
+      if (fences) return docModule(fences);
+      const fence = index?.fence(id);
+      if (!fence) return undefined;
+      this.addWatchFile(fence.doc);
+      return fenceModule(fence);
     },
   };
 }

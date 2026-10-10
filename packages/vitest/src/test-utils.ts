@@ -75,3 +75,19 @@ export async function run(root: string, plugin: DdtPluginOptions = {}): Promise<
   await instance.start();
   return outcomes(instance.state.getTestModules());
 }
+
+export async function watch(root: string, edit: () => void): Promise<Outcomes[]> {
+  const runs: Outcomes[] = [];
+  const { promise: rerun, resolve } = Promise.withResolvers<void>();
+  const reporter: Reporter = {
+    onTestRunEnd(modules): void {
+      runs.push(outcomes(modules));
+      if (runs.length === 2) resolve();
+    },
+  };
+  await using instance = await vitest(root, { watch: true, reporter });
+  await instance.start();
+  edit();
+  await rerun;
+  return runs;
+}

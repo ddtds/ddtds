@@ -49,6 +49,14 @@ export class DocIndex {
     return this.#fences.values();
   }
 
+  public fencesOf(doc: string): readonly Fence[] | undefined {
+    return this.#docs.get(doc);
+  }
+
+  public fence(id: string): Fence | undefined {
+    return this.#fences.get(id);
+  }
+
   public docModuleId(doc: string): string {
     return join(this.#options.moduleDir, `${this.#flatName(doc)}.test.ts`);
   }
