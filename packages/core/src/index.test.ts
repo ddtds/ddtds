@@ -1,5 +1,16 @@
-import { describe, test, expect, vi } from "vitest";
-import { ANNOTATIONS, CodeBlock, parseCodeFences, generate, type Annotation } from "./index";
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { dirname, join, relative } from "node:path";
+import { describe, test, expect, vi, onTestFinished } from "vitest";
+import {
+  ANNOTATIONS,
+  CodeBlock,
+  parseCodeFences,
+  defaultDocsExclude,
+  findDocs,
+  generate,
+  type Annotation,
+} from "./index";
 import { createLogger } from "./logger";
 
 const silent = createLogger("silent");
@@ -126,7 +137,7 @@ describe("CodeBlock.splitImports", () => {
 describe("generate", () => {
   test("writes one file per block named by line number", () => {
     const writes: Array<{ path: string; content: string }> = [];
-    const total = generate("/repo", "__doctests__", renderBlockFile, {
+    const total = generate({ root: "/repo" }, renderBlockFile, {
       findDocs: () => ["/repo/guide.md"],
       readFile: () => "```ts run\nconst x = 1\n```",
       writeFile: (path, content) => writes.push({ path, content }),
@@ -134,11 +145,68 @@ describe("generate", () => {
     });
 
     expect(total).toBe(1);
-    expect(writes[0]!.path).toBe("__doctests__/guide.md_1.test.ts");
+    expect(writes[0]!.path).toBe("/repo/__doctests__/guide_md_1.test.ts");
     expect(writes[0]!.content).toContain("// guide.md:1");
+  });
+
+  test("replaces . and path separators with _ in file names", () => {
+    const writes: Array<{ path: string; content: string }> = [];
+    generate({ root: "/repo/pkg" }, renderBlockFile, {
+      findDocs: () => ["/repo/docs/guide.md"],
+      readFile: () => "```ts run\nconst x = 1\n```",
+      writeFile: (path, content) => writes.push({ path, content }),
+      clearDir: vi.fn<() => void>(),
+      logger: silent,
+    });
+
+    expect(writes[0]!.path).toBe("/repo/pkg/__doctests__/___docs_guide_md_1.test.ts");
+    expect(writes[0]!.content).toContain("// ../docs/guide.md:1");
+  });
+});
+
+describe("findDocs", () => {
+  test("skips node_modules and CHANGELOG by default", () => {
+    expect(find(fixture())).toEqual(["guide.md", "nested/guide.md"]);
+  });
+
+  test("only finds docs matching include", () => {
+    expect(find(fixture(), ["nested/*.md"])).toEqual(["nested/guide.md"]);
+  });
+
+  test("finds docs outside the root", () => {
+    const root = join(fixture(), "nested");
+    expect(find(root, ["../*.md"], ["../CHANGELOG.md"])).toEqual(["../guide.md"]);
+  });
+
+  test("replaces the default exclude", () => {
+    expect(find(fixture(), undefined, ["nested/**"])).toEqual([
+      "CHANGELOG.md",
+      "guide.md",
+      "node_modules/pkg/README.md",
+    ]);
+  });
+
+  test("keeps the default exclude when spread", () => {
+    expect(find(fixture(), undefined, [...defaultDocsExclude, "nested/**"])).toEqual(["guide.md"]);
   });
 });
 
 function renderBlockFile(mdPath: string, codeBlock: CodeBlock): string {
   return `// ${mdPath}:${codeBlock.line}`;
+}
+
+function fixture(): string {
+  const dir = mkdtempSync(join(tmpdir(), "ddtds-"));
+  onTestFinished(() => rmSync(dir, { recursive: true, force: true }));
+  for (const doc of ["guide.md", "nested/guide.md", "CHANGELOG.md", "node_modules/pkg/README.md"]) {
+    mkdirSync(dirname(join(dir, doc)), { recursive: true });
+    writeFileSync(join(dir, doc), "");
+  }
+  return dir;
+}
+
+function find(root: string, include?: string[], exclude?: string[]): string[] {
+  return findDocs(root, include, exclude)
+    .map((doc) => relative(root, doc))
+    .toSorted();
 }

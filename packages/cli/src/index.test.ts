@@ -1,30 +1,44 @@
-import { describe, test, expect, vi } from "vitest";
-import { generate } from "@ddtds/vitest";
+import { execFileSync } from "node:child_process";
+import { fileURLToPath } from "node:url";
+import { stripVTControlCharacters } from "node:util";
+import { expect, test } from "vitest";
 
-describe("generate", () => {
-  test("returns 0 and logs when no docs are found", () => {
-    const total = generate("/docs", "__doctests__", {
-      findDocs: () => [],
-    });
+function help(...args: string[]): string {
+  const bin = fileURLToPath(new URL("index.ts", import.meta.url));
+  const out = execFileSync(process.execPath, [bin, ...args, "--help"], { encoding: "utf8" });
+  return stripVTControlCharacters(out);
+}
 
-    expect(total).toBe(0);
-  });
+test("ddt --help", () => {
+  expect(help()).toMatchInlineSnapshot(`
+    "ddt
 
-  test("generates test files for supported code blocks", () => {
-    const writes: Array<{ path: string; content: string }> = [];
-    const total = generate("/repo", "__doctests__", {
-      findDocs: () => ["/repo/guide.md", "/repo/empty.md"],
-      readFile: (path) => {
-        if (path.endsWith("guide.md")) return "```ts run\nconst x = 1\n```";
-        return "# prose only";
-      },
-      writeFile: (path, content) => writes.push({ path, content }),
-      clearDir: vi.fn<() => void>(),
-    });
+    Usage:
+      ddt [flags...]
+      ddt <command>
 
-    expect(total).toBe(1);
-    expect(writes).toHaveLength(1);
-    expect(writes[0]!.path).toBe("__doctests__/guide.md_1.test.ts");
-    expect(writes[0]!.content).toContain('"guide.md:1"');
-  });
+    Commands:
+      build        
+
+    Flags:
+      -h, --help        Show help
+
+    "
+  `);
+});
+
+test("ddt build --help", () => {
+  expect(help("build")).toMatchInlineSnapshot(`
+    "ddt build
+
+    Usage:
+      ddt build [flags...] [include...]
+
+    Flags:
+          --exclude <string>        Glob of docs to skip, replaces default (default: ["**/node_modules/**","**/CHANGELOG.md"])
+      -h, --help                    Show help
+          --output <string>         Directory for generated test files (default: "__doctests__")
+
+    "
+  `);
 });
