@@ -39,8 +39,8 @@ async function collect(
 test("keeps vitest's default include when the user sets none", async () => {
   expect(await collect(fixture())).toMatchInlineSnapshot(`
     [
-      "__doctests__/guide.md_1.test.ts",
-      "__doctests__/nested_guide.md_1.test.ts",
+      "__doctests__/guide_md_1.test.ts",
+      "__doctests__/nested_guide_md_1.test.ts",
       "unit.test.ts",
     ]
   `);
@@ -49,8 +49,8 @@ test("keeps vitest's default include when the user sets none", async () => {
 test("appends doc tests to the user's test include", async () => {
   expect(await collect(fixture(), {}, { include: ["**/*.check.ts"] })).toMatchInlineSnapshot(`
     [
-      "__doctests__/guide.md_1.test.ts",
-      "__doctests__/nested_guide.md_1.test.ts",
+      "__doctests__/guide_md_1.test.ts",
+      "__doctests__/nested_guide_md_1.test.ts",
       "unit.check.ts",
     ]
   `);
@@ -59,8 +59,8 @@ test("appends doc tests to the user's test include", async () => {
 test("finds doc tests when the user sets test.dir", async () => {
   expect(await collect(fixture(), {}, { dir: "tests" })).toMatchInlineSnapshot(`
     [
-      "__doctests__/guide.md_1.test.ts",
-      "__doctests__/nested_guide.md_1.test.ts",
+      "__doctests__/guide_md_1.test.ts",
+      "__doctests__/nested_guide_md_1.test.ts",
     ]
   `);
 });
@@ -69,7 +69,7 @@ test("passes include and exclude to findDocs", async () => {
   const plugin = { include: ["**/*.md"], exclude: ["nested/**"] };
   expect(await collect(fixture(), plugin)).toMatchInlineSnapshot(`
     [
-      "__doctests__/guide.md_1.test.ts",
+      "__doctests__/guide_md_1.test.ts",
       "unit.test.ts",
     ]
   `);

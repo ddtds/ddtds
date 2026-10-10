@@ -145,11 +145,11 @@ describe("generate", () => {
     });
 
     expect(total).toBe(1);
-    expect(writes[0]!.path).toBe("/repo/__doctests__/guide.md_1.test.ts");
+    expect(writes[0]!.path).toBe("/repo/__doctests__/guide_md_1.test.ts");
     expect(writes[0]!.content).toContain("// guide.md:1");
   });
 
-  test("names docs outside the root with __ for ..", () => {
+  test("replaces . and path separators with _ in file names", () => {
     const writes: Array<{ path: string; content: string }> = [];
     generate({ root: "/repo/pkg" }, renderBlockFile, {
       findDocs: () => ["/repo/docs/guide.md"],
@@ -159,7 +159,7 @@ describe("generate", () => {
       logger: silent,
     });
 
-    expect(writes[0]!.path).toBe("/repo/pkg/__doctests__/___docs_guide.md_1.test.ts");
+    expect(writes[0]!.path).toBe("/repo/pkg/__doctests__/___docs_guide_md_1.test.ts");
     expect(writes[0]!.content).toContain("// ../docs/guide.md:1");
   });
 });

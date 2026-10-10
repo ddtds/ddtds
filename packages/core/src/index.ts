@@ -82,10 +82,7 @@ export function generate(
     total += blocks.length;
 
     const relPath = relative(root, mdPath);
-    const baseName = relPath
-      .split(sep)
-      .map((segment) => (segment === ".." ? "__" : segment))
-      .join("_");
+    const baseName = relPath.replaceAll(".", "_").replaceAll(sep, "_");
     logger.debug(`${relPath}: ${blocks.length} test${blocks.length === 1 ? "" : "s"}`);
 
     for (const block of blocks) {
