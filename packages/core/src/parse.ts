@@ -14,7 +14,7 @@ import {
 
 type ParsedBodyNode = Program["body"][number];
 type SyntheticDefaultNode = {
-  type: "SyntheticDefault";
+  kind: "synthetic-default";
   declaration: ExportDefaultDeclarationKind;
 };
 type BodyNode = ParsedBodyNode | SyntheticDefaultNode;
@@ -142,14 +142,14 @@ function sanitizeStatement(node: ParsedBodyNode): BodyNode[] {
       return [decl];
     }
 
-    return [{ type: "SyntheticDefault", declaration: decl }];
+    return [{ kind: "synthetic-default", declaration: decl }];
   }
 
   return [node];
 }
 
 function printBodyNode(source: string, node: BodyNode): string {
-  if (node.type === "SyntheticDefault") {
+  if ("kind" in node && node.kind === "synthetic-default") {
     return `const ______default_that_does_not_conflict = ${sliceSource(source, node.declaration)};`;
   }
 
