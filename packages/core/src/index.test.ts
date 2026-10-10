@@ -126,7 +126,7 @@ describe("CodeBlock.splitImports", () => {
 describe("generate", () => {
   test("writes one file per block named by line number", () => {
     const writes: Array<{ path: string; content: string }> = [];
-    const total = generate("/repo", "__doctests__", renderBlockFile, {
+    const total = generate({ root: "/repo" }, renderBlockFile, {
       findDocs: () => ["/repo/guide.md"],
       readFile: () => "```ts run\nconst x = 1\n```",
       writeFile: (path, content) => writes.push({ path, content }),
@@ -134,7 +134,7 @@ describe("generate", () => {
     });
 
     expect(total).toBe(1);
-    expect(writes[0]!.path).toBe("__doctests__/guide.md_1.test.ts");
+    expect(writes[0]!.path).toBe("/repo/__doctests__/guide.md_1.test.ts");
     expect(writes[0]!.content).toContain("// guide.md:1");
   });
 });

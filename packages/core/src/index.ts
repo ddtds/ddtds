@@ -1,19 +1,44 @@
 import { readFileSync, writeFileSync, mkdirSync, rmSync } from "node:fs";
-import { join, relative, sep } from "node:path";
+import { join, relative, resolve, sep } from "node:path";
 import { globSync } from "tinyglobby";
 import { parseCodeFences, type CodeBlock } from "./blocks.ts";
+import { defaultDocsExclude, defaultDocsInclude, defaultOutputDir } from "./constants.ts";
 import { createLoggerFromEnv, type Logger } from "./logger.ts";
 
 export { CodeBlock, parseCodeFences } from "./blocks.ts";
-export { SUPPORTED_LANGS, ANNOTATIONS, type Annotation } from "./constants.ts";
+export {
+  SUPPORTED_LANGS,
+  ANNOTATIONS,
+  type Annotation,
+  defaultDocsInclude,
+  defaultDocsExclude,
+  defaultOutputDir,
+} from "./constants.ts";
 export { wrapDdtTest } from "./error.ts";
 
-export function findDocs(dir: string): string[] {
-  return globSync("**/*.{md,mdx}", { cwd: dir, ignore: ["**/node_modules/**"], absolute: true });
+export type DocsOptions = {
+  /** Globs of docs to test, relative to the root. Defaults to `defaultDocsInclude`. */
+  include?: string[];
+  /** Globs of docs to skip. Replaces `defaultDocsExclude`. Globs starting with `**` also match outside the root. */
+  exclude?: string[];
+  /** Directory to write test files, relative to the root. Defaults to `defaultOutputDir`. */
+  outputDir?: string;
+};
+
+export function findDocs(
+  root: string,
+  include: string[] = defaultDocsInclude,
+  exclude: string[] = defaultDocsExclude,
+): string[] {
+  const parents = [...new Set(include.map((glob) => /^(?:\.\.\/)*/.exec(glob)?.[0] ?? ""))];
+  const ignore = exclude.flatMap((glob) =>
+    glob.startsWith("**/") ? parents.map((parent) => parent + glob) : [glob],
+  );
+  return globSync(include, { cwd: root, ignore, absolute: true });
 }
 
 export interface GenerateDeps {
-  findDocs: (dir: string) => string[];
+  findDocs: typeof findDocs;
   readFile: (path: string) => string;
   writeFile: (path: string, content: string) => void;
   clearDir: (path: string) => void;
@@ -31,22 +56,27 @@ const defaultGenerateDeps: GenerateDeps = {
   logger: createLoggerFromEnv(),
 };
 
+export type GenerateOptions = DocsOptions & {
+  /** Directory that `include`, `exclude` and `outputDir` are relative to. */
+  root: string;
+};
+
 export function generate(
-  searchDir: string,
-  outputDir: string,
+  { root, include, exclude, outputDir = defaultOutputDir }: GenerateOptions,
   renderBlockFile: (mdPath: string, block: CodeBlock) => string,
   deps?: Partial<GenerateDeps>,
 ): number {
   const resolved = { ...defaultGenerateDeps, ...deps };
   const { findDocs, readFile, writeFile, clearDir, logger } = resolved;
+  const output = resolve(root, outputDir);
 
-  const docs = findDocs(searchDir);
+  const docs = findDocs(root, include, exclude);
   if (docs.length === 0) {
-    logger.info(`No .md or .mdx files found under ${searchDir}`);
+    logger.info(`No docs found under ${root}`);
     return 0;
   }
 
-  clearDir(outputDir);
+  clearDir(output);
   let total = 0;
 
   for (const mdPath of docs) {
@@ -55,13 +85,16 @@ export function generate(
     if (blocks.length === 0) continue;
     total += blocks.length;
 
-    const relPath = relative(searchDir, mdPath);
-    const baseName = relPath.split(sep).join("_");
+    const relPath = relative(root, mdPath);
+    const baseName = relPath
+      .split(sep)
+      .map((segment) => (segment === ".." ? "__" : segment))
+      .join("_");
     logger.debug(`${relPath}: ${blocks.length} test${blocks.length === 1 ? "" : "s"}`);
 
     for (const block of blocks) {
       const outName = `${baseName}_${block.line}.test.${block.outputExtension}`;
-      const outPath = join(outputDir, outName);
+      const outPath = join(output, outName);
       writeFile(outPath, renderBlockFile(relPath, block));
       logger.trace(`  ${relPath}:${block.line} -> ${outPath}`);
     }
