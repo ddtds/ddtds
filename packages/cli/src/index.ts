@@ -9,23 +9,13 @@ const buildCmd = command(
       exclude: {
         type: [String],
         default: defaultDocsExclude,
-        placeholder: "<glob>",
         description: "Glob of docs to skip, replaces default",
       },
       output: {
         type: String,
         default: defaultOutputDir,
-        placeholder: "<dir>",
-        description: "Directory to write test files to",
+        description: "Directory for generated test files",
       },
-    },
-    help: {
-      description: "Write a test file for each runnable code fence in your docs",
-      examples: [
-        `ddt build                                  # docs matching ${defaultDocsInclude.join(" ")}`,
-        'ddt build "docs/**/*.md" README.md         # only these docs',
-        'ddt build --exclude "**/node_modules/**" --exclude "docs/api/**"',
-      ],
     },
   },
   (argv) => {
@@ -42,6 +32,5 @@ const buildCmd = command(
 
 void cli({
   name: "ddt",
-  help: { description: "Run the code fences in your Markdown docs as tests" },
   commands: [buildCmd],
 });

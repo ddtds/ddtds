@@ -19,7 +19,7 @@ export { wrapDdtTest } from "./error.ts";
 export type DocsOptions = {
   /** Globs of docs to test, relative to the root. Defaults to `defaultDocsInclude`. */
   include?: string[];
-  /** Globs of docs to skip. Replaces `defaultDocsExclude`. Globs starting with `**` also match outside the root. */
+  /** Globs of docs to skip, relative to the root. Replaces `defaultDocsExclude`. */
   exclude?: string[];
   /** Directory to write test files, relative to the root. Defaults to `defaultOutputDir`. */
   outputDir?: string;
@@ -30,11 +30,7 @@ export function findDocs(
   include: string[] = defaultDocsInclude,
   exclude: string[] = defaultDocsExclude,
 ): string[] {
-  const parents = [...new Set(include.map((glob) => /^(?:\.\.\/)*/.exec(glob)?.[0] ?? ""))];
-  const ignore = exclude.flatMap((glob) =>
-    glob.startsWith("**/") ? parents.map((parent) => parent + glob) : [glob],
-  );
-  return globSync(include, { cwd: root, ignore, absolute: true });
+  return globSync(include, { cwd: root, ignore: exclude, absolute: true });
 }
 
 export interface GenerateDeps {
