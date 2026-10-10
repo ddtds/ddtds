@@ -16,7 +16,7 @@ async function collectTestFiles(include?: string[]): Promise<string[]> {
     "test",
     { root, config: false, watch: false },
     {
-      plugins: [ddtPlugin(root, join(root, "__doctests__"), { logLevel: "silent" })],
+      plugins: [ddtPlugin(".", "__doctests__", { logLevel: "silent" })],
       test: { include },
     },
   );
