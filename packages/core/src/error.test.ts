@@ -48,7 +48,6 @@ describe("DdtTestError", () => {
         block: {
           file: "t.md",
           lang: "ts",
-          meta: "run",
           annotation: "run",
           range: { start: { line: 1, column: 1 }, end: { line: 3, column: 4 } },
           indent: 0,

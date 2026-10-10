@@ -27,7 +27,6 @@ export type CompileDiagnostic = {
 export type BlockDetails = {
   file: string;
   lang: Lang;
-  meta: string;
   annotation: Annotation | null;
   range: SourceRange;
   indent: number;

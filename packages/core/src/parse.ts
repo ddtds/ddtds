@@ -10,7 +10,6 @@ import {
   type CompilePhase,
   type ParserDetails,
   type ParserError,
-  type Position,
 } from "./compile-error.ts";
 
 type ParsedBodyNode = Program["body"][number];
@@ -78,14 +77,8 @@ function compileError(
   diagnostics: CompileDiagnostic[],
   options?: ErrorOptions,
 ): DdtCompileError {
-  const { path: file, lang, meta, annotation, range, indent, code: contents } = block;
   return new DdtCompileError(
-    {
-      block: { file, lang, meta, annotation, range, indent, contents },
-      parser: parserDetails(parser),
-      phase,
-      diagnostics,
-    },
+    { block: block.details, parser: parserDetails(parser), phase, diagnostics },
     options,
   );
 }
@@ -106,19 +99,11 @@ function parserDetails(name: Parser): ParserDetails {
 function toDiagnostic(block: CodeBlock, error: ParserError): CompileDiagnostic {
   const labels = error.labels.map((label) => ({
     ...(label.message ? { message: label.message } : {}),
-    start: toPosition(block, label.start),
-    end: toPosition(block, label.end),
+    start: block.positionAt(label.start),
+    end: block.positionAt(label.end),
   }));
   const help = error.helpMessage ? { help: error.helpMessage } : {};
   return { message: error.message, ...help, labels, source: error };
-}
-
-/** maps code block offset to file position */
-function toPosition(block: CodeBlock, offset: number): Position {
-  const before = block.code.slice(0, offset);
-  const line = block.line + before.split("\n").length;
-  const column = offset - block.code.lastIndexOf("\n", offset - 1) + block.indent;
-  return { line, column };
 }
 
 const nodeRequire = createRequire(import.meta.url);

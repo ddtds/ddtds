@@ -41,7 +41,6 @@ describe("CodeBlock.splitImports", () => {
       code,
       lang: "ts",
       annotation: null,
-      meta: "",
       path: "bench.md",
       range: { start: { line: 1, column: 1 }, end: { line: 1, column: 1 } },
       indent: 0,

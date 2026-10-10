@@ -9,7 +9,7 @@ import {
   isAnnotation,
   isLang,
 } from "./constants.ts";
-import type { SourceRange } from "./compile-error.ts";
+import type { BlockDetails, Position, SourceRange } from "./compile-error.ts";
 import { splitImportsAndBlock } from "./parse.ts";
 import type { Logger } from "./logger.ts";
 
@@ -28,7 +28,6 @@ export type CodeBlockInit = {
   code: string;
   lang: Lang;
   annotation: Annotation | null;
-  meta: string;
   path: string;
   range: SourceRange;
   indent: number;
@@ -37,24 +36,41 @@ export type CodeBlockInit = {
 export class CodeBlock {
   readonly #code: string;
   public readonly lang: Lang;
-  public readonly annotation: Annotation | null;
-  public readonly meta: string;
-  public readonly path: string;
-  public readonly range: SourceRange;
-  public readonly indent: number;
+  readonly #annotation: Annotation | null;
+  readonly #path: string;
+  readonly #range: SourceRange;
+  readonly #indent: number;
 
-  public constructor({ code, lang, annotation, meta, path, range, indent }: CodeBlockInit) {
+  public constructor({ code, lang, annotation, path, range, indent }: CodeBlockInit) {
     this.#code = code;
     this.lang = lang;
-    this.annotation = annotation;
-    this.meta = meta;
-    this.path = path;
-    this.range = range;
-    this.indent = indent;
+    this.#annotation = annotation;
+    this.#path = path;
+    this.#range = range;
+    this.#indent = indent;
   }
 
   public get line(): number {
-    return this.range.start.line;
+    return this.#range.start.line;
+  }
+
+  public get details(): BlockDetails {
+    return {
+      file: this.#path,
+      lang: this.lang,
+      annotation: this.#annotation,
+      range: this.#range,
+      indent: this.#indent,
+      contents: this.#code,
+    };
+  }
+
+  /** maps code block offset to file position */
+  public positionAt(offset: number): Position {
+    const before = this.#code.slice(0, offset);
+    const line = this.line + before.split("\n").length;
+    const column = offset - this.#code.lastIndexOf("\n", offset - 1) + this.#indent;
+    return { line, column };
   }
 
   public get outputExtension(): OutputExtension {
@@ -66,15 +82,15 @@ export class CodeBlock {
   }
 
   public isSkipped(): boolean {
-    return this.annotation === null || this.annotation === ANNOTATIONS.SKIP;
+    return this.#annotation === null || this.#annotation === ANNOTATIONS.SKIP;
   }
 
   public shouldFail(): boolean {
-    return this.annotation === ANNOTATIONS.FAIL;
+    return this.#annotation === ANNOTATIONS.FAIL;
   }
 
   public shouldFailToCompile(): boolean {
-    return this.annotation === ANNOTATIONS.COMPILE_FAIL;
+    return this.#annotation === ANNOTATIONS.COMPILE_FAIL;
   }
 
   public splitImports(): { imports: string[]; body: string } {
@@ -106,7 +122,6 @@ export function parseCodeFences(source: string, path: string, log: Logger): Code
         code: node.value,
         lang,
         annotation: result.annotation,
-        meta,
         path,
         range: {
           start: { line: start.line, column: start.column },

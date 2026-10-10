@@ -12,7 +12,6 @@ function block(
     code,
     lang,
     annotation,
-    meta: annotation ?? "",
     path: "t.md",
     range: { start: { line, column: 1 }, end: { line, column: 1 } },
     indent: 0,
