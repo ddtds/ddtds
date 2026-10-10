@@ -1,5 +1,7 @@
 import { DdtCompileError, type CodeBlock } from "@ddtds/core";
 
+type DdtVitestExports = keyof typeof import("./index.ts");
+
 function indent(code: string): string {
   return code
     .split("\n")
@@ -16,14 +18,19 @@ function renderTest(kind: "test" | "test.skip", name: string, body: string): str
 }
 
 const VITEST_IMPORT = "import { test, expect } from 'vitest';";
-const DDT_IMPORT = "import { DdtTestError, wrapDdtTest } from '@ddtds/vitest'";
+
+function ddtImport(...names: readonly DdtVitestExports[]): string {
+  return `import { ${names.join(", ")} } from '@ddtds/vitest'`;
+}
+
+const DDT_IMPORT = ddtImport("DdtTestError", "wrapDdtTest");
 
 function wrapBody(inner: string): string {
   return `await wrapDdtTest(async () => {\n${indent(inner)}\n});`;
 }
 
 function compileErrorFile(name: string, error: DdtCompileError): string {
-  const imports = "import { DdtCompileError, wrapDdtTest } from '@ddtds/vitest'";
+  const imports = ddtImport("DdtCompileError", "wrapDdtTest");
   const cause =
     error.cause === undefined ? "" : `, { cause: ${JSON.stringify(serializeCause(error.cause))} }`;
   const body = `throw new DdtCompileError(${JSON.stringify(error.details)}${cause});`;

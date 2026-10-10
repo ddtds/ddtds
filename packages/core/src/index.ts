@@ -16,7 +16,7 @@ export {
   defaultDocsExclude,
   defaultOutputDir,
 } from "./constants.ts";
-export { wrapDdtTest } from "./error.ts";
+export { DdtTestError, wrapDdtTest } from "./error.ts";
 export {
   DdtCompileError,
   type CompileDiagnostic,
