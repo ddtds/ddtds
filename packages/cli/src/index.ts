@@ -1,5 +1,5 @@
 import { cli, command } from "cleye";
-import { defaultOutputDir, generate } from "@ddtds/vitest";
+import { defaultDocsExclude, defaultDocsInclude, defaultOutputDir, generate } from "@ddtds/vitest";
 
 const buildCmd = command(
   {
@@ -8,13 +8,24 @@ const buildCmd = command(
     flags: {
       exclude: {
         type: [String],
-        description: "Glob of docs to skip (repeatable)",
+        default: defaultDocsExclude,
+        placeholder: "<glob>",
+        description: "Glob of docs to skip (repeatable, replaces default)",
       },
       output: {
         type: String,
         default: defaultOutputDir,
-        description: "Directory for generated test files",
+        placeholder: "<dir>",
+        description: "Directory to write test files to",
       },
+    },
+    help: {
+      description: "Write a test file for each runnable code fence in your docs",
+      examples: [
+        `ddt build                                  # docs matching ${defaultDocsInclude.join(" ")}`,
+        'ddt build "docs/**/*.md" README.md         # only these docs',
+        'ddt build --exclude "**/node_modules/**" --exclude "docs/api/**"',
+      ],
     },
   },
   (argv) => {
@@ -22,8 +33,8 @@ const buildCmd = command(
     const { exclude, output } = argv.flags;
     generate({
       root: process.cwd(),
-      include: include.length > 0 ? include : undefined,
-      exclude: exclude.length > 0 ? exclude : undefined,
+      include: include.length > 0 ? include : defaultDocsInclude,
+      exclude,
       outputDir: output,
     });
   },
@@ -31,5 +42,6 @@ const buildCmd = command(
 
 void cli({
   name: "ddt",
+  help: { description: "Run the code fences in your Markdown docs as tests" },
   commands: [buildCmd],
 });
