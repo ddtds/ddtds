@@ -11,7 +11,7 @@
   },
   "devDependencies": {
     "@ddtds/vitest": "workspace:*",
-    "jsdom": "^30.1.2",
+    "jsdom": "catalog:examples",
     "vitest": "catalog:dev"
   }
 }

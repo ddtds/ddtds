@@ -11,12 +11,12 @@
   },
   "dependencies": {
     "@ddtds/greet": "workspace:*",
-    "octane": "^0.10.0"
+    "octane": "catalog:examples"
   },
   "devDependencies": {
     "@ddtds/vitest": "workspace:*",
-    "@tsrx/oxc": "0.20.0",
-    "jsdom": "^30.1.2",
+    "@tsrx/oxc": "catalog:examples",
+    "jsdom": "catalog:examples",
     "vitest": "catalog:dev"
   }
 }

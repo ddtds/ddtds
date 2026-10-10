@@ -173,6 +173,73 @@ catalogs:
     vitest:
       specifier: ^4.1.11
       version: 4.1.11
+  examples:
+    '@angular/core':
+      specifier: ^22.2.1
+      version: 22.2.1
+    '@preact/preset-vite':
+      specifier: ^2.10.6
+      version: 2.10.6
+    '@sveltejs/vite-plugin-svelte':
+      specifier: ^7.3.1
+      version: 7.3.1
+    '@testing-library/jest-dom':
+      specifier: ^7.0.1
+      version: 7.0.1
+    '@testing-library/react':
+      specifier: ^16.3.3
+      version: 16.3.3
+    '@tsrx/oxc':
+      specifier: 0.20.0
+      version: 0.20.0
+    '@types/react':
+      specifier: ^19.3.0
+      version: 19.3.0
+    '@types/react-dom':
+      specifier: ^19.3.0
+      version: 19.3.0
+    '@vitejs/plugin-react':
+      specifier: ^6.1.2
+      version: 6.1.2
+    '@vitejs/plugin-vue':
+      specifier: ^6.0.9
+      version: 6.0.9
+    happy-dom:
+      specifier: 20.14.5
+      version: 20.14.5
+    jsdom:
+      specifier: ^30.1.2
+      version: 30.1.2
+    lit:
+      specifier: ^3.3.3
+      version: 3.3.3
+    octane:
+      specifier: ^0.10.0
+      version: 0.10.0
+    preact:
+      specifier: ^11.0.0
+      version: 11.0.0
+    react:
+      specifier: ^19.3.0
+      version: 19.3.0
+    react-dom:
+      specifier: ^19.3.0
+      version: 19.3.0
+    rxjs:
+      specifier: ^7.8.2
+      version: 7.8.2
+    solid-js:
+      specifier: ^1.9.16
+      version: 1.9.16
+    svelte:
+      specifier: ^5.57.2
+      version: 5.57.2
+    vite-plugin-solid:
+      specifier: ^2.11.14
+      version: 2.11.14
+    vue:
+      specifier: ^3.5.43
+      version: 3.5.43
 
 importers:
 
@@ -218,29 +285,25 @@ importers:
         specifier: catalog:dev
         version: 4.1.11(@opentelemetry/api@1.9.1)(@types/node@24.19.1)(happy-dom@20.14.5)(jsdom@30.1.2(@noble/hashes@2.4.0))(vite@8.3.3(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1))
 
-  examples/monorepo:
-    devDependencies:
-      vitest:
-        specifier: catalog:dev
-        version: 4.1.11(@opentelemetry/api@1.9.1)(@types/node@24.19.1)(happy-dom@20.14.5)(jsdom@30.1.2(@noble/hashes@2.4.0))(vite@8.3.3(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1))
+  examples/monorepo: {}
 
   examples/monorepo/packages/angular-greet:
     dependencies:
       '@angular/core':
-        specifier: ^22.2.1
+        specifier: catalog:examples
         version: 22.2.1(rxjs@7.8.2)
       '@ddtds/greet':
         specifier: workspace:*
         version: link:../greet
       rxjs:
-        specifier: ^7.8.2
+        specifier: catalog:examples
         version: 7.8.2
     devDependencies:
       '@ddtds/vitest':
         specifier: workspace:*
         version: link:../../../../packages/vitest
       jsdom:
-        specifier: ^30.1.2
+        specifier: catalog:examples
         version: 30.1.2(@noble/hashes@2.4.0)
       vitest:
         specifier: catalog:dev
@@ -252,7 +315,7 @@ importers:
         specifier: workspace:*
         version: link:../../../../packages/vitest
       jsdom:
-        specifier: ^30.1.2
+        specifier: catalog:examples
         version: 30.1.2(@noble/hashes@2.4.0)
       vitest:
         specifier: catalog:dev
@@ -264,14 +327,14 @@ importers:
         specifier: workspace:*
         version: link:../greet
       lit:
-        specifier: ^3.3.3
+        specifier: catalog:examples
         version: 3.3.3
     devDependencies:
       '@ddtds/vitest':
         specifier: workspace:*
         version: link:../../../../packages/vitest
       jsdom:
-        specifier: ^30.1.2
+        specifier: catalog:examples
         version: 30.1.2(@noble/hashes@2.4.0)
       vitest:
         specifier: catalog:dev
@@ -283,17 +346,17 @@ importers:
         specifier: workspace:*
         version: link:../greet
       octane:
-        specifier: ^0.10.0
+        specifier: catalog:examples
         version: 0.10.0(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(svelte@5.57.2)(typescript@7.0.2)(vite@8.3.3(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1))
     devDependencies:
       '@ddtds/vitest':
         specifier: workspace:*
         version: link:../../../../packages/vitest
       '@tsrx/oxc':
-        specifier: 0.20.0
+        specifier: catalog:examples
         version: 0.20.0(svelte@5.57.2)
       jsdom:
-        specifier: ^30.1.2
+        specifier: catalog:examples
         version: 30.1.2(@noble/hashes@2.4.0)
       vitest:
         specifier: catalog:dev
@@ -305,17 +368,17 @@ importers:
         specifier: workspace:*
         version: link:../greet
       preact:
-        specifier: ^11.0.0
+        specifier: catalog:examples
         version: 11.0.0
     devDependencies:
       '@ddtds/vitest':
         specifier: workspace:*
         version: link:../../../../packages/vitest
       '@preact/preset-vite':
-        specifier: ^2.10.6
+        specifier: catalog:examples
         version: 2.10.6(@babel/core@7.29.7(supports-color@7.2.0))(preact@11.0.0)(rollup@4.64.0)(supports-color@7.2.0)(vite@8.3.3(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1))
       jsdom:
-        specifier: ^30.1.2
+        specifier: catalog:examples
         version: 30.1.2(@noble/hashes@2.4.0)
       vitest:
         specifier: catalog:dev
@@ -327,26 +390,26 @@ importers:
         specifier: workspace:*
         version: link:../greet
       react:
-        specifier: ^19.3.0
+        specifier: catalog:examples
         version: 19.3.0
       react-dom:
-        specifier: ^19.3.0
+        specifier: catalog:examples
         version: 19.3.0(react@19.3.0)
     devDependencies:
       '@ddtds/vitest':
         specifier: workspace:*
         version: link:../../../../packages/vitest
       '@types/react':
-        specifier: ^19.3.0
+        specifier: catalog:examples
         version: 19.3.0
       '@types/react-dom':
-        specifier: ^19.3.0
+        specifier: catalog:examples
         version: 19.3.0(@types/react@19.3.0)
       '@vitejs/plugin-react':
-        specifier: ^6.1.2
+        specifier: catalog:examples
         version: 6.1.2(vite@8.3.3(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1))
       jsdom:
-        specifier: ^30.1.2
+        specifier: catalog:examples
         version: 30.1.2(@noble/hashes@2.4.0)
       vitest:
         specifier: catalog:dev
@@ -358,20 +421,20 @@ importers:
         specifier: workspace:*
         version: link:../greet
       solid-js:
-        specifier: ^1.9.16
+        specifier: catalog:examples
         version: 1.9.16
     devDependencies:
       '@ddtds/vitest':
         specifier: workspace:*
         version: link:../../../../packages/vitest
       '@testing-library/jest-dom':
-        specifier: ^7.0.1
+        specifier: catalog:examples
         version: 7.0.1(@testing-library/dom@10.4.2)(vitest@4.1.11(@opentelemetry/api@1.9.1)(@types/node@24.19.1)(happy-dom@20.14.5)(jsdom@30.1.2(@noble/hashes@2.4.0))(vite@8.3.3(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1)))
       jsdom:
-        specifier: ^30.1.2
+        specifier: catalog:examples
         version: 30.1.2(@noble/hashes@2.4.0)
       vite-plugin-solid:
-        specifier: ^2.11.14
+        specifier: catalog:examples
         version: 2.11.14(@testing-library/jest-dom@7.0.1(@testing-library/dom@10.4.2)(vitest@4.1.11(@opentelemetry/api@1.9.1)(@types/node@24.19.1)(happy-dom@20.14.5)(jsdom@30.1.2(@noble/hashes@2.4.0))(vite@8.3.3(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1))))(solid-js@1.9.16)(supports-color@7.2.0)(vite@8.3.3(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1))
       vitest:
         specifier: catalog:dev
@@ -383,17 +446,17 @@ importers:
         specifier: workspace:*
         version: link:../greet
       svelte:
-        specifier: ^5.57.2
+        specifier: catalog:examples
         version: 5.57.2
     devDependencies:
       '@ddtds/vitest':
         specifier: workspace:*
         version: link:../../../../packages/vitest
       '@sveltejs/vite-plugin-svelte':
-        specifier: ^7.3.1
+        specifier: catalog:examples
         version: 7.3.1(svelte@5.57.2)(vite@8.3.3(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1))
       jsdom:
-        specifier: ^30.1.2
+        specifier: catalog:examples
         version: 30.1.2(@noble/hashes@2.4.0)
       vitest:
         specifier: catalog:dev
@@ -405,17 +468,17 @@ importers:
         specifier: workspace:*
         version: link:../greet
       vue:
-        specifier: ^3.5.43
+        specifier: catalog:examples
         version: 3.5.43(typescript@7.0.2)
     devDependencies:
       '@ddtds/vitest':
         specifier: workspace:*
         version: link:../../../../packages/vitest
       '@vitejs/plugin-vue':
-        specifier: ^6.0.9
+        specifier: catalog:examples
         version: 6.0.9(vite@8.3.3(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1))(vue@3.5.43(typescript@7.0.2))
       jsdom:
-        specifier: ^30.1.2
+        specifier: catalog:examples
         version: 30.1.2(@noble/hashes@2.4.0)
       vitest:
         specifier: catalog:dev
@@ -427,19 +490,19 @@ importers:
         specifier: workspace:*
         version: link:../../packages/vitest
       '@testing-library/jest-dom':
-        specifier: ^7.0.1
+        specifier: catalog:examples
         version: 7.0.1(@testing-library/dom@10.4.2)(vitest@4.1.11(@opentelemetry/api@1.9.1)(@types/node@24.19.1)(happy-dom@20.14.5)(jsdom@30.1.2(@noble/hashes@2.4.0))(vite@8.3.3(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1)))
       '@testing-library/react':
-        specifier: ^16.3.3
+        specifier: catalog:examples
         version: 16.3.3(@testing-library/dom@10.4.2)(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
       happy-dom:
-        specifier: 20.14.5
+        specifier: catalog:examples
         version: 20.14.5
       react:
-        specifier: ^19.3.0
+        specifier: catalog:examples
         version: 19.3.0
       react-dom:
-        specifier: ^19.3.0
+        specifier: catalog:examples
         version: 19.3.0(react@19.3.0)
       vitest:
         specifier: catalog:dev

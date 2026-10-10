@@ -11,13 +11,13 @@
   },
   "dependencies": {
     "@ddtds/greet": "workspace:*",
-    "solid-js": "^1.9.16"
+    "solid-js": "catalog:examples"
   },
   "devDependencies": {
     "@ddtds/vitest": "workspace:*",
-    "@testing-library/jest-dom": "^7.0.1",
-    "jsdom": "^30.1.2",
-    "vite-plugin-solid": "^2.11.14",
+    "@testing-library/jest-dom": "catalog:examples",
+    "jsdom": "catalog:examples",
+    "vite-plugin-solid": "catalog:examples",
     "vitest": "catalog:dev"
   }
 }

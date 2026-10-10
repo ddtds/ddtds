@@ -28,8 +28,8 @@ export class CodeBlock {
     this.line = line;
   }
 
-  public get outputExtension(): "ts" | "tsx" {
-    return this.isJsx() ? "tsx" : "ts";
+  public get outputExtension(): "ts" | "tsx" | "tsrx" {
+    return this.lang === "tsrx" ? "tsrx" : this.isJsx() ? "tsx" : "ts";
   }
 
   public get code(): string {
@@ -37,7 +37,7 @@ export class CodeBlock {
   }
 
   public isJsx(): boolean {
-    return this.lang === "tsx" || this.lang === "jsx";
+    return this.lang === "tsx" || this.lang === "tsrx" || this.lang === "jsx";
   }
 
   public isSkipped(): boolean {

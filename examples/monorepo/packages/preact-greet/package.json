@@ -11,12 +11,12 @@
   },
   "dependencies": {
     "@ddtds/greet": "workspace:*",
-    "preact": "^11.0.0"
+    "preact": "catalog:examples"
   },
   "devDependencies": {
     "@ddtds/vitest": "workspace:*",
-    "@preact/preset-vite": "^2.10.6",
-    "jsdom": "^30.1.2",
+    "@preact/preset-vite": "catalog:examples",
+    "jsdom": "catalog:examples",
     "vitest": "catalog:dev"
   }
 }
