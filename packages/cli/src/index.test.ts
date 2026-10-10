@@ -1,17 +1,10 @@
 import { execFileSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
-import { stripVTControlCharacters } from "node:util";
 import { expect, test } from "vitest";
 
 function help(...args: string[]): string {
   const bin = fileURLToPath(new URL("index.ts", import.meta.url));
-  // Force no-color so the help output is deterministic across environments
-  // (cleye renders section titles differently depending on color support).
-  const out = execFileSync(process.execPath, [bin, ...args, "--help"], {
-    encoding: "utf8",
-    env: { ...process.env, NO_COLOR: "1" },
-  });
-  return stripVTControlCharacters(out);
+  return execFileSync(process.execPath, [bin, ...args, "--help"], { encoding: "utf8" });
 }
 
 test("ddt --help", () => {
