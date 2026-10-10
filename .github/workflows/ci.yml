@@ -25,15 +25,11 @@ jobs:
       - run: pnpm run knip
       - run: pnpm run format:check
       - run: pnpm run typecheck
-      - run: pnpm run test:packages
-      - run: pnpm run test:examples
-        env:
-          CI: true
       - run: pnpm run bench
       - run: pnpm run publint
       - run: pnpm --filter @ddtds/core --filter ddtds --filter @ddtds/vitest publish --dry-run --no-git-checks
 
-  vitest-compat:
+  tests:
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -43,5 +39,10 @@ jobs:
         with:
           persist-credentials: false
       - uses: $/.github/actions/setup
-      - run: pnpm add -D vitest@${{ matrix.vitest-version }} --filter @ddtds/vitest --lockfile=false
-      - run: pnpm --filter @ddtds/vitest test
+      - name: Use Vitest ${{ matrix.vitest-version }}
+        run: |
+          sed -i -E "s/^(    (vitest|\"@vitest\/coverage-v8\")): .*/\1: ^${VITEST_VERSION}/" pnpm-workspace.yaml
+        env:
+          VITEST_VERSION: ${{ matrix.vitest-version }}
+      - run: pnpm install --no-frozen-lockfile
+      - run: pnpm run test:coverage

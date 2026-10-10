@@ -22,7 +22,7 @@
     "@codspeed/vitest-plugin": "5.7.1",
     "@tsrx/oxc": "catalog:dev",
     "@types/node": "catalog:dev",
-    "vitest": "catalog:dev"
+    "vitest": "^4.1.11"
   },
   "peerDependencies": {
     "@tsrx/oxc": "^0.20.0"
