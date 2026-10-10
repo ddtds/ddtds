@@ -81,10 +81,6 @@ export class CodeBlock {
     return this.#code;
   }
 
-  public isSkipped(): boolean {
-    return this.#annotation === null || this.#annotation === ANNOTATIONS.SKIP;
-  }
-
   public shouldFail(): boolean {
     return this.#annotation === ANNOTATIONS.FAIL;
   }

@@ -51,18 +51,15 @@ describe("parseBlocks", () => {
   });
 });
 
-describe("CodeBlock.isSkipped / shouldFail / shouldFailToCompile", () => {
+describe("CodeBlock.shouldFail / shouldFailToCompile", () => {
   test.each([
-    [null, true, false, false],
-    [ANNOTATIONS.SKIP, true, false, false],
-    [ANNOTATIONS.RUN, false, false, false],
-    [ANNOTATIONS.FAIL, false, true, false],
-    [ANNOTATIONS.COMPILE_FAIL, false, false, true],
+    [ANNOTATIONS.RUN, false, false],
+    [ANNOTATIONS.FAIL, true, false],
+    [ANNOTATIONS.COMPILE_FAIL, false, true],
   ] as const)(
-    "annotation=%j → isSkipped=%s shouldFail=%s shouldFailToCompile=%s",
-    (annotation, expectedSkipped, expectedFail, expectedCompileFail) => {
+    "annotation=%j → shouldFail=%s shouldFailToCompile=%s",
+    (annotation, expectedFail, expectedCompileFail) => {
       const b = block("x", annotation);
-      expect(b.isSkipped()).toBe(expectedSkipped);
       expect(b.shouldFail()).toBe(expectedFail);
       expect(b.shouldFailToCompile()).toBe(expectedCompileFail);
     },

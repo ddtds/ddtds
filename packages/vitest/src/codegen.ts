@@ -16,15 +16,9 @@ function indent(code: string): string {
     .join("\n");
 }
 
-function wrapBody(inner: string): string {
-  return `await wrapDdtTest(async () => {\n${indent(inner)}\n});`;
-}
-
 function ddtImport(...names: readonly DdtVitestExports[]): string {
   return `import { ${names.join(", ")} } from '@ddtds/vitest';`;
 }
-
-const DDT_IMPORT = ddtImport("DdtTestError", "wrapDdtTest");
 
 type FenceCode = { imports: string[]; body: string };
 
@@ -32,10 +26,7 @@ function compileErrorCode(error: DdtCompileError): FenceCode {
   const cause =
     error.cause === undefined ? "" : `, { cause: ${JSON.stringify(serializeCause(error.cause))} }`;
   const body = `throw new DdtCompileError(${JSON.stringify(error.details)}${cause});`;
-  return {
-    imports: [ddtImport("DdtCompileError", "wrapDdtTest")],
-    body: wrapBody(body),
-  };
+  return { imports: [ddtImport("DdtCompileError")], body };
 }
 
 function serializeCause(cause: unknown): unknown {
@@ -45,16 +36,17 @@ function serializeCause(cause: unknown): unknown {
 }
 
 function compiledCode(): FenceCode {
-  const body = 'throw new Error("expected a compile_fail block to fail to compile");';
-  return { imports: [DDT_IMPORT], body: wrapBody(body) };
+  return {
+    imports: [],
+    body: 'throw new Error("expected a compile_fail block to fail to compile");',
+  };
 }
 
 function blockCode(block: CodeBlock, importsFrom: string): FenceCode {
   const { imports, body } = block.splitImports(importsFrom);
-  const inner = block.shouldFail()
-    ? `await expect(async () => {\n${indent(body)}\n}).rejects.toThrow();`
-    : body;
-  return { imports: [DDT_IMPORT, ...imports], body: wrapBody(inner) };
+  if (!block.shouldFail()) return { imports, body };
+  const rejects = `await expect(async () => {\n${indent(body)}\n}).rejects.toThrow();`;
+  return { imports, body: rejects };
 }
 
 function fenceCode({ doc, block }: Fence): FenceCode {
@@ -80,8 +72,8 @@ export function fenceModule(fence: Fence): string {
 export function docModule(fences: readonly Fence[], importPath: (fence: Fence) => string): string {
   const tests = fences.map((fence) => {
     const name = JSON.stringify(`${fence.block.details.file}:${fence.block.line}`);
-    const load = `await wrapDdtTest(() => import(${JSON.stringify(importPath(fence))}))`;
-    return `test(${name}, async () => {\n  const { default: run } = ${load};\n  await run();\n});`;
+    const load = `const { default: run } = await import(${JSON.stringify(importPath(fence))});`;
+    return `test(${name}, () =>\n  wrapDdtTest(async () => {\n    ${load}\n    await run();\n  }),\n);`;
   });
   return ["import { test } from 'vitest';", ddtImport("wrapDdtTest"), ...tests].join("\n");
 }

@@ -5,7 +5,7 @@ export const defaultOutDir = "__doctests__";
 const PARSERS = ["ts", "js", "tsx", "jsx", "tsrx"] as const;
 export type Parser = (typeof PARSERS)[number];
 
-export const OUTPUT_EXTENSIONS = ["ts", "tsx", "tsrx"] as const;
+const OUTPUT_EXTENSIONS = ["ts", "tsx", "tsrx"] as const;
 export type OutputExtension = (typeof OUTPUT_EXTENSIONS)[number];
 
 /** Code fence languages, the parser for each, and the extension of its generated test file. */
@@ -21,10 +21,8 @@ export const LANGS = {
 
 export type Lang = keyof typeof LANGS;
 
-export const SUPPORTED_LANGS: ReadonlySet<string> = new Set(Object.keys(LANGS));
-
 export function isLang(s: string): s is Lang {
-  return SUPPORTED_LANGS.has(s);
+  return Object.hasOwn(LANGS, s);
 }
 
 export const ANNOTATIONS = {

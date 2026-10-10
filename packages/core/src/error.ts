@@ -29,7 +29,6 @@ export class DdtTestError extends Error {
     super(message, { cause: sourceError });
     this.name = "DdtTestError";
     this.kind = isCompileError(sourceError) ? ErrorKind.Compile : ErrorKind.RuntimeFailure;
-    Object.setPrototypeOf(this, DdtTestError.prototype);
   }
 }
 

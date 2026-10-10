@@ -47,12 +47,9 @@ describe("generateBlockFile: basic", () => {
 
     expect(output).toMatchInlineSnapshot(`
       "import { expect } from 'vitest';
-      import { DdtTestError, wrapDdtTest } from '@ddtds/vitest';
       export default async function () {
-        await wrapDdtTest(async () => {
-          const hi = '10';
-          expect(hi).toBe('10');
-        });
+        const hi = '10';
+        expect(hi).toBe('10');
       }"
     `);
   });
@@ -66,16 +63,13 @@ describe("generateBlockFile: imports", () => {
     assertTestRun(out);
     expect(out).toMatchInlineSnapshot(`
       "import { expect } from 'vitest';
-      import { DdtTestError, wrapDdtTest } from '@ddtds/vitest';
       import {
         foo,
         bar,
         baz,
       } from "/repo/docs/utils"
       export default async function () {
-        await wrapDdtTest(async () => {
-          foo()
-        });
+        foo()
       }"
     `);
   });
@@ -100,13 +94,10 @@ describe("generateBlockFile: annotations", () => {
     expect(out).toContain(".rejects.toThrow();");
     expect(out).toMatchInlineSnapshot(`
       "import { expect } from 'vitest';
-      import { DdtTestError, wrapDdtTest } from '@ddtds/vitest';
       export default async function () {
-        await wrapDdtTest(async () => {
-          await expect(async () => {
-            throw new Error("boom")
-          }).rejects.toThrow();
-        });
+        await expect(async () => {
+          throw new Error("boom")
+        }).rejects.toThrow();
       }"
     `);
   });
@@ -116,11 +107,9 @@ describe("generateBlockFile: annotations", () => {
     expect(out.replace(/DdtCompileError\(\{.*\}\);/, "DdtCompileError(details);"))
       .toMatchInlineSnapshot(`
         "import { expect } from 'vitest';
-        import { DdtCompileError, wrapDdtTest } from '@ddtds/vitest';
+        import { DdtCompileError } from '@ddtds/vitest';
         export default async function () {
-          await wrapDdtTest(async () => {
-            throw new DdtCompileError(details);
-          });
+          throw new DdtCompileError(details);
         }"
       `);
   });
@@ -139,11 +128,8 @@ describe("generateBlockFile: annotations", () => {
     expect(out).toContain("expected a compile_fail block");
     expect(out).toMatchInlineSnapshot(`
       "import { expect } from 'vitest';
-      import { DdtTestError, wrapDdtTest } from '@ddtds/vitest';
       export default async function () {
-        await wrapDdtTest(async () => {
-          throw new Error("expected a compile_fail block to fail to compile");
-        });
+        throw new Error("expected a compile_fail block to fail to compile");
       }"
     `);
   });
@@ -155,12 +141,9 @@ describe("in-memory modules", () => {
     expect(out).toContain("export default async function");
     expect(out).toMatchInlineSnapshot(`
       "import { expect } from 'vitest';
-      import { DdtTestError, wrapDdtTest } from '@ddtds/vitest';
       import { foo } from "/repo/docs/foo"
       export default async function () {
-        await wrapDdtTest(async () => {
-          foo()
-        });
+        foo()
       }"
     `);
   });
@@ -176,14 +159,18 @@ describe("in-memory modules", () => {
     expect(out).toMatchInlineSnapshot(`
       "import { test } from 'vitest';
       import { wrapDdtTest } from '@ddtds/vitest';
-      test("t.md:1", async () => {
-        const { default: run } = await wrapDdtTest(() => import("/root/f1.ts"));
-        await run();
-      });
-      test("t.md:5", async () => {
-        const { default: run } = await wrapDdtTest(() => import("/root/f5.ts"));
-        await run();
-      });"
+      test("t.md:1", () =>
+        wrapDdtTest(async () => {
+          const { default: run } = await import("/root/f1.ts");
+          await run();
+        }),
+      );
+      test("t.md:5", () =>
+        wrapDdtTest(async () => {
+          const { default: run } = await import("/root/f5.ts");
+          await run();
+        }),
+      );"
     `);
   });
 });

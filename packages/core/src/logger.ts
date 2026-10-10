@@ -27,7 +27,7 @@ export function parseLogLevel(value: string | undefined): LogLevel {
   return normalized;
 }
 
-export function createLogger(level: LogLevel | undefined = "info"): Logger {
+export function createLogger(level: LogLevel = "info"): Logger {
   return {
     error: (message) => {
       if (isEnabled(level, "error")) console.error(message);
