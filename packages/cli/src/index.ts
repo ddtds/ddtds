@@ -1,5 +1,5 @@
 import { relative, resolve } from "node:path";
-import { cli, command } from "cleye";
+import { cli, command, type Flags } from "cleye";
 import {
   defaultDocsExclude,
   defaultOutDir,
@@ -16,17 +16,16 @@ import { moduleFiles } from "@ddtds/vitest";
 
 const logger = createLoggerFromEnv();
 
-const parameters: ["[include...]"] = ["[include...]"];
 const flags = {
   exclude: {
-    type: [String] as [StringConstructor],
+    type: [String],
     description: `Glob of docs to skip, replaces default (default: ${JSON.stringify(defaultDocsExclude)})`,
   },
   outDir: {
     type: String,
     description: `Directory for generated test files (default: ${JSON.stringify(defaultOutDir)})`,
   },
-};
+} satisfies Flags;
 
 type Loaded = { root: string; outDir: string; index: DocIndex };
 
@@ -52,7 +51,7 @@ function entries({ root, index }: Loaded): Entry[] {
   });
 }
 
-const buildCmd = command({ name: "build", parameters, flags }, (argv) => {
+const buildCmd = command({ name: "build", parameters: ["[include...]"], flags }, (argv) => {
   const { root, outDir, index } = load(argv._.include, argv.flags.exclude, argv.flags.outDir);
   writeFiles(outDir, moduleFiles(index, root));
   logger.info(`Total: ${index.fences.size} tests in ${relative(root, outDir)}`);
@@ -61,7 +60,7 @@ const buildCmd = command({ name: "build", parameters, flags }, (argv) => {
 const listCmd = command(
   {
     name: "list",
-    parameters,
+    parameters: ["[include...]"],
     flags: { ...flags, json: { type: Boolean, description: "Print as JSON" } },
   },
   (argv) => {
