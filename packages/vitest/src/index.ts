@@ -35,7 +35,7 @@ export function ddtPlugin({ logLevel, ...docs }: DdtPluginOptions = {}): Plugin 
       const options = resolveDocsOptions({ ...docs, root: config.root ?? process.cwd() });
       generate(options, { logger });
 
-      const doctests = `${options.outputDir}/**/*.test.{ts,tsx,tsrx}`;
+      const doctests = `${options.outputDir}/**/*.test.{ts,tsx}`;
       const include = config.test?.include ? [doctests] : [...defaultInclude, doctests];
       return { test: { include } };
     },
