@@ -1,8 +1,7 @@
-import { resolve } from "node:path";
 import { defaultInclude, type Plugin } from "vitest/config";
 import {
-  defaultOutputDir,
   generate as generateCore,
+  resolveDocsOptions,
   type DocsOptions,
   type GenerateDeps,
   type GenerateOptions,
@@ -33,11 +32,10 @@ export function ddtPlugin({ logLevel, ...docs }: DdtPluginOptions = {}): Plugin 
     name: "vite-plugin-ddtds",
     config(config) {
       const logger = createLogger(parseLogLevel(process.env.DDT_LOG_LEVEL ?? logLevel));
-      const root = config.root ?? process.cwd();
-      const outputDir = resolve(root, docs.outputDir ?? defaultOutputDir);
-      generate({ ...docs, root, outputDir }, { logger });
+      const options = resolveDocsOptions({ ...docs, root: config.root ?? process.cwd() });
+      generate(options, { logger });
 
-      const doctests = `${outputDir}/**/*.test.{ts,tsx}`;
+      const doctests = `${options.outputDir}/**/*.test.{ts,tsx}`;
       const include = config.test?.include ? [doctests] : [...defaultInclude, doctests];
       return { test: { include } };
     },

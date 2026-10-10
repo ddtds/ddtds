@@ -7,8 +7,10 @@ import {
   CodeBlock,
   parseCodeFences,
   defaultDocsExclude,
+  defaultDocsInclude,
   findDocs,
   generate,
+  resolveDocsOptions,
   type Annotation,
 } from "./index";
 import { createLogger } from "./logger";
@@ -173,30 +175,41 @@ describe("generate", () => {
   });
 });
 
+describe("resolveDocsOptions", () => {
+  test.each([{}, { include: [], exclude: [] }])("defaults %j", (options) => {
+    expect(resolveDocsOptions({ root: "/repo", ...options })).toEqual({
+      root: "/repo",
+      include: defaultDocsInclude,
+      exclude: defaultDocsExclude,
+      outputDir: "/repo/__doctests__",
+    });
+  });
+
+  test("keeps given values", () => {
+    const options = { root: "/repo", include: ["a.md"], exclude: ["b.md"], outputDir: "out" };
+    expect(resolveDocsOptions(options)).toEqual({ ...options, outputDir: "/repo/out" });
+  });
+});
+
 describe("findDocs", () => {
-  test("skips node_modules and CHANGELOG by default", () => {
-    expect(find(fixture())).toEqual(["guide.md", "nested/guide.md"]);
+  test("default globs skip node_modules and CHANGELOG", () => {
+    expect(find(fixture(), defaultDocsInclude, defaultDocsExclude)).toEqual([
+      "guide.md",
+      "nested/guide.md",
+    ]);
   });
 
-  test("only finds docs matching include", () => {
-    expect(find(fixture(), ["nested/*.md"])).toEqual(["nested/guide.md"]);
-  });
-
-  test("finds docs outside the root", () => {
-    const root = join(fixture(), "nested");
-    expect(find(root, ["../*.md"], ["../CHANGELOG.md"])).toEqual(["../guide.md"]);
-  });
-
-  test("replaces the default exclude", () => {
-    expect(find(fixture(), undefined, ["nested/**"])).toEqual([
+  test("finds docs matching include, skipping exclude", () => {
+    expect(find(fixture(), ["**/*.md"], ["nested/**"])).toEqual([
       "CHANGELOG.md",
       "guide.md",
       "node_modules/pkg/README.md",
     ]);
   });
 
-  test("keeps the default exclude when spread", () => {
-    expect(find(fixture(), undefined, [...defaultDocsExclude, "nested/**"])).toEqual(["guide.md"]);
+  test("finds docs outside the root", () => {
+    const root = join(fixture(), "nested");
+    expect(find(root, ["../*.md"], ["../CHANGELOG.md"])).toEqual(["../guide.md"]);
   });
 });
 
@@ -214,7 +227,7 @@ function fixture(): string {
   return dir;
 }
 
-function find(root: string, include?: string[], exclude?: string[]): string[] {
+function find(root: string, include: string[], exclude: string[]): string[] {
   return findDocs(root, include, exclude)
     .map((doc) => relative(root, doc))
     .toSorted();

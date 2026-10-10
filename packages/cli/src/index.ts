@@ -5,27 +5,26 @@ const buildCmd = command(
   {
     name: "build",
     parameters: ["[include...]"],
+    help: {
+      usage: `ddt build [flags...] [include...] (default: ${defaultDocsInclude.join(", ")})`,
+    },
     flags: {
       exclude: {
         type: [String],
-        default: defaultDocsExclude,
-        description: "Glob of docs to skip, replaces default",
+        description: `Glob of docs to skip, replaces default (default: ${defaultDocsExclude.join(", ")})`,
       },
       output: {
         type: String,
-        default: defaultOutputDir,
-        description: "Directory for generated test files",
+        description: `Directory for generated test files (default: ${defaultOutputDir})`,
       },
     },
   },
   (argv) => {
-    const { include } = argv._;
-    const { exclude, output } = argv.flags;
     generate({
       root: process.cwd(),
-      include: include.length > 0 ? include : defaultDocsInclude,
-      exclude,
-      outputDir: output,
+      include: argv._.include,
+      exclude: argv.flags.exclude,
+      outputDir: argv.flags.output,
     });
   },
 );

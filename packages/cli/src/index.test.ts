@@ -32,12 +32,12 @@ test("ddt build --help", () => {
     "ddt build
 
     Usage:
-      ddt build [flags...] [include...]
+      ddt build [flags...] [include...] (default: **/*.{md,mdx})
 
     Flags:
-          --exclude <string>        Glob of docs to skip, replaces default (default: ["**/node_modules/**","**/CHANGELOG.md"])
+          --exclude <string>        Glob of docs to skip, replaces default (default: **/node_modules/**, **/CHANGELOG.md)
       -h, --help                    Show help
-          --output <string>         Directory for generated test files (default: "__doctests__")
+          --output <string>         Directory for generated test files (default: __doctests__)
 
     "
   `);
