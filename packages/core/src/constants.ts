@@ -1,11 +1,11 @@
 export const defaultDocsInclude = ["**/*.{md,mdx}"];
 export const defaultDocsExclude = ["**/node_modules/**", "**/CHANGELOG.md"];
-export const defaultOutputDir = "__doctests__";
+export const defaultOutDir = "__doctests__";
 
 const PARSERS = ["ts", "js", "tsx", "jsx", "tsrx"] as const;
 export type Parser = (typeof PARSERS)[number];
 
-export const OUTPUT_EXTENSIONS = ["ts", "tsx", "tsrx"] as const;
+const OUTPUT_EXTENSIONS = ["ts", "tsx", "tsrx"] as const;
 export type OutputExtension = (typeof OUTPUT_EXTENSIONS)[number];
 
 /** Code fence languages, the parser for each, and the extension of its generated test file. */

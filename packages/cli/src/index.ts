@@ -1,5 +1,15 @@
+import { resolve } from "node:path";
 import { cli, command } from "cleye";
-import { defaultDocsExclude, defaultOutputDir, generate } from "@ddtds/vitest";
+import {
+  DocIndex,
+  defaultDocsExclude,
+  defaultOutDir,
+  readDocs,
+  resolveDocsOptions,
+  writeFiles,
+} from "@ddtds/core";
+import { createLoggerFromEnv } from "@ddtds/core/log";
+import { moduleFiles } from "@ddtds/vitest";
 
 const buildCmd = command(
   {
@@ -12,19 +22,25 @@ const buildCmd = command(
       },
       output: {
         type: String,
-        description: `Directory for generated test files (default: ${JSON.stringify(defaultOutputDir)})`,
+        description: `Directory for generated test files (default: ${JSON.stringify(defaultOutDir)})`,
       },
     },
   },
   (argv) => {
-    const { include } = argv._;
-    const { exclude, output } = argv.flags;
-    generate({
+    const logger = createLoggerFromEnv();
+    const { root, include, exclude } = resolveDocsOptions({
       root: process.cwd(),
-      include,
-      exclude,
-      outputDir: output,
+      include: argv._.include,
+      exclude: argv.flags.exclude,
     });
+    const moduleDir = resolve(root, argv.flags.output ?? defaultOutDir);
+    const index = DocIndex.fromSources(readDocs(root, include, exclude), {
+      root,
+      moduleDir,
+      logger,
+    });
+    writeFiles(moduleDir, moduleFiles(index));
+    logger.info(`Total: ${index.size} tests`);
   },
 );
 
