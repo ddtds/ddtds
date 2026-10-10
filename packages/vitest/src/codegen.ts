@@ -20,10 +20,10 @@ function renderTest(kind: "test" | "test.skip", name: string, body: string): str
 const VITEST_IMPORT = "import { test, expect } from 'vitest';";
 
 function ddtImport(...names: readonly DdtVitestExports[]): string {
-  return `import { ${names.join(", ")} } from '@ddtds/vitest'`;
+  return `import { ${names.join(", ")} } from '@ddtds/vitest';`;
 }
 
-const DDT_IMPORT = ddtImport("DdtTestError", "wrapDdtTest");
+const DDT_IMPORT = ddtImport("wrapDdtTest");
 
 function wrapBody(inner: string): string {
   return `await wrapDdtTest(async () => {\n${indent(inner)}\n});`;

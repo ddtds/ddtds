@@ -42,7 +42,7 @@ describe("generateBlockFile: basic", () => {
 
     expect(output).toMatchInlineSnapshot(`
       "import { test, expect } from 'vitest';
-      import { DdtTestError, wrapDdtTest } from '@ddtds/vitest'
+      import { wrapDdtTest } from '@ddtds/vitest';
       test("example.md:1", async () => {
         await wrapDdtTest(async () => {
           const hi = '10';
@@ -61,7 +61,7 @@ describe("generateBlockFile: imports", () => {
     assertTestRun(out);
     expect(out).toMatchInlineSnapshot(`
       "import { test, expect } from 'vitest';
-      import { DdtTestError, wrapDdtTest } from '@ddtds/vitest'
+      import { wrapDdtTest } from '@ddtds/vitest';
       import {
         foo,
         bar,
@@ -90,7 +90,7 @@ describe("generateBlockFile: annotations", () => {
     expect(out).toContain(".rejects.toThrow();");
     expect(out).toMatchInlineSnapshot(`
       "import { test, expect } from 'vitest';
-      import { DdtTestError, wrapDdtTest } from '@ddtds/vitest'
+      import { wrapDdtTest } from '@ddtds/vitest';
       test("t.md:1", async () => {
         await wrapDdtTest(async () => {
           await expect(async () => {
@@ -105,14 +105,14 @@ describe("generateBlockFile: annotations", () => {
     const out = generateBlockFile("t.md", block("const = 1;", ANNOTATIONS.FAIL));
     expect(out.replace(/DdtCompileError\(\{.*\}\);/, "DdtCompileError(details);"))
       .toMatchInlineSnapshot(`
-      "import { test, expect } from 'vitest';
-      import { DdtCompileError, wrapDdtTest } from '@ddtds/vitest'
-      test("t.md:1", async () => {
-        await wrapDdtTest(async () => {
-          throw new DdtCompileError(details);
-        });
-      });"
-    `);
+        "import { test, expect } from 'vitest';
+        import { DdtCompileError, wrapDdtTest } from '@ddtds/vitest';
+        test("t.md:1", async () => {
+          await wrapDdtTest(async () => {
+            throw new DdtCompileError(details);
+          });
+        });"
+      `);
   });
 
   test("compile_fail passes when the block does not parse", () => {
@@ -130,7 +130,7 @@ describe("generateBlockFile: annotations", () => {
     expect(out).toContain("expected a compile_fail block");
     expect(out).toMatchInlineSnapshot(`
       "import { test, expect } from 'vitest';
-      import { DdtTestError, wrapDdtTest } from '@ddtds/vitest'
+      import { wrapDdtTest } from '@ddtds/vitest';
       test("t.md:1", async () => {
         await wrapDdtTest(async () => {
           throw new Error("expected a compile_fail block to fail to compile");
