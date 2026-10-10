@@ -124,16 +124,25 @@ describe("CodeBlock.splitImports", () => {
 });
 
 describe("generate", () => {
-  test("writes one file per block named by line number", () => {
+  test("returns 0 when no docs are found", () => {
+    expect(
+      generate("/docs", "__doctests__", renderBlockFile, { findDocs: () => [], logger: silent }),
+    ).toBe(0);
+  });
+
+  test("writes one file per runnable block named by line number", () => {
     const writes: Array<{ path: string; content: string }> = [];
     const total = generate("/repo", "__doctests__", renderBlockFile, {
-      findDocs: () => ["/repo/guide.md"],
-      readFile: () => "```ts run\nconst x = 1\n```",
+      findDocs: () => ["/repo/guide.md", "/repo/prose.md"],
+      readFile: (path) =>
+        path.endsWith("guide.md") ? "```ts run\nconst x = 1\n```" : "# prose only",
       writeFile: (path, content) => writes.push({ path, content }),
       clearDir: vi.fn<() => void>(),
+      logger: silent,
     });
 
     expect(total).toBe(1);
+    expect(writes).toHaveLength(1);
     expect(writes[0]!.path).toBe("__doctests__/guide.md_1.test.ts");
     expect(writes[0]!.content).toContain("// guide.md:1");
   });
