@@ -14,7 +14,8 @@
     "test:packages": "pnpm --filter './packages/*' run test",
     "test:examples": "pnpm --filter '@ddtds/example-*' test",
     "test:update-snapshots": "pnpm -r test -u",
-    "knip": "knip"
+    "knip": "knip",
+    "validate:renovate": "renovate-config-validator renovate.json"
   },
   "devDependencies": {
     "@types/node": "catalog:dev",
@@ -23,6 +24,7 @@
     "oxfmt": "0.72.0",
     "oxlint": "1.87.0",
     "oxlint-tsgolint": "7.0.2003",
+    "renovate": "44.146.2",
     "typescript": "catalog:dev"
   },
   "engines": {
