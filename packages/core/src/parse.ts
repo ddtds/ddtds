@@ -167,9 +167,10 @@ function importText(code: string, staticImport: StaticImport, importsFrom?: stri
   if (importsFrom === undefined || !moduleRequest.value.startsWith(".")) {
     return sliceSource(code, staticImport);
   }
-  const specifier = JSON.stringify(resolve(importsFrom, moduleRequest.value));
+  const before = code.slice(start, moduleRequest.start);
+  const absolute = JSON.stringify(resolve(importsFrom, moduleRequest.value));
   const after = sliceSource(code, { start: moduleRequest.end, end });
-  return `${code.slice(start, moduleRequest.start)}${specifier}${after}`;
+  return `${before}${absolute}${after}`;
 }
 function sliceSource(source: string, { start, end }: Range): string {
   return source.slice(start, end).trimEnd();
