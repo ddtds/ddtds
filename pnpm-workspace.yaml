@@ -12,30 +12,14 @@ allowBuilds:
 
 catalogs:
   dev:
-    "@types/node": 24.19.1
+    "@types/node": ^24.19.2
     typescript: ^7.0.2
     vitest: ^4.1.11
   prod: {}
   peer: {}
 
-# renovate's @aws-sdk/* transitive deps release multiple times a day, so a
-# fresh caret resolution always lands on a build from the last few hours and
-# trips the release-age policy. Pin one patch back (still satisfies every
-# caret range in the tree) instead of excluding them from the policy.
-overrides:
-  "@aws-sdk/checksums": 3.1001.1
-  "@aws-sdk/core": 3.978.1
-  "@aws-sdk/credential-provider-env": 3.972.72
-  "@aws-sdk/credential-provider-http": 3.972.74
-  "@aws-sdk/credential-provider-ini": 3.973.17
-  "@aws-sdk/credential-provider-login": 3.972.79
-  "@aws-sdk/credential-provider-node": 3.972.84
-  "@aws-sdk/credential-provider-process": 3.972.72
-  "@aws-sdk/credential-provider-sso": 3.973.16
-  "@aws-sdk/credential-provider-web-identity": 3.972.78
-  "@aws-sdk/middleware-sdk-ec2": 3.972.60
-  "@aws-sdk/middleware-sdk-rds": 3.972.60
-  "@aws-sdk/middleware-sdk-s3": 3.972.77
-  "@aws-sdk/nested-clients": 3.997.46
-  "@aws-sdk/signature-v4-multi-region": 3.996.47
-  "@aws-sdk/token-providers": 3.1147.0
+# pnpm defaults minimumReleaseAge to 1440 (24h) since v11, even with zero
+# config, which blocks plain `pnpm install` on anything with a fast-moving
+# transitive tree (e.g. renovate's @aws-sdk/* deps release several times a
+# day). Disable it instead of pinning/excluding packages around it.
+minimumReleaseAge: 0
