@@ -9,7 +9,7 @@
   "scripts": {
     "bench": "vitest bench --run",
     "test": "vitest run",
-    "typecheck": "tsgo"
+    "typecheck": "tsc"
   },
   "dependencies": {
     "@oxc-project/types": "^0.139.0",

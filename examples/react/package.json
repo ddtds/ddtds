@@ -8,11 +8,11 @@
   },
   "devDependencies": {
     "@ddtds/vitest": "workspace:*",
-    "@testing-library/jest-dom": "^6.0.0",
-    "@testing-library/react": "^16.0.0",
-    "happy-dom": "*",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0",
+    "@testing-library/jest-dom": "^7.0.1",
+    "@testing-library/react": "^16.3.3",
+    "happy-dom": "20.14.5",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
     "vitest": "catalog:dev"
   }
 }

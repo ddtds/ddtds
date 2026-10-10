@@ -2,10 +2,23 @@ packages:
   - "packages/*"
   - "examples/*"
 
+allowBuilds:
+  # no-op/warning-only postinstall scripts, nothing to build
+  core-js-pure: false
+  dtrace-provider: false
+  protobufjs: false
+  # optional native regex binding for renovate; falls back to RegExp fine
+  re2: false
+  # actually need these: esbuild downloads its binary, lefthook syncs git hooks
+  esbuild: true
+  lefthook: true
+
 catalogs:
   dev:
-    "@types/node": ^24.12.2
-    typescript: "npm:@typescript/native-preview@7.0.0-dev.20260510.1"
-    vitest: ^4.1.5
+    "@types/node": 24.19.1
+    typescript: ^7.0.2
+    vitest: ^4.1.11
   prod: {}
   peer: {}
+
+minimumReleaseAge: 4320 # 3 days
