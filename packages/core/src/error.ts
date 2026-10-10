@@ -19,14 +19,14 @@ function isCompileError(error: unknown): boolean {
 }
 
 export class DdtTestError extends Error {
-  constructor(sourceError: unknown) {
+  public constructor(sourceError: unknown) {
     const message = sourceError instanceof Error ? sourceError.message : String(sourceError);
     super(message, { cause: sourceError });
     this.name = "DdtTestError";
     Object.setPrototypeOf(this, DdtTestError.prototype);
   }
 
-  get kind(): ErrorKind {
+  public get kind(): ErrorKind {
     return isCompileError(this.cause) ? ErrorKind.Compile : ErrorKind.RuntimeFailure;
   }
 }

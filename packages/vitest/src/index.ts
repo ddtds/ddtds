@@ -1,8 +1,7 @@
 import { defaultInclude, type Plugin } from "vitest/config";
 import { generate as generateCore, type GenerateDeps } from "@ddtds/core";
 import { generateBlockFile } from "./codegen.ts";
-import { createLogger, parseLogLevel } from "@ddtds/core/log";
-import type { LogLevel } from "@ddtds/core/log";
+import { createLogger, parseLogLevel, type LogLevel } from "@ddtds/core/log";
 
 export type { CodeBlock, GenerateDeps } from "@ddtds/core";
 export { wrapDdtTest } from "@ddtds/core";

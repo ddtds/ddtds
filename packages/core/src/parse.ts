@@ -54,7 +54,6 @@ function sanitizeStatement(node: ParsedBodyNode): BodyNode[] {
 
   if (node.type === "ExportDefaultDeclaration") {
     const decl = node.declaration;
-    if (!decl) return [];
 
     if (decl.type === "FunctionDeclaration" || decl.type === "ClassDeclaration") {
       return [decl];
@@ -75,6 +74,6 @@ function printBodyNode(source: string, node: BodyNode): string {
 }
 
 type Range = { start: number; end: number };
-function sliceSource(source: string, { start, end }: Range) {
+function sliceSource(source: string, { start, end }: Range): string {
   return source.slice(start, end).trimEnd();
 }
