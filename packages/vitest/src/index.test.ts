@@ -85,3 +85,32 @@ test("collects tsrx doc tests", async () => {
     ]
   `);
 });
+
+test("resolves relative imports from the doc", async () => {
+  const root = mkdtempSync(join(import.meta.dirname, "../.fixture-"));
+  onTestFinished(() => rmSync(root, { recursive: true, force: true }));
+  mkdirSync(join(root, "docs"));
+  writeFileSync(join(root, "docs/two.ts"), "export const two = 2;");
+  writeFileSync(
+    join(root, "docs/guide.md"),
+    '```ts run\nimport { two } from "./two.ts";\nexpect(two).toBe(2);\n```\n',
+  );
+  const vitest = await createVitest(
+    "test",
+    { root, config: false, watch: false, reporters: [{}] },
+    {
+      plugins: [ddtPlugin({ logLevel: "silent" })],
+      resolve: { alias: { "@ddtds/vitest": join(import.meta.dirname, "index.ts") } },
+    },
+  );
+  try {
+    await vitest.start();
+    const states = vitest.state
+      .getTestModules()
+      .flatMap((module) => Array.from(module.children.allTests()))
+      .map((testCase) => `${testCase.name} ${testCase.result().state}`);
+    expect(states).toEqual(["docs/guide.md:1 passed"]);
+  } finally {
+    await vitest.close();
+  }
+});

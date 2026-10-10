@@ -1,5 +1,5 @@
 import { readFileSync, writeFileSync, mkdirSync, rmSync } from "node:fs";
-import { join, relative, resolve, sep } from "node:path";
+import { dirname, join, relative, resolve, sep } from "node:path";
 import { globSync } from "tinyglobby";
 import { parseCodeFences, type CodeBlock } from "./blocks.ts";
 import { defaultDocsExclude, defaultDocsInclude, defaultOutputDir } from "./constants.ts";
@@ -77,7 +77,7 @@ export function resolveDocsOptions({
 
 export function generate(
   options: GenerateOptions,
-  renderBlockFile: (mdPath: string, block: CodeBlock) => string,
+  renderBlockFile: (mdPath: string, block: CodeBlock, importsFrom: string) => string,
   deps?: Partial<GenerateDeps>,
 ): number {
   const resolved = { ...defaultGenerateDeps, ...deps };
@@ -105,7 +105,7 @@ export function generate(
     for (const block of blocks) {
       const outName = `${baseName}_${block.line}.test.${block.outputExtension}`;
       const outPath = join(output, outName);
-      writeFile(outPath, renderBlockFile(relPath, block));
+      writeFile(outPath, renderBlockFile(relPath, block, dirname(mdPath)));
       logger.trace(`  ${relPath}:${block.line} -> ${outPath}`);
     }
   }
