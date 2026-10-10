@@ -14,7 +14,7 @@ export {
   defaultDocsExclude,
   defaultOutputDir,
 } from "./constants.ts";
-export { wrapDdtTest } from "./error.ts";
+export { DdtSyntaxError, wrapDdtTest } from "./error.ts";
 
 export type DocsOptions = {
   /** Globs of docs to test, relative to the root. Defaults to `defaultDocsInclude` when unset or empty. */

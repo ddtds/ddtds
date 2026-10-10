@@ -93,4 +93,18 @@ describe("generateBlockFile: annotations", () => {
       });"
     `);
   });
+
+  test("parse errors fail even with the fail annotation", () => {
+    const out = generateBlockFile("t.md", block("const = 1;", ANNOTATIONS.FAIL));
+    expect(out).not.toContain("rejects");
+    expect(out).toMatchInlineSnapshot(`
+      "import { test, expect } from 'vitest';
+      import { DdtSyntaxError, wrapDdtTest } from '@ddtds/vitest'
+      test("t.md:1", async () => {
+        await wrapDdtTest(async () => {
+          throw new DdtSyntaxError("Unexpected token (line 2)");
+        });
+      });"
+    `);
+  });
 });

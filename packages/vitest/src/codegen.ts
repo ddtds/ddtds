@@ -1,4 +1,4 @@
-import type { CodeBlock } from "@ddtds/core";
+import { DdtSyntaxError, type CodeBlock } from "@ddtds/core";
 
 function indent(code: string): string {
   return code
@@ -22,9 +22,22 @@ function wrapBody(inner: string): string {
   return `await wrapDdtTest(async () => {\n${indent(inner)}\n});`;
 }
 
+function syntaxErrorFile(name: string, error: DdtSyntaxError): string {
+  const imports = "import { DdtSyntaxError, wrapDdtTest } from '@ddtds/vitest'";
+  const body = `throw new DdtSyntaxError(${JSON.stringify(error.message)});`;
+  return `${VITEST_IMPORT}\n${imports}\n${renderTest("test", name, wrapBody(body))}`;
+}
+
 export function generateBlockFile(mdPath: string, block: CodeBlock): string {
   const name = JSON.stringify(`${mdPath}:${block.line}`);
-  const { imports, body } = block.splitImports();
+  let prepared: { imports: string[]; body: string };
+  try {
+    prepared = block.splitImports();
+  } catch (error) {
+    if (error instanceof DdtSyntaxError) return syntaxErrorFile(name, error);
+    throw error;
+  }
+  const { imports, body } = prepared;
   const header = [VITEST_IMPORT, DDT_IMPORT, ...imports].join("\n") + "\n";
 
   if (block.shouldFail()) {

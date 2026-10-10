@@ -1,6 +1,7 @@
-import { parseSync, type ParserOptions } from "oxc-parser";
+import { parseSync, type OxcError, type ParserOptions } from "oxc-parser";
 import type { ExportDefaultDeclarationKind, Program } from "@oxc-project/types";
 import type { CodeBlock } from "./blocks.ts";
+import { DdtSyntaxError } from "./error.ts";
 
 type ParsedBodyNode = Program["body"][number];
 type SyntheticDefaultNode = {
@@ -22,12 +23,7 @@ export function splitImportsAndBlock(block: CodeBlock): PreparedBlock {
   });
 
   if (errors.length > 0) {
-    const messages = errors.map((error) => {
-      const start = error.labels[0]?.start ?? 0;
-      const line = block.line + block.code.slice(0, start).split("\n").length;
-      return `${error.message} (line ${line})`;
-    });
-    return { imports: [], body: `throw new SyntaxError(${JSON.stringify(messages.join("\n"))});` };
+    throw new DdtSyntaxError(errors.map((error) => formatParseError(block, error)).join("\n"));
   }
 
   const imports = module.staticImports.map((staticImport) => sliceSource(block.code, staticImport));
@@ -36,6 +32,13 @@ export function splitImportsAndBlock(block: CodeBlock): PreparedBlock {
   const body = transformed.map((node) => printBodyNode(block.code, node)).join("\n");
 
   return { imports, body };
+}
+
+function formatParseError(block: CodeBlock, error: OxcError): string {
+  const label = error.labels[0];
+  if (!label) return error.message;
+  const line = block.line + block.code.slice(0, label.start).split("\n").length;
+  return `${error.message} (line ${line})`;
 }
 
 function parserLang(lang: string): NonNullable<ParserOptions["lang"]> {

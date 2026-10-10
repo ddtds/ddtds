@@ -1,4 +1,5 @@
 export const ErrorKind = {
+  Syntax: "syntax-error",
   Compile: "compile-error",
   RuntimeFailure: "runtime-failure",
 } as const;
@@ -18,6 +19,13 @@ function isCompileError(error: unknown): boolean {
   return ERROR_MESSAGES.some((message) => error.message.includes(message));
 }
 
+export class DdtSyntaxError extends SyntaxError {
+  public constructor(message: string) {
+    super(message);
+    this.name = "DdtSyntaxError";
+  }
+}
+
 export class DdtTestError extends Error {
   public constructor(sourceError: unknown) {
     const message = sourceError instanceof Error ? sourceError.message : String(sourceError);
@@ -27,6 +35,7 @@ export class DdtTestError extends Error {
   }
 
   public get kind(): ErrorKind {
+    if (this.cause instanceof DdtSyntaxError) return ErrorKind.Syntax;
     return isCompileError(this.cause) ? ErrorKind.Compile : ErrorKind.RuntimeFailure;
   }
 }

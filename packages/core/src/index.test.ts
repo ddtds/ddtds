@@ -135,14 +135,11 @@ describe("CodeBlock.splitImports", () => {
     expect(body).toMatchInlineSnapshot(`"const ______default_that_does_not_conflict = 1;"`);
   });
 
-  test("turns parse errors into a thrown SyntaxError", () => {
+  test("throws a DdtSyntaxError with the markdown line on parse errors", () => {
     const b = block("import { foo } from './foo'\nconst = 1;", null, 10);
-    expect(b.splitImports()).toMatchInlineSnapshot(`
-      {
-        "body": "throw new SyntaxError("Unexpected token (line 12)");",
-        "imports": [],
-      }
-    `);
+    expect(() => b.splitImports()).toThrowErrorMatchingInlineSnapshot(
+      `[DdtSyntaxError: Unexpected token (line 12)]`,
+    );
   });
 });
 
