@@ -16,6 +16,7 @@
     "test:update-snapshots": "pnpm -r test -u",
     "knip": "knip",
     "publint": "pnpm --filter ./packages/core --filter ./packages/cli --filter ./packages/vitest exec publint",
+    "sherif": "sherif",
     "validate:renovate": "renovate-config-validator renovate.json"
   },
   "devDependencies": {
@@ -27,6 +28,7 @@
     "oxlint-tsgolint": "7.0.2003",
     "publint": "0.3.25",
     "renovate": "44.138.0",
+    "sherif": "1.13.0",
     "typescript": "catalog:dev"
   },
   "engines": {

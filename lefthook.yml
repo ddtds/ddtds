@@ -12,6 +12,8 @@ pre-push:
   jobs:
     - name: lint
       run: pnpm run lint
+    - name: sherif
+      run: pnpm run sherif
     - name: typecheck
       run: pnpm run typecheck
     - name: test
