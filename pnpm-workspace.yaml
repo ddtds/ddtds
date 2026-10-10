@@ -3,12 +3,15 @@ packages:
   - "examples/*"
 
 allowBuilds:
-  core-js-pure: true
-  dtrace-provider: true
+  # no-op/warning-only postinstall scripts, nothing to build
+  core-js-pure: false
+  dtrace-provider: false
+  protobufjs: false
+  # optional native regex binding for renovate; falls back to RegExp fine
+  re2: false
+  # actually need these: esbuild downloads its binary, lefthook syncs git hooks
   esbuild: true
   lefthook: true
-  protobufjs: true
-  re2: true
 
 catalogs:
   dev:
@@ -18,4 +21,4 @@ catalogs:
   prod: {}
   peer: {}
 
-minimumReleaseAge: 4320
+minimumReleaseAge: 4320 # 3 days
