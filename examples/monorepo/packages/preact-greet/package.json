@@ -1,18 +1,22 @@
 {
-  "name": "@ddtds/example-react",
+  "name": "@ddtds/preact-greet",
   "version": "0.0.0",
   "private": true,
   "type": "module",
+  "exports": {
+    ".": "./src/index.tsx"
+  },
   "scripts": {
     "test": "vitest run"
   },
+  "dependencies": {
+    "@ddtds/greet": "workspace:*",
+    "preact": "catalog:examples"
+  },
   "devDependencies": {
     "@ddtds/vitest": "workspace:*",
-    "@testing-library/jest-dom": "catalog:examples",
-    "@testing-library/react": "catalog:examples",
+    "@preact/preset-vite": "catalog:examples",
     "happy-dom": "catalog:examples",
-    "react": "catalog:examples",
-    "react-dom": "catalog:examples",
     "vitest": "catalog:dev"
   }
 }

@@ -1,8 +1,11 @@
 {
-  "name": "@ddtds/example-js",
+  "name": "@ddtds/greet",
   "version": "0.0.0",
   "private": true,
   "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
   "scripts": {
     "test": "vitest run"
   },
