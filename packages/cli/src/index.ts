@@ -1,30 +1,29 @@
 import { cli, command } from "cleye";
-import { defaultDocsExclude, defaultDocsInclude, defaultOutputDir, generate } from "@ddtds/vitest";
+import { defaultDocsExclude, defaultOutputDir, generate } from "@ddtds/vitest";
 
 const buildCmd = command(
   {
     name: "build",
     parameters: ["[include...]"],
-    help: {
-      usage: `ddt build [flags...] [include...] (default: ${defaultDocsInclude.join(", ")})`,
-    },
     flags: {
       exclude: {
         type: [String],
-        description: `Glob of docs to skip, replaces default (default: ${defaultDocsExclude.join(", ")})`,
+        description: `Glob of docs to skip, replaces default (default: ${JSON.stringify(defaultDocsExclude)})`,
       },
       output: {
         type: String,
-        description: `Directory for generated test files (default: ${defaultOutputDir})`,
+        description: `Directory for generated test files (default: ${JSON.stringify(defaultOutputDir)})`,
       },
     },
   },
   (argv) => {
+    const { include } = argv._;
+    const { exclude, output } = argv.flags;
     generate({
       root: process.cwd(),
-      include: argv._.include,
-      exclude: argv.flags.exclude,
-      outputDir: argv.flags.output,
+      include,
+      exclude,
+      outputDir: output,
     });
   },
 );

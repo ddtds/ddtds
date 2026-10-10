@@ -25,25 +25,6 @@ export type DocsOptions = {
   outputDir?: string;
 };
 
-export type GenerateOptions = DocsOptions & {
-  /** Directory that `include`, `exclude` and `outputDir` are relative to. */
-  root: string;
-};
-
-export function resolveDocsOptions({
-  root,
-  include,
-  exclude,
-  outputDir,
-}: GenerateOptions): Required<GenerateOptions> {
-  return {
-    root,
-    include: include?.length ? include : defaultDocsInclude,
-    exclude: exclude?.length ? exclude : defaultDocsExclude,
-    outputDir: resolve(root, outputDir ?? defaultOutputDir),
-  };
-}
-
 export function findDocs(root: string, include: string[], exclude: string[]): string[] {
   return globSync(include, { cwd: root, ignore: exclude, absolute: true });
 }
@@ -67,6 +48,25 @@ const defaultGenerateDeps: GenerateDeps = {
   logger: createLoggerFromEnv(),
 };
 
+export type GenerateOptions = DocsOptions & {
+  /** Directory that `include`, `exclude` and `outputDir` are relative to. */
+  root: string;
+};
+
+export function resolveDocsOptions({
+  root,
+  include,
+  exclude,
+  outputDir,
+}: GenerateOptions): Required<GenerateOptions> {
+  return {
+    root,
+    include: include?.length ? include : defaultDocsInclude,
+    exclude: exclude?.length ? exclude : defaultDocsExclude,
+    outputDir: resolve(root, outputDir ?? defaultOutputDir),
+  };
+}
+
 export function generate(
   options: GenerateOptions,
   renderBlockFile: (mdPath: string, block: CodeBlock) => string,
@@ -74,7 +74,7 @@ export function generate(
 ): number {
   const resolved = { ...defaultGenerateDeps, ...deps };
   const { findDocs, readFile, writeFile, clearDir, logger } = resolved;
-  const { root, include, exclude, outputDir } = resolveDocsOptions(options);
+  const { root, include, exclude, outputDir: output } = resolveDocsOptions(options);
 
   const docs = findDocs(root, include, exclude);
   if (docs.length === 0) {
@@ -82,7 +82,7 @@ export function generate(
     return 0;
   }
 
-  clearDir(outputDir);
+  clearDir(output);
   let total = 0;
 
   for (const mdPath of docs) {
@@ -97,7 +97,7 @@ export function generate(
 
     for (const block of blocks) {
       const outName = `${baseName}_${block.line}.test.${block.outputExtension}`;
-      const outPath = join(outputDir, outName);
+      const outPath = join(output, outName);
       writeFile(outPath, renderBlockFile(relPath, block));
       logger.trace(`  ${relPath}:${block.line} -> ${outPath}`);
     }
