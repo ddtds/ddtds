@@ -12,6 +12,7 @@ import {
   generate,
   resolveDocsOptions,
   type Annotation,
+  type Lang,
 } from "./index";
 import { createLogger } from "./logger";
 
@@ -60,18 +61,17 @@ describe("CodeBlock.isSkipped / shouldFail", () => {
   );
 });
 
-describe("CodeBlock.outputExtension / isJsx", () => {
+describe("CodeBlock.outputExtension", () => {
   test.each([
-    ["ts", "ts", false],
-    ["typescript", "ts", false],
-    ["js", "ts", false],
-    ["javascript", "ts", false],
-    ["tsx", "tsx", true],
-    ["jsx", "tsx", true],
-  ])("lang=%j → outputExtension=%j isJsx=%s", (lang, ext, jsx) => {
-    const b = new CodeBlock("x", lang, ANNOTATIONS.RUN, 1);
-    expect(b.outputExtension).toBe(ext);
-    expect(b.isJsx()).toBe(jsx);
+    ["ts", "ts"],
+    ["typescript", "ts"],
+    ["js", "ts"],
+    ["javascript", "ts"],
+    ["tsx", "tsx"],
+    ["jsx", "tsx"],
+    ["tsrx", "tsrx"],
+  ] as const)("lang=%j → outputExtension=%j", (lang, ext) => {
+    expect(new CodeBlock("x", lang, ANNOTATIONS.RUN, 1).outputExtension).toBe(ext);
   });
 });
 
@@ -100,7 +100,7 @@ function block(
   code: string,
   annotation: Annotation | null = null,
   line = 1,
-  lang = "ts",
+  lang: Lang = "ts",
 ): CodeBlock {
   return new CodeBlock(code, lang, annotation, line);
 }
@@ -135,11 +135,23 @@ describe("CodeBlock.splitImports", () => {
     expect(body).toMatchInlineSnapshot(`"const ______default_that_does_not_conflict = 1;"`);
   });
 
+  test("parses tsrx with @tsrx/oxc", () => {
+    const b = block("import { x } from './x'\nfunction A() @{\n  <p>{x}</p>\n}", null, 1, "tsrx");
+    expect(b.splitImports()).toEqual({
+      imports: ["import { x } from './x'"],
+      body: "function A() @{\n  <p>{x}</p>\n}",
+    });
+  });
+
   test("throws a SyntaxError with the markdown line on parse errors", () => {
     const b = block("import { foo } from './foo'\nconst = 1;", null, 10);
     expect(() => b.splitImports()).toThrowErrorMatchingInlineSnapshot(
       `[SyntaxError: Unexpected token (line 12)]`,
     );
+  });
+
+  test.each(["<p>", "function A() @{"])("throws a SyntaxError on broken tsrx: %s", (code) => {
+    expect(() => block(code, null, 1, "tsrx").splitImports()).toThrow(SyntaxError);
   });
 });
 

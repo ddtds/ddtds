@@ -1,6 +1,14 @@
 import { remark } from "remark";
 import { visit } from "unist-util-visit";
-import { SUPPORTED_LANGS, ANNOTATIONS, type Annotation, isAnnotation } from "./constants.ts";
+import {
+  ANNOTATIONS,
+  LANGS,
+  type Annotation,
+  type Lang,
+  type OutputExtension,
+  isAnnotation,
+  isLang,
+} from "./constants.ts";
 import { splitImportsAndBlock } from "./parse.ts";
 import type { Logger } from "./logger.ts";
 
@@ -17,27 +25,23 @@ function parseAnnotation(meta: string): AnnotationResult {
 
 export class CodeBlock {
   readonly #code: string;
-  public readonly lang: string;
+  public readonly lang: Lang;
   readonly #annotation: Annotation | null;
   public readonly line: number;
 
-  public constructor(code: string, lang: string, annotation: Annotation | null, line: number) {
+  public constructor(code: string, lang: Lang, annotation: Annotation | null, line: number) {
     this.#code = code;
     this.lang = lang;
     this.#annotation = annotation;
     this.line = line;
   }
 
-  public get outputExtension(): "ts" | "tsx" {
-    return this.isJsx() ? "tsx" : "ts";
+  public get outputExtension(): OutputExtension {
+    return LANGS[this.lang].extension;
   }
 
   public get code(): string {
     return this.#code;
-  }
-
-  public isJsx(): boolean {
-    return this.lang === "tsx" || this.lang === "jsx";
   }
 
   public isSkipped(): boolean {
@@ -59,7 +63,7 @@ export function parseCodeFences(source: string, log: Logger): CodeBlock[] {
 
   visit(tree, "code", (node) => {
     const { lang, meta } = node;
-    if (!meta || !lang || !SUPPORTED_LANGS.has(lang)) return;
+    if (!meta || !lang || !isLang(lang)) return;
 
     const result = parseAnnotation(meta);
     if (result.tag === "unknown") {

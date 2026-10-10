@@ -74,3 +74,14 @@ test("passes include and exclude to findDocs", async () => {
     ]
   `);
 });
+
+test("collects tsrx doc tests", async () => {
+  const root = fixture();
+  writeFileSync(join(root, "guide.md"), "```tsrx run\n1;\n```\n");
+  expect(await collect(root, { exclude: ["nested/**"] })).toMatchInlineSnapshot(`
+    [
+      "__doctests__/guide_md_1.test.tsrx",
+      "unit.test.ts",
+    ]
+  `);
+});

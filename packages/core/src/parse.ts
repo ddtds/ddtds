@@ -1,6 +1,9 @@
-import { parseSync, type OxcError, type ParserOptions } from "oxc-parser";
+import { createRequire } from "node:module";
+import { parseSync } from "oxc-parser";
+import type * as TsrxParser from "@tsrx/oxc/parser";
 import type { ExportDefaultDeclarationKind, Program } from "@oxc-project/types";
 import type { CodeBlock } from "./blocks.ts";
+import { LANGS } from "./constants.ts";
 
 type ParsedBodyNode = Program["body"][number];
 type SyntheticDefaultNode = {
@@ -15,17 +18,9 @@ export type PreparedBlock = {
 };
 
 export function splitImportsAndBlock(block: CodeBlock): PreparedBlock {
-  const lang = parserLang(block.lang);
-  const { program, module, errors } = parseSync(`block.${lang}`, block.code, {
-    lang,
-    sourceType: "module",
-  });
+  const { program, staticImports } = parse(block);
 
-  if (errors.length > 0) {
-    throw new SyntaxError(errors.map((error) => formatParseError(block, error)).join("\n"));
-  }
-
-  const imports = module.staticImports.map((staticImport) => sliceSource(block.code, staticImport));
+  const imports = staticImports.map((staticImport) => sliceSource(block.code, staticImport));
 
   const transformed = sanitizeProgram(program);
   const body = transformed.map((node) => printBodyNode(block.code, node)).join("\n");
@@ -33,19 +28,52 @@ export function splitImportsAndBlock(block: CodeBlock): PreparedBlock {
   return { imports, body };
 }
 
-function formatParseError(block: CodeBlock, error: OxcError): string {
+type ParsedBlock = { program: Program; staticImports: Range[] };
+type ParseError = { message: string; labels: Range[] };
+
+function parse(block: CodeBlock): ParsedBlock {
+  const lang = LANGS[block.lang].parser;
+  const filename = `block.${lang}`;
+  const { program, module, errors } =
+    lang === "tsrx"
+      ? parseTsrx(filename, block.code)
+      : parseSync(filename, block.code, { lang, sourceType: "module" });
+
+  if (errors.length > 0 || !program || !module) {
+    throw new SyntaxError(errors.map((error) => formatParseError(block, error)).join("\n"));
+  }
+  return { program, staticImports: module.staticImports };
+}
+
+function formatParseError(block: CodeBlock, error: ParseError): string {
   const label = error.labels[0];
   if (!label) return error.message;
   const line = block.line + block.code.slice(0, label.start).split("\n").length;
   return `${error.message} (line ${line})`;
 }
 
-function parserLang(lang: string): NonNullable<ParserOptions["lang"]> {
-  if (lang === "javascript") return "js";
-  if (lang === "typescript") return "ts";
-  if (lang === "jsx") return "jsx";
-  if (lang === "tsx") return "tsx";
-  return "ts";
+// tsrx parser throws sometimes
+function parseTsrx(filename: string, code: string): ReturnType<typeof TsrxParser.parseSync> {
+  const parser = tsrxParser();
+  try {
+    return parser.parseSync(filename, code, { lang: "tsrx", sourceType: "module" });
+  } catch (error) {
+    throw new SyntaxError(error instanceof Error ? error.message : String(error), { cause: error });
+  }
+}
+
+const requireTsrxParser: (id: "@tsrx/oxc/parser") => typeof TsrxParser = createRequire(
+  import.meta.url,
+);
+let cachedTsrxParser: typeof TsrxParser | undefined;
+
+function tsrxParser(): typeof TsrxParser {
+  try {
+    cachedTsrxParser ??= requireTsrxParser("@tsrx/oxc/parser");
+    return cachedTsrxParser;
+  } catch (error) {
+    throw new Error('tsrx code blocks need "@tsrx/oxc" installed', { cause: error });
+  }
 }
 
 function sanitizeProgram(program: Program): BodyNode[] {

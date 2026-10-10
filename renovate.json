@@ -32,15 +32,13 @@
       "minimumReleaseAge": "14 days"
     },
     {
-      "matchPackageNames": ["/^oxc-parser$/", "/^@oxc-project//"],
-      "matchDepTypes": ["dependencies"],
+      "matchPackageNames": ["/^oxc-parser$/", "/^@oxc-project//", "/^@tsrx//"],
       "groupName": "oxc (minor + patch)",
       "matchUpdateTypes": ["patch", "minor"],
       "automerge": false
     },
     {
-      "matchPackageNames": ["/^oxc-parser$/", "/^@oxc-project//"],
-      "matchDepTypes": ["dependencies"],
+      "matchPackageNames": ["/^oxc-parser$/", "/^@oxc-project//", "/^@tsrx//"],
       "groupName": "oxc (major)",
       "matchUpdateTypes": ["major"],
       "automerge": false
