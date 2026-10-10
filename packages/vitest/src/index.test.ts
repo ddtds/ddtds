@@ -5,7 +5,6 @@ import { expect, onTestFinished, test } from "vitest";
 import { createVitest } from "vitest/node";
 import { ddtPlugin } from "./index.ts";
 
-// Test files vitest would run for a fixture with one doc fence and two candidate test files.
 async function collectTestFiles(include?: string[]): Promise<string[]> {
   const root = mkdtempSync(join(tmpdir(), "ddtds-"));
   onTestFinished(() => rmSync(root, { recursive: true, force: true }));
@@ -18,7 +17,6 @@ async function collectTestFiles(include?: string[]): Promise<string[]> {
     { root, config: false, watch: false },
     {
       plugins: [ddtPlugin(root, join(root, "__doctests__"), { logLevel: "silent" })],
-      // Stands in for the user's vitest.config.ts; a CLI `include` would override plugins.
       test: { include },
     },
   );

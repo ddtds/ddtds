@@ -43,7 +43,6 @@ export function ddtPlugin(
 
       generate(searchDir, outputDir, { logger });
 
-      // Vite appends to a user's `include`; with none, ours alone would replace vitest's default.
       const doctests = `${outputDir}/**/*.test.{ts,tsx}`;
       const include = config.test?.include ? [doctests] : [...defaultInclude, doctests];
       return { test: { include } };
