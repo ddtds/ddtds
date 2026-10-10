@@ -1,12 +1,12 @@
 import { describe, expect, test } from "vitest";
-import { ANNOTATIONS, CodeBlock, type Annotation } from "@ddtds/core";
+import { ANNOTATIONS, CodeBlock, type Annotation, type Lang } from "@ddtds/core";
 import { generateBlockFile } from "./codegen";
 
 function block(
   code: string,
   annotation: Annotation | null = null,
   line = 1,
-  lang = "ts",
+  lang: Lang = "ts",
 ): CodeBlock {
   return new CodeBlock(code, lang, annotation, line);
 }

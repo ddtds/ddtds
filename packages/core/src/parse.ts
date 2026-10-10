@@ -1,6 +1,7 @@
-import { parseSync, type ParserOptions } from "oxc-parser";
+import { parseSync } from "oxc-parser";
 import type { ExportDefaultDeclarationKind, Program } from "@oxc-project/types";
 import type { CodeBlock } from "./blocks.ts";
+import { LANGS } from "./constants.ts";
 
 type ParsedBodyNode = Program["body"][number];
 type SyntheticDefaultNode = {
@@ -15,7 +16,7 @@ export type PreparedBlock = {
 };
 
 export function splitImportsAndBlock(block: CodeBlock): PreparedBlock {
-  const lang = parserLang(block.lang);
+  const lang = LANGS[block.lang].parser;
   const { program, module } = parseSync(`block.${lang}`, block.code, {
     lang,
     sourceType: "module",
@@ -27,14 +28,6 @@ export function splitImportsAndBlock(block: CodeBlock): PreparedBlock {
   const body = transformed.map((node) => printBodyNode(block.code, node)).join("\n");
 
   return { imports, body };
-}
-
-function parserLang(lang: string): NonNullable<ParserOptions["lang"]> {
-  if (lang === "javascript") return "js";
-  if (lang === "typescript") return "ts";
-  if (lang === "jsx") return "jsx";
-  if (lang === "tsx") return "tsx";
-  return "ts";
 }
 
 function sanitizeProgram(program: Program): BodyNode[] {
