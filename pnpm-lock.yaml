@@ -177,9 +177,18 @@ catalogs:
       specifier: ^4.1.11
       version: 4.1.11
   examples:
+    '@angular/compiler':
+      specifier: ^22.2.1
+      version: 22.2.1
     '@angular/core':
       specifier: ^22.2.1
       version: 22.2.1
+    '@angular/platform-browser':
+      specifier: ^22.2.1
+      version: 22.2.1
+    '@oxc-project/runtime':
+      specifier: ^0.153.0
+      version: 0.153.0
     '@preact/preset-vite':
       specifier: ^2.10.6
       version: 2.10.6
@@ -207,9 +216,6 @@ catalogs:
     happy-dom:
       specifier: 20.14.5
       version: 20.14.5
-    jsdom:
-      specifier: ^30.1.2
-      version: 30.1.2
     lit:
       specifier: ^3.3.3
       version: 3.3.3
@@ -291,7 +297,10 @@ importers:
     dependencies:
       '@angular/core':
         specifier: catalog:examples
-        version: 22.2.1(rxjs@7.8.2)
+        version: 22.2.1(@angular/compiler@22.2.1)(rxjs@7.8.2)
+      '@angular/platform-browser':
+        specifier: catalog:examples
+        version: 22.2.1(@angular/common@22.2.1(@angular/core@22.2.1(@angular/compiler@22.2.1)(rxjs@7.8.2))(rxjs@7.8.2))(@angular/core@22.2.1(@angular/compiler@22.2.1)(rxjs@7.8.2))
       '@ddtds/greet':
         specifier: workspace:*
         version: link:../greet
@@ -299,12 +308,18 @@ importers:
         specifier: catalog:examples
         version: 7.8.2
     devDependencies:
+      '@angular/compiler':
+        specifier: catalog:examples
+        version: 22.2.1
       '@ddtds/vitest':
         specifier: workspace:*
         version: link:../../../../packages/vitest
-      jsdom:
+      '@oxc-project/runtime':
         specifier: catalog:examples
-        version: 30.1.2(@noble/hashes@2.4.0)
+        version: 0.153.0
+      happy-dom:
+        specifier: catalog:examples
+        version: 20.14.5
       vitest:
         specifier: catalog:dev
         version: 4.1.11(@opentelemetry/api@1.9.1)(@types/node@24.19.1)(happy-dom@20.14.5)(jsdom@30.1.2(@noble/hashes@2.4.0))(vite@8.3.3(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1))
@@ -314,9 +329,6 @@ importers:
       '@ddtds/vitest':
         specifier: workspace:*
         version: link:../../../../packages/vitest
-      jsdom:
-        specifier: catalog:examples
-        version: 30.1.2(@noble/hashes@2.4.0)
       vitest:
         specifier: catalog:dev
         version: 4.1.11(@opentelemetry/api@1.9.1)(@types/node@24.19.1)(happy-dom@20.14.5)(jsdom@30.1.2(@noble/hashes@2.4.0))(vite@8.3.3(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1))
@@ -333,9 +345,9 @@ importers:
       '@ddtds/vitest':
         specifier: workspace:*
         version: link:../../../../packages/vitest
-      jsdom:
+      happy-dom:
         specifier: catalog:examples
-        version: 30.1.2(@noble/hashes@2.4.0)
+        version: 20.14.5
       vitest:
         specifier: catalog:dev
         version: 4.1.11(@opentelemetry/api@1.9.1)(@types/node@24.19.1)(happy-dom@20.14.5)(jsdom@30.1.2(@noble/hashes@2.4.0))(vite@8.3.3(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1))
@@ -355,9 +367,9 @@ importers:
       '@tsrx/oxc':
         specifier: catalog:dev
         version: 0.20.0(svelte@5.57.2)
-      jsdom:
+      happy-dom:
         specifier: catalog:examples
-        version: 30.1.2(@noble/hashes@2.4.0)
+        version: 20.14.5
       vitest:
         specifier: catalog:dev
         version: 4.1.11(@opentelemetry/api@1.9.1)(@types/node@24.19.1)(happy-dom@20.14.5)(jsdom@30.1.2(@noble/hashes@2.4.0))(vite@8.3.3(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1))
@@ -377,9 +389,9 @@ importers:
       '@preact/preset-vite':
         specifier: catalog:examples
         version: 2.10.6(@babel/core@7.29.7(supports-color@7.2.0))(preact@11.0.0)(rollup@4.64.0)(supports-color@7.2.0)(vite@8.3.3(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1))
-      jsdom:
+      happy-dom:
         specifier: catalog:examples
-        version: 30.1.2(@noble/hashes@2.4.0)
+        version: 20.14.5
       vitest:
         specifier: catalog:dev
         version: 4.1.11(@opentelemetry/api@1.9.1)(@types/node@24.19.1)(happy-dom@20.14.5)(jsdom@30.1.2(@noble/hashes@2.4.0))(vite@8.3.3(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1))
@@ -408,9 +420,9 @@ importers:
       '@vitejs/plugin-react':
         specifier: catalog:examples
         version: 6.1.2(vite@8.3.3(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1))
-      jsdom:
+      happy-dom:
         specifier: catalog:examples
-        version: 30.1.2(@noble/hashes@2.4.0)
+        version: 20.14.5
       vitest:
         specifier: catalog:dev
         version: 4.1.11(@opentelemetry/api@1.9.1)(@types/node@24.19.1)(happy-dom@20.14.5)(jsdom@30.1.2(@noble/hashes@2.4.0))(vite@8.3.3(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1))
@@ -430,9 +442,9 @@ importers:
       '@testing-library/jest-dom':
         specifier: catalog:examples
         version: 7.0.1(@testing-library/dom@10.4.2)(vitest@4.1.11(@opentelemetry/api@1.9.1)(@types/node@24.19.1)(happy-dom@20.14.5)(jsdom@30.1.2(@noble/hashes@2.4.0))(vite@8.3.3(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1)))
-      jsdom:
+      happy-dom:
         specifier: catalog:examples
-        version: 30.1.2(@noble/hashes@2.4.0)
+        version: 20.14.5
       vite-plugin-solid:
         specifier: catalog:examples
         version: 2.11.14(@testing-library/jest-dom@7.0.1(@testing-library/dom@10.4.2)(vitest@4.1.11(@opentelemetry/api@1.9.1)(@types/node@24.19.1)(happy-dom@20.14.5)(jsdom@30.1.2(@noble/hashes@2.4.0))(vite@8.3.3(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1))))(solid-js@1.9.16)(supports-color@7.2.0)(vite@8.3.3(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1))
@@ -455,9 +467,9 @@ importers:
       '@sveltejs/vite-plugin-svelte':
         specifier: catalog:examples
         version: 7.3.1(svelte@5.57.2)(vite@8.3.3(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1))
-      jsdom:
+      happy-dom:
         specifier: catalog:examples
-        version: 30.1.2(@noble/hashes@2.4.0)
+        version: 20.14.5
       vitest:
         specifier: catalog:dev
         version: 4.1.11(@opentelemetry/api@1.9.1)(@types/node@24.19.1)(happy-dom@20.14.5)(jsdom@30.1.2(@noble/hashes@2.4.0))(vite@8.3.3(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1))
@@ -477,9 +489,9 @@ importers:
       '@vitejs/plugin-vue':
         specifier: catalog:examples
         version: 6.0.9(vite@8.3.3(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1))(vue@3.5.43(typescript@7.0.2))
-      jsdom:
+      happy-dom:
         specifier: catalog:examples
-        version: 30.1.2(@noble/hashes@2.4.0)
+        version: 20.14.5
       vitest:
         specifier: catalog:dev
         version: 4.1.11(@opentelemetry/api@1.9.1)(@types/node@24.19.1)(happy-dom@20.14.5)(jsdom@30.1.2(@noble/hashes@2.4.0))(vite@8.3.3(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1))
@@ -576,6 +588,17 @@ packages:
   '@adobe/css-tools@4.5.0':
     resolution: {integrity: sha512-6OzddxPio9UiWTCemp4N8cYLV2ZN1ncRnV1cVGtve7dhPOtRkleRyx32GQCYSwDYgaHU3USMm84tNsvKzRCa1Q==}
 
+  '@angular/common@22.2.1':
+    resolution: {integrity: sha512-OqBH3EY4i8e3PvnYDugZGipSs1HWs2ZrqoClndKtFDS9mQULSSuLoxjG9nF1J/c+yUqhuyZlHjkXWS0n32pEfw==}
+    engines: {node: ^22.22.3 || ^24.15.0 || >=26.0.0}
+    peerDependencies:
+      '@angular/core': 22.2.1
+      rxjs: ^6.5.3 || ^7.4.0
+
+  '@angular/compiler@22.2.1':
+    resolution: {integrity: sha512-KRSz0c/T5eEiFa+F1l9OppAebJj9pT8kU3ArBMlxR3v/vzhpCfuQsFVQ4xEFC7dEm3zZIdv9ASKAP6ocNC4D/Q==}
+    engines: {node: ^22.22.3 || ^24.15.0 || >=26.0.0}
+
   '@angular/core@22.2.1':
     resolution: {integrity: sha512-a8WlYTRiaMPz1KvLE5xjeWrLyZUuQX8bh6Ak7zajUci9iWsTUQefschjSwP1WKlin3JhM3XjmsTEDyZvSLIfRg==}
     engines: {node: ^22.22.3 || ^24.15.0 || >=26.0.0}
@@ -587,6 +610,17 @@ packages:
       '@angular/compiler':
         optional: true
       zone.js:
+        optional: true
+
+  '@angular/platform-browser@22.2.1':
+    resolution: {integrity: sha512-KQ3oguemaSqyNP00yqEvPouY7NC4Lji+6S8yfjaWaUZjSth/GckpeP/Fo9HtMqd04y6MZ6lEb2hbQtTqFcSdEQ==}
+    engines: {node: ^22.22.3 || ^24.15.0 || >=26.0.0}
+    peerDependencies:
+      '@angular/animations': 22.2.1
+      '@angular/common': 22.2.1
+      '@angular/core': 22.2.1
+    peerDependenciesMeta:
+      '@angular/animations':
         optional: true
 
   '@arcanis/slice-ansi@1.1.1':
@@ -1550,6 +1584,10 @@ packages:
     engines: {node: ^20.19.0 || >=22.12.0}
     cpu: [x64]
     os: [win32]
+
+  '@oxc-project/runtime@0.153.0':
+    resolution: {integrity: sha512-rXJvtlsVG4xJNq64hiaUTIatE7jbBgpa6l4QgmEa2jLgT3ULH9scUBkpsC9N1DfmqixLEyT6DuK6OSXozziIlw==}
+    engines: {node: ^20.19.0 || >=22.12.0}
 
   '@oxc-project/types@0.134.0':
     resolution: {integrity: sha512-T0xuRRKrQFmocH8y+jGfpmSkGcheaJExY9lEihmR1Gm2aH+75B8CzgU2rABRQSzzDxLjZ15Sc0bRVLj5lVeNXQ==}
@@ -5918,9 +5956,27 @@ snapshots:
 
   '@adobe/css-tools@4.5.0': {}
 
-  '@angular/core@22.2.1(rxjs@7.8.2)':
+  '@angular/common@22.2.1(@angular/core@22.2.1(@angular/compiler@22.2.1)(rxjs@7.8.2))(rxjs@7.8.2)':
+    dependencies:
+      '@angular/core': 22.2.1(@angular/compiler@22.2.1)(rxjs@7.8.2)
+      rxjs: 7.8.2
+      tslib: 2.8.1
+
+  '@angular/compiler@22.2.1':
+    dependencies:
+      tslib: 2.8.1
+
+  '@angular/core@22.2.1(@angular/compiler@22.2.1)(rxjs@7.8.2)':
     dependencies:
       rxjs: 7.8.2
+      tslib: 2.8.1
+    optionalDependencies:
+      '@angular/compiler': 22.2.1
+
+  '@angular/platform-browser@22.2.1(@angular/common@22.2.1(@angular/core@22.2.1(@angular/compiler@22.2.1)(rxjs@7.8.2))(rxjs@7.8.2))(@angular/core@22.2.1(@angular/compiler@22.2.1)(rxjs@7.8.2))':
+    dependencies:
+      '@angular/common': 22.2.1(@angular/core@22.2.1(@angular/compiler@22.2.1)(rxjs@7.8.2))(rxjs@7.8.2)
+      '@angular/core': 22.2.1(@angular/compiler@22.2.1)(rxjs@7.8.2)
       tslib: 2.8.1
 
   '@arcanis/slice-ansi@1.1.1':
@@ -5934,6 +5990,7 @@ snapshots:
       '@csstools/css-parser-algorithms': 4.0.2(@csstools/css-tokenizer@4.0.2)
       '@csstools/css-tokenizer': 4.0.2
       lru-cache: 11.5.3
+    optional: true
 
   '@asamuzakjp/dom-selector@9.2.4':
     dependencies:
@@ -5941,6 +5998,7 @@ snapshots:
       css-tree: 3.2.1
       is-potential-custom-element-name: 1.0.1
       lru-cache: 11.5.3
+    optional: true
 
   '@aws-sdk/checksums@3.1001.1':
     dependencies:
@@ -6353,6 +6411,7 @@ snapshots:
   '@bramus/specificity@2.4.3':
     dependencies:
       css-tree: 3.2.1
+    optional: true
 
   '@breejs/later@4.2.0': {}
 
@@ -6381,12 +6440,14 @@ snapshots:
       - debug
       - supports-color
 
-  '@csstools/color-helpers@6.1.2': {}
+  '@csstools/color-helpers@6.1.2':
+    optional: true
 
   '@csstools/css-calc@3.4.3(@csstools/css-parser-algorithms@4.0.2(@csstools/css-tokenizer@4.0.2))(@csstools/css-tokenizer@4.0.2)':
     dependencies:
       '@csstools/css-parser-algorithms': 4.0.2(@csstools/css-tokenizer@4.0.2)
       '@csstools/css-tokenizer': 4.0.2
+    optional: true
 
   '@csstools/css-color-parser@4.2.6(@csstools/css-parser-algorithms@4.0.2(@csstools/css-tokenizer@4.0.2))(@csstools/css-tokenizer@4.0.2)':
     dependencies:
@@ -6394,16 +6455,20 @@ snapshots:
       '@csstools/css-calc': 3.4.3(@csstools/css-parser-algorithms@4.0.2(@csstools/css-tokenizer@4.0.2))(@csstools/css-tokenizer@4.0.2)
       '@csstools/css-parser-algorithms': 4.0.2(@csstools/css-tokenizer@4.0.2)
       '@csstools/css-tokenizer': 4.0.2
+    optional: true
 
   '@csstools/css-parser-algorithms@4.0.2(@csstools/css-tokenizer@4.0.2)':
     dependencies:
       '@csstools/css-tokenizer': 4.0.2
+    optional: true
 
   '@csstools/css-syntax-patches-for-csstree@1.1.15(css-tree@3.2.1)':
     optionalDependencies:
       css-tree: 3.2.1
+    optional: true
 
-  '@csstools/css-tokenizer@4.0.2': {}
+  '@csstools/css-tokenizer@4.0.2':
+    optional: true
 
   '@emnapi/core@1.10.0':
     dependencies:
@@ -6518,6 +6583,7 @@ snapshots:
   '@exodus/bytes@1.16.0(@noble/hashes@2.4.0)':
     optionalDependencies:
       '@noble/hashes': 2.4.0
+    optional: true
 
   '@grpc/grpc-js@1.14.5':
     dependencies:
@@ -6917,6 +6983,8 @@ snapshots:
 
   '@oxc-parser/binding-win32-x64-msvc@0.150.0':
     optional: true
+
+  '@oxc-project/runtime@0.153.0': {}
 
   '@oxc-project/types@0.134.0': {}
 
@@ -8271,6 +8339,7 @@ snapshots:
   bidi-js@1.1.0:
     dependencies:
       require-from-string: 2.0.2
+    optional: true
 
   bignumber.js@9.3.1: {}
 
@@ -8470,6 +8539,7 @@ snapshots:
     dependencies:
       mdn-data: 2.27.1
       source-map-js: 1.2.2
+    optional: true
 
   css-what@6.2.2: {}
 
@@ -8485,6 +8555,7 @@ snapshots:
       whatwg-url: 17.2.0(@noble/hashes@2.4.0)
     transitivePeerDependencies:
       - '@noble/hashes'
+    optional: true
 
   debug@4.4.3(supports-color@7.2.0):
     dependencies:
@@ -8492,7 +8563,8 @@ snapshots:
     optionalDependencies:
       supports-color: 7.2.0
 
-  decimal.js@10.6.0: {}
+  decimal.js@10.6.0:
+    optional: true
 
   decode-named-character-reference@1.3.0:
     dependencies:
@@ -9065,6 +9137,7 @@ snapshots:
       '@exodus/bytes': 1.16.0(@noble/hashes@2.4.0)
     transitivePeerDependencies:
       - '@noble/hashes'
+    optional: true
 
   html-entities@2.3.3: {}
 
@@ -9141,7 +9214,8 @@ snapshots:
 
   is-plain-obj@4.1.0: {}
 
-  is-potential-custom-element-name@1.0.1: {}
+  is-potential-custom-element-name@1.0.1:
+    optional: true
 
   is-reference@3.0.3:
     dependencies:
@@ -9206,6 +9280,7 @@ snapshots:
       xml-name-validator: 5.0.0
     transitivePeerDependencies:
       - '@noble/hashes'
+    optional: true
 
   jsesc@3.1.0: {}
 
@@ -9557,7 +9632,8 @@ snapshots:
     dependencies:
       '@types/mdast': 4.0.4
 
-  mdn-data@2.27.1: {}
+  mdn-data@2.27.1:
+    optional: true
 
   mdurl@2.1.0: {}
 
@@ -10204,6 +10280,7 @@ snapshots:
   parse5@8.0.1:
     dependencies:
       entities: 8.1.0
+    optional: true
 
   path-browserify@1.0.1: {}
 
@@ -10512,7 +10589,8 @@ snapshots:
 
   require-directory@2.1.1: {}
 
-  require-from-string@2.0.2: {}
+  require-from-string@2.0.2:
+    optional: true
 
   require-in-the-middle@8.0.1(supports-color@7.2.0):
     dependencies:
@@ -10630,6 +10708,7 @@ snapshots:
   saxes@6.0.0:
     dependencies:
       xmlchars: 2.2.0
+    optional: true
 
   scheduler@0.28.0: {}
 
@@ -10877,11 +10956,13 @@ snapshots:
 
   tinyrainbow@3.2.0: {}
 
-  tldts-core@7.4.16: {}
+  tldts-core@7.4.16:
+    optional: true
 
   tldts@7.4.16:
     dependencies:
       tldts-core: 7.4.16
+    optional: true
 
   to-regex-range@5.0.1:
     dependencies:
@@ -10898,10 +10979,12 @@ snapshots:
   tough-cookie@6.0.2:
     dependencies:
       tldts: 7.4.16
+    optional: true
 
   tr46@7.0.0:
     dependencies:
       punycode: 2.3.1
+    optional: true
 
   treeify@1.1.0: {}
 
@@ -10969,7 +11052,8 @@ snapshots:
 
   undici-types@7.24.6: {}
 
-  undici@8.11.2: {}
+  undici@8.11.2:
+    optional: true
 
   unicorn-magic@0.3.0: {}
 
@@ -11163,16 +11247,19 @@ snapshots:
   w3c-xmlserializer@6.0.0:
     dependencies:
       xml-name-validator: 5.0.0
+    optional: true
 
   walk-up-path@4.0.0: {}
 
   web-streams-polyfill@3.3.3: {}
 
-  webidl-conversions@8.0.1: {}
+  webidl-conversions@8.0.1:
+    optional: true
 
   whatwg-mimetype@3.0.0: {}
 
-  whatwg-mimetype@5.0.0: {}
+  whatwg-mimetype@5.0.0:
+    optional: true
 
   whatwg-url@17.2.0(@noble/hashes@2.4.0):
     dependencies:
@@ -11181,6 +11268,7 @@ snapshots:
       webidl-conversions: 8.0.1
     transitivePeerDependencies:
       - '@noble/hashes'
+    optional: true
 
   which-command@0.1.0: {}
 
@@ -11233,9 +11321,11 @@ snapshots:
 
   ws@8.22.0: {}
 
-  xml-name-validator@5.0.0: {}
+  xml-name-validator@5.0.0:
+    optional: true
 
-  xmlchars@2.2.0: {}
+  xmlchars@2.2.0:
+    optional: true
 
   xmldoc@3.0.0:
     dependencies:

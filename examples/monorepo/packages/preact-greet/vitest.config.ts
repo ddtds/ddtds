@@ -4,5 +4,5 @@ import { ddtPlugin } from "@ddtds/vitest";
 
 export default defineConfig({
   plugins: [preact(), ddtPlugin({ include: ["../../docs/framework/preact/**/*.md"] })],
-  test: { dir: "./tests", environment: "jsdom" },
+  test: { dir: "./tests", environment: "happy-dom" },
 });

@@ -16,7 +16,7 @@
   "devDependencies": {
     "@ddtds/vitest": "workspace:*",
     "@testing-library/jest-dom": "catalog:examples",
-    "jsdom": "catalog:examples",
+    "happy-dom": "catalog:examples",
     "vite-plugin-solid": "catalog:examples",
     "vitest": "catalog:dev"
   }

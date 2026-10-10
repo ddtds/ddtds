@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.tsx"
   },
   "scripts": {
     "test": "vitest run"
@@ -16,7 +16,7 @@
   "devDependencies": {
     "@ddtds/vitest": "workspace:*",
     "@tsrx/oxc": "catalog:dev",
-    "jsdom": "catalog:examples",
+    "happy-dom": "catalog:examples",
     "vitest": "catalog:dev"
   }
 }

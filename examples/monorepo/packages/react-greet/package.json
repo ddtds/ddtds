@@ -19,7 +19,7 @@
     "@types/react": "catalog:examples",
     "@types/react-dom": "catalog:examples",
     "@vitejs/plugin-react": "catalog:examples",
-    "jsdom": "catalog:examples",
+    "happy-dom": "catalog:examples",
     "vitest": "catalog:dev"
   }
 }
