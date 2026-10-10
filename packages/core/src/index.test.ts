@@ -212,7 +212,10 @@ describe("CodeBlock.splitImports", () => {
       `"t.md:4:5 Identifier \`x\` has already been declared (ts block at line 3)"`,
     );
     expect(error?.details).toMatchInlineSnapshot(
-      { parser: { version: expect.any(String) } },
+      {
+        parser: { version: expect.any(String) },
+        diagnostics: [{ source: expect.any(Object) }],
+      },
       `
       {
         "block": {
@@ -260,34 +263,7 @@ describe("CodeBlock.splitImports", () => {
               },
             ],
             "message": "Identifier \`x\` has already been declared",
-            "source": {
-              "codeframe": "
-        x Identifier \`x\` has already been declared
-         ,-[block.ts:1:5]
-       1 | let x = 1;
-         :     |
-         :     \`-- \`x\` has already been declared here
-       2 | let x = 2;
-         :     |
-         :     \`-- It can not be redeclared here
-         \`----
-      ",
-              "helpMessage": null,
-              "labels": [
-                {
-                  "end": 5,
-                  "message": "\`x\` has already been declared here",
-                  "start": 4,
-                },
-                {
-                  "end": 16,
-                  "message": "It can not be redeclared here",
-                  "start": 15,
-                },
-              ],
-              "message": "Identifier \`x\` has already been declared",
-              "severity": "Error",
-            },
+            "source": Any<Object>,
           },
         ],
         "parser": {

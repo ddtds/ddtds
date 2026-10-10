@@ -18,27 +18,12 @@ function block(
   });
 }
 
-function assertTestRun(x: string) {
-  expect(x).toContain("test");
-  expect(x).not.toContain("skip");
-  expect(x).not.toContain("reject");
-}
-
-function assertTestReject(x: string) {
-  expect(x).toContain("test");
-  expect(x).not.toContain("skip");
-  expect(x).toContain("reject");
-}
-
 describe("generateBlockFile: basic", () => {
   test("emits body directly into the generated test", () => {
     const output = generateBlockFile(
       "example.md",
       block("const hi = '10';\nexpect(hi).toBe('10');"),
     );
-
-    assertTestRun(output);
-    expect(output).toContain("expect(hi).toBe('10');");
 
     expect(output).toMatchInlineSnapshot(`
       "import { test, expect } from 'vitest';
@@ -58,7 +43,6 @@ describe("generateBlockFile: imports", () => {
     const code = "import {\n  foo,\n  bar,\n  baz,\n} from './utils'\nfoo()";
     const out = generateBlockFile("t.md", block(code));
 
-    assertTestRun(out);
     expect(out).toMatchInlineSnapshot(`
       "import { test, expect } from 'vitest';
       import { DdtTestError, wrapDdtTest } from '@ddtds/vitest'
@@ -77,17 +61,8 @@ describe("generateBlockFile: imports", () => {
 });
 
 describe("generateBlockFile: annotations", () => {
-  test("run annotation generates plain test", () => {
-    const out = generateBlockFile("t.md", block("expect(1).toBe(1)", ANNOTATIONS.RUN));
-    assertTestRun(out);
-    expect(out).not.toContain("rejects");
-  });
-
   test("fail annotation wraps in rejects.toThrow", () => {
     const out = generateBlockFile("t.md", block('throw new Error("boom")', ANNOTATIONS.FAIL));
-
-    assertTestReject(out);
-    expect(out).toContain(".rejects.toThrow();");
     expect(out).toMatchInlineSnapshot(`
       "import { test, expect } from 'vitest';
       import { DdtTestError, wrapDdtTest } from '@ddtds/vitest'

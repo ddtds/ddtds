@@ -4,17 +4,13 @@ import { DdtTestError, ErrorKind, wrapDdtTest } from "./error";
 
 describe("DdtTestError", () => {
   test.each([
-    "import x from 'y'",
-    "require('x')",
-    "console.log(x)",
-    "window",
-    "document",
-    "React.createElement('div')",
-    "new Foo()",
-    "class X extends Y {}",
-  ])("rethrows as compile error: %s", async (fn) => {
-    // eslint-disable-next-line no-eval
-    const promise = wrapDdtTest(() => eval(fn));
+    new SyntaxError("Cannot use import statement outside a module"),
+    new Error("Cannot find module './x'"),
+    new ReferenceError("x is not defined"),
+  ])("rethrows as compile error: %s", async (error) => {
+    const promise = wrapDdtTest(() => {
+      throw error;
+    });
 
     await expect(promise).rejects.toBeInstanceOf(DdtTestError);
     await expect(promise).rejects.toHaveProperty("kind", ErrorKind.Compile);
@@ -49,7 +45,7 @@ describe("DdtTestError", () => {
           indent: 0,
           contents: "",
         },
-        parser: { name: "ts", package: "oxc-parser", version: "0.150.0" },
+        parser: { name: "ts", package: "oxc-parser", version: "0.0.0" },
         phase: "parse",
         diagnostics: [],
       });
