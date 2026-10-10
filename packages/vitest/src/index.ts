@@ -33,7 +33,10 @@ export function ddtPlugin({ logLevel, ...docs }: DdtPluginOptions = {}): Plugin 
     name: "vite-plugin-ddtds",
     config(config) {
       const logger = createLogger(parseLogLevel(process.env.DDT_LOG_LEVEL ?? logLevel));
-      const options = resolveDocsOptions({ ...docs, root: config.root ?? process.cwd() });
+      const options = resolveDocsOptions({
+        ...docs,
+        root: config.test?.root ?? config.root ?? process.cwd(),
+      });
       generate(options, { logger });
 
       const doctests = `${options.outputDir}/**/*.test.{${OUTPUT_EXTENSIONS.join(",")}}`;

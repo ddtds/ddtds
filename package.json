@@ -14,6 +14,7 @@
     "test:packages": "pnpm --filter './packages/*' run test",
     "test:examples": "pnpm --filter '@ddtds/example-*' test",
     "test:update-snapshots": "pnpm -r test -u",
+    "test:vitest-matrix": "bash scripts/test-vitest-matrix.sh",
     "knip": "knip",
     "publint": "pnpm --filter './packages/*' exec publint",
     "sherif": "sherif",
