@@ -128,6 +128,18 @@ describe("generateBlockFile: annotations", () => {
       }"
     `);
   });
+
+  test("no_run compiles the block in a function that is never called", () => {
+    const out = fenceModule(fence("import { a } from './a'\na()", ANNOTATIONS.NO_RUN));
+    expect(out).toMatchInlineSnapshot(`
+      "import { expect } from 'vitest';
+      import { a } from './a'
+      export default async function () {}
+      async function noRun() {
+        a()
+      }"
+    `);
+  });
 });
 
 describe("in-memory modules", () => {

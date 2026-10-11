@@ -30,6 +30,8 @@ export const ANNOTATIONS = {
   RUN: "run",
   FAIL: "fail",
   COMPILE_FAIL: "compile_fail",
+  /** Compiles and loads the fence's imports, but never runs it */
+  NO_RUN: "no_run",
 } as const;
 
 export type Annotation = (typeof ANNOTATIONS)[keyof typeof ANNOTATIONS];
