@@ -21,7 +21,7 @@ for (const doc of files) {
   for (const match of source.matchAll(/^```(ts|tsx) twoslash[^\n]*\n([\s\S]*?)\n```$/gm)) {
     const line = source.slice(0, match.index).split("\n").length;
     const block = new CodeBlock({
-      code: match[2] ?? "",
+      code: match[2],
       lang: match[1] === "tsx" ? "tsx" : "ts",
       annotation: "run",
       path: relative(root, doc),
@@ -96,7 +96,7 @@ for (const [key, count] of [...reasons].toSorted((a, b) => b[1] - a[1]))
 const ddtdsReasons = new Map<string, number>();
 for (const error of ddtds.values()) {
   const key = error.message
-    .split("\n")[0]!
+    .split("\n")[0]
     .replace(/^\S+ /, "")
     .replaceAll(/'[^']*'|"[^"]*"|\d+/g, "_")
     .slice(0, 110);
