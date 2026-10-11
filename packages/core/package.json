@@ -22,6 +22,7 @@
     "@codspeed/vitest-plugin": "5.7.1",
     "@tsrx/oxc": "catalog:dev",
     "@types/node": "catalog:dev",
+    "twoslash": "0.3.8",
     "typescript": "catalog:dev",
     "typescript6": "npm:typescript@^6.0.3",
     "vitest": "^4.1.11"

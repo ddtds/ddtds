@@ -7,6 +7,10 @@ const config: KnipConfig = {
   // optional peer for tsrx parsing
   ignoreDependencies: ["publint", "@tsrx/oxc"],
   workspaces: {
+    "packages/core": {
+      // twoslash-compat.mts is a one-off experiment, see TWOSLASH-COMPAT.md
+      entry: ["twoslash-compat.mts"],
+    },
     "examples/react": {
       // used in generated tests
       ignoreDependencies: ["react", "react-dom", "@testing-library/react"],
