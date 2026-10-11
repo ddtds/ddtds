@@ -2,7 +2,7 @@ import { DdtCompileError, type CodeBlock, type DocIndex, type Fence } from "@ddt
 
 type ModuleExports = {
   vitest: typeof import("vitest");
-  "@ddtds/vitest/runtime": typeof import("./runtime.ts");
+  "@ddtds/vitest/runtime": typeof import("@ddtds/vitest/runtime");
 };
 
 function indent(code: string): string {
