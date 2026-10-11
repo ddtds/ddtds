@@ -9,7 +9,7 @@ import {
   resolveDocsOptions,
   writeFiles,
 } from "@ddtds/core";
-import { createLoggerFromEnv } from "@ddtds/core/log";
+import { configureLogging, consoleSink, logger, parseLogLevel } from "@ddtds/core/log";
 import { moduleFiles } from "@ddtds/vitest";
 
 const buildCmd = command(
@@ -28,7 +28,7 @@ const buildCmd = command(
     },
   },
   (argv) => {
-    const logger = createLoggerFromEnv();
+    configureLogging(parseLogLevel(process.env.DDT_LOG_LEVEL), consoleSink);
     const { root, include, exclude } = resolveDocsOptions({
       root: process.cwd(),
       include: argv._.include,
@@ -38,7 +38,6 @@ const buildCmd = command(
     const index = DocIndex.fromSources(readDocs(root, include, exclude), {
       root,
       moduleDir,
-      logger,
     });
     writeFiles(moduleDir, moduleFiles(index));
     logger.info(`Total: ${index.size} tests`);

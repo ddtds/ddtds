@@ -12,7 +12,13 @@ import {
   type IndexOptions,
 } from "@ddtds/core";
 import { docModule, fenceModule } from "./codegen.ts";
-import { createLogger, parseLogLevel, type LogLevel } from "@ddtds/core/log";
+import {
+  configureLogging,
+  consoleSink,
+  logger,
+  parseLogLevel,
+  type LogLevel,
+} from "@ddtds/core/log";
 
 export { DdtCompileError } from "@ddtds/core";
 
@@ -32,12 +38,11 @@ export type DdtPluginOptions = DocsOptions & {
 };
 
 export function ddtPlugin({ logLevel, ...docs }: DdtPluginOptions = {}): Plugin {
-  const logger = createLogger(parseLogLevel(process.env.DDT_LOG_LEVEL ?? logLevel));
+  configureLogging(parseLogLevel(process.env.DDT_LOG_LEVEL ?? logLevel), consoleSink);
   const moduleDirName = `__ddtds__-${randomUUID().slice(0, 8)}`;
   const indexOptions = (root: string): IndexOptions => ({
     root,
     moduleDir: join(root, moduleDirName),
-    logger,
   });
   let index = DocIndex.fromSources(new Map(), indexOptions(process.cwd()));
 

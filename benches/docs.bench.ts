@@ -1,8 +1,5 @@
 import { bench, describe } from "vitest";
 import { DocIndex, parseCodeFences, type IndexOptions } from "@ddtds/core";
-import { createLogger } from "@ddtds/core/log";
-
-const logger = createLogger("silent");
 
 /** A section of a guide: prose, a list with an indented fence, a top-level fence, a skipped one */
 function section(i: number): string {
@@ -47,7 +44,7 @@ const mdx = Array.from({ length: 50 }, (_, i) =>
 ).join("\n");
 
 const root = "/repo";
-const options: IndexOptions = { root, moduleDir: `${root}/__ddtds__`, logger };
+const options: IndexOptions = { root, moduleDir: `${root}/__ddtds__` };
 const sources = new Map(
   Array.from({ length: 20 }, (_, i) => [`${root}/docs/guide-${i}.md`, guide(10)]),
 );
@@ -55,11 +52,11 @@ const index = DocIndex.fromSources(sources, options);
 
 describe("parseCodeFences", () => {
   bench("find fences in a 50 section markdown doc", () => {
-    parseCodeFences(doc, "guide.md", logger);
+    parseCodeFences(doc, "guide.md");
   });
 
   bench("find fences in a 50 section MDX doc", () => {
-    parseCodeFences(mdx, "guide.mdx", logger);
+    parseCodeFences(mdx, "guide.mdx");
   });
 });
 

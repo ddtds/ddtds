@@ -1,8 +1,5 @@
 import { expect, test } from "vitest";
 import { parseCodeFences } from "./blocks.ts";
-import { createLogger } from "./logger.ts";
-
-const silent = createLogger("silent");
 
 test("finds fences inside JSX components in MDX", () => {
   const steps = [
@@ -15,7 +12,7 @@ test("finds fences inside JSX components in MDX", () => {
     "</Steps>",
     "",
   ].join("\n");
-  const blocks = parseCodeFences(steps, "guide.mdx", silent);
+  const blocks = parseCodeFences(steps, "guide.mdx");
   expect(
     blocks.map(({ line, details }) => ({ line, indent: details.indent, code: details.contents })),
   ).toMatchInlineSnapshot(`

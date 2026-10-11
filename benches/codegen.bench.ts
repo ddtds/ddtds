@@ -1,6 +1,5 @@
 import { bench, describe } from "vitest";
 import { DocIndex } from "@ddtds/core";
-import { createLogger } from "@ddtds/core/log";
 import { moduleFiles } from "@ddtds/vitest";
 
 function fence(i: number): string {
@@ -24,7 +23,6 @@ const sources = new Map(
 const index = DocIndex.fromSources(sources, {
   root,
   moduleDir: `${root}/__ddtds__`,
-  logger: createLogger("silent"),
 });
 
 describe("moduleFiles", () => {
