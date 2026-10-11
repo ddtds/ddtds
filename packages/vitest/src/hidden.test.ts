@@ -58,3 +58,37 @@ test("errors in hidden setup fail the fence, pointing at the comment", async () 
     ]
   `);
 });
+
+test("MDX docs hold hidden setup in a ddt expression comment", async () => {
+  const root = fixture({
+    ...calc,
+    "guide.mdx": [
+      "{/* ddt",
+      'import { add } from "calc";',
+      "const total = add(1, 2);",
+      "*/}",
+      "",
+      fence("expect(total).toBe(3);"),
+      "<Steps>",
+      "  {/* ddt",
+      "  const one = 1;",
+      "  */}",
+      "",
+      "  ```ts run",
+      "  expect(one).toBe(1);",
+      "  ```",
+      "</Steps>",
+      "",
+      "{/* a comment for readers */}",
+      "",
+      fence("expect(typeof total).toBe('undefined');"),
+    ].join("\n"),
+  });
+  expect(await run(root)).toMatchInlineSnapshot(`
+    {
+      "guide.mdx:16": "passed",
+      "guide.mdx:23": "passed",
+      "guide.mdx:6": "passed",
+    }
+  `);
+});
