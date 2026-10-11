@@ -1,5 +1,6 @@
 import { join, relative, sep } from "node:path";
 import { parseCodeFences, type CodeBlock } from "./blocks.ts";
+import { parseJsDocFences, sourceFile } from "./jsdoc.ts";
 import type { Logger } from "./logger.ts";
 
 export type Fence = Readonly<{
@@ -75,7 +76,8 @@ function parseFences(
   doc: string,
   source: string,
 ): Fence[] {
-  return parseCodeFences(source, relative(root, doc), logger).map((block) => ({
+  const parse = sourceFile.test(doc) ? parseJsDocFences : parseCodeFences;
+  return parse(source, relative(root, doc), logger).map((block) => ({
     id: join(moduleDir, `${flatName(root, doc)}_${block.line}.${block.outputExtension}`),
     doc,
     block,
