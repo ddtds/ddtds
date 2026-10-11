@@ -123,12 +123,12 @@ function fenceCode(runner: Runner, { doc, block }: Fence): FenceCode {
 
 /** Shift a map of the fence's code to where that code sits in the markdown */
 function shiftToFence(mappings: SourceMapSegment[][], { block }: Fence): SourceMapSegment[][] {
-  const { line, details } = block;
   return mappings.map((segments) =>
     segments.map((segment) => {
       if (segment.length === 1) return segment;
       const [column, source, sourceLine, sourceColumn] = segment;
-      return [column, source, sourceLine + line, sourceColumn + details.indent];
+      const position = block.docPosition(sourceLine, sourceColumn);
+      return [column, source, position.line - 1, position.column - 1];
     }),
   );
 }

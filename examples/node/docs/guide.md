@@ -28,3 +28,16 @@ import { truncate } from "@ddtds/example-node";
 
 truncate("docs", 0);
 ```
+
+## Hidden setup
+
+A `<!-- ddt` comment just before a fence holds setup that runs first but stays out of the rendered docs, like Rust's `# ` lines:
+
+<!-- ddt
+import { truncate } from "@ddtds/example-node";
+const title = "A very long title";
+-->
+
+```ts run
+assert.equal(truncate(title, 8), "A very …");
+```

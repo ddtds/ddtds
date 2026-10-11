@@ -28,7 +28,7 @@ export type PreparedBlock = {
 
 export function splitImportsAndBlock(block: CodeBlock): PreparedBlock {
   const { program, staticImports } = parse(block);
-  const source = new MagicString(block.code);
+  const source = new MagicString(block.source);
 
   const imports = staticImports.map((staticImport) => sliceSource(source, staticImport));
   const body = sanitizeProgram(program).map((node) => printBodyNode(source, node));
@@ -57,11 +57,11 @@ type ParseResult = ReturnType<typeof parseSync> | ReturnType<typeof TsrxParser.p
 function runParser(block: CodeBlock, parser: Parser): ParseResult {
   const filename = `block.${parser}`;
   const options = { sourceType: "module", showSemanticErrors: true } as const;
-  if (parser !== "tsrx") return parseSync(filename, block.code, { ...options, lang: parser });
+  if (parser !== "tsrx") return parseSync(filename, block.source, { ...options, lang: parser });
 
   const tsrx = tsrxParser();
   try {
-    return tsrx.parseSync(filename, block.code, { ...options, lang: parser });
+    return tsrx.parseSync(filename, block.source, { ...options, lang: parser });
   } catch (error) {
     // tsrx parser throws sometimes
     const message = error instanceof Error ? error.message : String(error);
