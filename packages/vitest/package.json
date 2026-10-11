@@ -28,7 +28,8 @@
     "typecheck": "tsc"
   },
   "dependencies": {
-    "@ddtds/core": "workspace:*"
+    "@ddtds/core": "workspace:*",
+    "@logtape/logtape": "^2.4.0"
   },
   "devDependencies": {
     "vitest": "catalog:dev"

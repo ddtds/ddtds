@@ -12,13 +12,8 @@ import {
   type IndexOptions,
 } from "@ddtds/core";
 import { docModule, fenceModule } from "./codegen.ts";
-import {
-  configureLogging,
-  consoleSink,
-  logger,
-  parseLogLevel,
-  type LogLevel,
-} from "@ddtds/core/log";
+import { configureLogging, logger, parseLogLevel, type LogLevel } from "@ddtds/core/log";
+import { ViteSink } from "./vite-sink.ts";
 
 export { DdtCompileError } from "@ddtds/core";
 
@@ -38,7 +33,8 @@ export type DdtPluginOptions = DocsOptions & {
 };
 
 export function ddtPlugin({ logLevel, ...docs }: DdtPluginOptions = {}): Plugin {
-  configureLogging(parseLogLevel(process.env.DDT_LOG_LEVEL ?? logLevel), consoleSink);
+  const vite = new ViteSink();
+  configureLogging(parseLogLevel(process.env.DDT_LOG_LEVEL ?? logLevel), vite.sink);
   const moduleDirName = `__ddtds__-${randomUUID().slice(0, 8)}`;
   const indexOptions = (root: string): IndexOptions => ({
     root,
@@ -58,7 +54,6 @@ export function ddtPlugin({ logLevel, ...docs }: DdtPluginOptions = {}): Plugin 
       for (const { id, block } of index.fences()) {
         logger.debug(`${block.details.file}:${block.line} -> ${relative(root, id)}`);
       }
-      logger.info(`Total: ${index.size} tests`);
 
       const docFiles = index
         .docs()
@@ -71,6 +66,10 @@ export function ddtPlugin({ logLevel, ...docs }: DdtPluginOptions = {}): Plugin 
           exclude: [...(config.test?.exclude ? [] : defaultExclude), buildOutput],
         },
       };
+    },
+    configResolved(config) {
+      vite.attach(config.logger);
+      logger.info(`Total: ${index.size} tests`);
     },
     watchChange(id) {
       if (index.hasDoc(id)) index = index.withDoc(id, readFileSync(id, "utf8"));
