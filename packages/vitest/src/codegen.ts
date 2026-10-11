@@ -95,7 +95,7 @@ export function fenceModule(fence: Fence): GeneratedModule {
   return { code: bundle.toString(), map };
 }
 
-export function docModule(fences: readonly Fence[]): GeneratedModule {
+export function docModule(doc: string, fences: readonly Fence[]): GeneratedModule {
   const lines = [
     "import { test } from 'vitest';",
     "const fences = await Promise.all([",
@@ -112,15 +112,15 @@ export function docModule(fences: readonly Fence[]): GeneratedModule {
     // Vitest locates a test where test() is called, so point the call at its fence
     mappings.push([[0, 0, block.line - 1, block.details.indent]]);
   }
-  const sources = fences.map(({ doc }) => doc).slice(0, 1);
-  return { code: lines.join("\n"), map: new SourceMap({ sources, names: [], mappings }) };
+  const map = new SourceMap({ sources: [doc], names: [], mappings });
+  return { code: lines.join("\n"), map };
 }
 
 export function moduleFiles(index: DocIndex): Map<string, string> {
   const files = new Map<string, string>();
   for (const [doc, fences] of index.docs()) {
     for (const fence of fences) files.set(fence.id, fenceModule(fence).code);
-    files.set(index.docModuleId(doc), docModule(fences).code);
+    files.set(index.docModuleId(doc), docModule(doc, fences).code);
   }
   return files;
 }
