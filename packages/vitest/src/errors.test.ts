@@ -50,14 +50,14 @@ test("failures report the error the fence threw", async () => {
     + 1",
         "error": "AssertionError: expected 1 to be 2 // Object.is equality",
         "frames": [
-          "__ddtds__/guide_md_3.ts:4",
+          "guide.md:5:11",
         ],
       },
       "guide.md:8": {
         "diff": undefined,
         "error": "TypeError: boom",
         "frames": [
-          "__ddtds__/guide_md_8.ts:3",
+          "guide.md:9:7",
         ],
       },
     }

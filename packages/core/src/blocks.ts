@@ -10,7 +10,7 @@ import {
   isLang,
 } from "./constants.ts";
 import type { BlockDetails, Position, SourceRange } from "./compile-error.ts";
-import { splitImportsAndBlock } from "./parse.ts";
+import { splitImportsAndBlock, type PreparedBlock } from "./parse.ts";
 import type { Logger } from "./logger.ts";
 
 type AnnotationResult =
@@ -89,7 +89,7 @@ export class CodeBlock {
     return this.#annotation === ANNOTATIONS.COMPILE_FAIL;
   }
 
-  public splitImports(): { imports: string[]; body: string } {
+  public splitImports(): PreparedBlock {
     return splitImportsAndBlock(this);
   }
 }

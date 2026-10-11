@@ -31,8 +31,8 @@ test("failures point at the markdown line that failed", async () => {
         "diff": undefined,
         "error": "RangeError: cannot divide by zero",
         "frames": [
-          "src/index.ts:6",
-          "README.md:16",
+          "src/index.ts:6:22",
+          "README.md:16:1",
         ],
       },
       "README.md:3": {
@@ -43,9 +43,34 @@ test("failures point at the markdown line that failed", async () => {
     + -1",
         "error": "AssertionError: expected -1 to be 3 // Object.is equality",
         "frames": [
-          "README.md:7",
+          "README.md:7:13",
         ],
       },
+    }
+  `);
+});
+
+test("fences indented in a list map to their columns", async () => {
+  const guide = "1. Add:\n\n   ```ts run\n   const sum = 1 + 1;\n   expect(sum).toBe(3);\n   ```\n";
+  const root = fixture({ "guide.md": guide });
+  expect(await failures(root)).toMatchInlineSnapshot(`
+    {
+      "guide.md:3": {
+        "diff": "- Expected
+    + Received
+
+    - 3
+    + 2",
+        "error": "AssertionError: expected 2 to be 3 // Object.is equality",
+        "frames": [
+          "guide.md:5:16",
+        ],
+      },
+    }
+  `);
+  expect(await locations(root)).toMatchInlineSnapshot(`
+    {
+      "guide.md:3": "3:4",
     }
   `);
 });

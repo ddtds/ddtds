@@ -40,7 +40,7 @@ function assertTestReject(x: string) {
 
 describe("generateBlockFile: basic", () => {
   test("emits body directly into the generated test", () => {
-    const output = fenceModule(fence("const hi = '10';\nexpect(hi).toBe('10');"));
+    const output = fenceModule(fence("const hi = '10';\nexpect(hi).toBe('10');")).code;
 
     assertTestRun(output);
     expect(output).toContain("expect(hi).toBe('10');");
@@ -58,7 +58,7 @@ describe("generateBlockFile: basic", () => {
 describe("generateBlockFile: imports", () => {
   test("hoists multiline imports", () => {
     const code = "import {\n  foo,\n  bar,\n  baz,\n} from './utils'\nfoo()";
-    const out = fenceModule(fence(code));
+    const out = fenceModule(fence(code)).code;
 
     assertTestRun(out);
     expect(out).toMatchInlineSnapshot(`
@@ -77,13 +77,13 @@ describe("generateBlockFile: imports", () => {
 
 describe("generateBlockFile: annotations", () => {
   test("run annotation generates plain test", () => {
-    const out = fenceModule(fence("expect(1).toBe(1)", ANNOTATIONS.RUN));
+    const out = fenceModule(fence("expect(1).toBe(1)", ANNOTATIONS.RUN)).code;
     assertTestRun(out);
     expect(out).not.toContain("rejects");
   });
 
   test("fail annotation wraps in rejects.toThrow", () => {
-    const out = fenceModule(fence('throw new Error("boom")', ANNOTATIONS.FAIL));
+    const out = fenceModule(fence('throw new Error("boom")', ANNOTATIONS.FAIL)).code;
 
     assertTestReject(out);
     expect(out).toContain(".rejects.toThrow();");
@@ -98,7 +98,7 @@ describe("generateBlockFile: annotations", () => {
   });
 
   test("parse errors fail even with the fail annotation", () => {
-    const out = fenceModule(fence("const = 1;", ANNOTATIONS.FAIL));
+    const out = fenceModule(fence("const = 1;", ANNOTATIONS.FAIL)).code;
     expect(out.replace(/DdtCompileError\(\{.*\}\);/, "DdtCompileError(details);"))
       .toMatchInlineSnapshot(`
         "import { expect } from 'vitest';
@@ -110,7 +110,7 @@ describe("generateBlockFile: annotations", () => {
   });
 
   test("compile_fail passes when the block does not parse", () => {
-    const out = fenceModule(fence("const = 1;", ANNOTATIONS.COMPILE_FAIL));
+    const out = fenceModule(fence("const = 1;", ANNOTATIONS.COMPILE_FAIL)).code;
     expect(out).not.toContain("throw");
     expect(out).toMatchInlineSnapshot(`
       "import { expect } from 'vitest';
@@ -119,7 +119,7 @@ describe("generateBlockFile: annotations", () => {
   });
 
   test("compile_fail fails when the block parses", () => {
-    const out = fenceModule(fence("const ok = 1;", ANNOTATIONS.COMPILE_FAIL));
+    const out = fenceModule(fence("const ok = 1;", ANNOTATIONS.COMPILE_FAIL)).code;
     expect(out).toContain("expected a compile_fail block");
     expect(out).toMatchInlineSnapshot(`
       "import { expect } from 'vitest';
@@ -132,7 +132,7 @@ describe("generateBlockFile: annotations", () => {
 
 describe("in-memory modules", () => {
   test("fence module exports the fence as a function", () => {
-    const out = fenceModule(fence("import { foo } from './foo'\nfoo()"));
+    const out = fenceModule(fence("import { foo } from './foo'\nfoo()")).code;
     expect(out).toContain("export default async function");
     expect(out).toMatchInlineSnapshot(`
       "import { expect } from 'vitest';
@@ -149,7 +149,7 @@ describe("in-memory modules", () => {
       doc: "/root/t.md",
       id: `/root/f${line}.ts`,
     }));
-    const out = docModule(fences);
+    const out = docModule(fences).code;
     expect(out).toContain('import("/root/f5.ts")');
     expect(out).toMatchInlineSnapshot(`
       "import { test } from 'vitest';

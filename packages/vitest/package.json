@@ -10,7 +10,8 @@
     "typecheck": "tsc"
   },
   "dependencies": {
-    "@ddtds/core": "workspace:*"
+    "@ddtds/core": "workspace:*",
+    "magic-string": "^1.4.3"
   },
   "devDependencies": {
     "vitest": "catalog:dev"
