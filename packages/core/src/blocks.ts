@@ -2,7 +2,7 @@ import { markdownToMdast, mdxToMdast, type MdastNode } from "satteri";
 import { visit } from "unist-util-visit";
 import {
   ANNOTATIONS,
-  LANGS,
+  extensionOf,
   type Annotation,
   type Lang,
   type OutputExtension,
@@ -74,7 +74,7 @@ export class CodeBlock {
   }
 
   public get outputExtension(): OutputExtension {
-    return LANGS[this.lang].extension;
+    return extensionOf(this.lang);
   }
 
   public get code(): string {

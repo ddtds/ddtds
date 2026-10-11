@@ -8,10 +8,8 @@ export type Parser = (typeof PARSERS)[number];
 const OUTPUT_EXTENSIONS = ["ts", "tsx", "tsrx"] as const;
 export type OutputExtension = (typeof OUTPUT_EXTENSIONS)[number];
 
-export type Lang = "ts" | "typescript" | "js" | "javascript" | "tsx" | "jsx" | "tsrx";
-
 /** Code fence languages, the parser for each, and the extension of its generated test file. */
-export const LANGS: Readonly<Record<Lang, { parser: Parser; extension: OutputExtension }>> = {
+const LANGS = {
   ts: { parser: "ts", extension: "ts" },
   typescript: { parser: "ts", extension: "ts" },
   js: { parser: "js", extension: "ts" },
@@ -19,10 +17,20 @@ export const LANGS: Readonly<Record<Lang, { parser: Parser; extension: OutputExt
   tsx: { parser: "tsx", extension: "tsx" },
   jsx: { parser: "jsx", extension: "tsx" },
   tsrx: { parser: "tsrx", extension: "tsrx" },
-};
+} as const;
+
+export type Lang = keyof typeof LANGS;
 
 export function isLang(s: string): s is Lang {
   return Object.hasOwn(LANGS, s);
+}
+
+export function parserOf(lang: Lang): Parser {
+  return LANGS[lang].parser;
+}
+
+export function extensionOf(lang: Lang): OutputExtension {
+  return LANGS[lang].extension;
 }
 
 export const ANNOTATIONS = {

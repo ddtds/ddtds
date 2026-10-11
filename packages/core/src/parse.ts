@@ -3,7 +3,7 @@ import { parseSync } from "oxc-parser";
 import type * as TsrxParser from "@tsrx/oxc/parser";
 import type { ExportDefaultDeclarationKind, Program } from "@oxc-project/types";
 import type { CodeBlock } from "./blocks.ts";
-import { LANGS, type Parser } from "./constants.ts";
+import { parserOf, type Parser } from "./constants.ts";
 import {
   DdtCompileError,
   type CompileDiagnostic,
@@ -38,7 +38,7 @@ export function splitImportsAndBlock(block: CodeBlock): PreparedBlock {
 type ParsedBlock = { program: Program; staticImports: Range[] };
 
 function parse(block: CodeBlock): ParsedBlock {
-  const parser = LANGS[block.lang].parser;
+  const parser = parserOf(block.lang);
   const { program, module, errors } = runParser(block, parser);
   if (errors.length > 0 || !program || !module) {
     throw compileError(
