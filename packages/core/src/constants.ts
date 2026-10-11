@@ -2,11 +2,18 @@ export const defaultDocsInclude = ["**/*.{md,mdx}"];
 export const defaultDocsExclude = ["**/node_modules/**", "**/CHANGELOG.md"];
 export const defaultOutDir = "__doctests__";
 
-const PARSERS = ["ts", "js", "tsx", "jsx", "tsrx"] as const;
-export type Parser = (typeof PARSERS)[number];
+/** Each parser, and the package that provides it */
+export const PARSER_PACKAGES = {
+  ts: "oxc-parser",
+  js: "oxc-parser",
+  tsx: "oxc-parser",
+  jsx: "oxc-parser",
+  tsrx: "@tsrx/oxc",
+} as const;
 
-const OUTPUT_EXTENSIONS = ["ts", "tsx", "tsrx"] as const;
-export type OutputExtension = (typeof OUTPUT_EXTENSIONS)[number];
+export type Parser = keyof typeof PARSER_PACKAGES;
+
+export type OutputExtension = "ts" | "tsx" | "tsrx";
 
 /** Code fence languages, the parser for each, and the extension of its generated test file. */
 export const LANGS = {

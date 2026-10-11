@@ -3,7 +3,7 @@ import { parseSync } from "oxc-parser";
 import type * as TsrxParser from "@tsrx/oxc/parser";
 import type { ExportDefaultDeclarationKind, Program } from "@oxc-project/types";
 import type { CodeBlock } from "./blocks.ts";
-import { LANGS, type Parser } from "./constants.ts";
+import { LANGS, PARSER_PACKAGES, type Parser } from "./constants.ts";
 import {
   DdtCompileError,
   type CompileDiagnostic,
@@ -82,14 +82,6 @@ function compileError(
     options,
   );
 }
-
-const PARSER_PACKAGES = {
-  ts: "oxc-parser",
-  js: "oxc-parser",
-  tsx: "oxc-parser",
-  jsx: "oxc-parser",
-  tsrx: "@tsrx/oxc",
-} as const satisfies Record<Parser, string>;
 
 function parserDetails(name: Parser): ParserDetails {
   const pkg = PARSER_PACKAGES[name];
