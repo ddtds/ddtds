@@ -138,7 +138,8 @@ function sanitizeStatement(node: ParsedBodyNode): BodyNode[] {
   if (node.type === "ExportDefaultDeclaration") {
     const decl = node.declaration;
 
-    if (decl.type === "FunctionDeclaration" || decl.type === "ClassDeclaration") {
+    // An anonymous function or class is only valid as an expression
+    if ((decl.type === "FunctionDeclaration" || decl.type === "ClassDeclaration") && decl.id) {
       return [decl];
     }
 
