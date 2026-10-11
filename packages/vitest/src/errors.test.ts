@@ -63,3 +63,24 @@ test("failures report the error the fence threw", async () => {
     }
   `);
 });
+
+test("no_run fences compile and load but never run", async () => {
+  const root = fixture({
+    "node_modules/calc/package.json": '{ "name": "calc", "type": "module", "main": "index.js" }',
+    "node_modules/calc/index.js": "export const add = (a, b) => a + b;",
+    "throws.md": fence('throw new Error("never runs");', "no_run"),
+    "loops.md": fence("while (true) {}", "no_run"),
+    "imports.md": fence('import { add } from "calc";\nadd(1, 2);', "no_run"),
+    "missing-import.md": fence('import { x } from "missing-package";\nx;', "no_run"),
+    "parse-error.md": fence("const = 1;", "no_run"),
+  });
+  expect(await run(root)).toMatchInlineSnapshot(`
+    {
+      "imports.md:1": "passed",
+      "loops.md:1": "passed",
+      "missing-import.md:1": "Error",
+      "parse-error.md:1": "DdtCompileError",
+      "throws.md:1": "passed",
+    }
+  `);
+});
