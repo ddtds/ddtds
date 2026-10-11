@@ -1,4 +1,4 @@
-import { remark } from "remark";
+import { markdownToMdast, mdxToMdast, type MdastNode } from "satteri";
 import { visit } from "unist-util-visit";
 import {
   ANNOTATIONS,
@@ -94,8 +94,16 @@ export class CodeBlock {
   }
 }
 
+/**
+ * Markdown, or MDX for `.mdx` files so fences inside components count. Any text is valid
+ * markdown, so only MDX can fail to parse.
+ */
+function parseMarkdown(source: string, path: string): MdastNode {
+  return path.endsWith(".mdx") ? mdxToMdast(source) : markdownToMdast(source);
+}
+
 export function parseCodeFences(source: string, path: string, log: Logger): CodeBlock[] {
-  const tree = remark().parse(source);
+  const tree = parseMarkdown(source, path);
   const blocks: CodeBlock[] = [];
 
   visit(tree, "code", (node) => {
