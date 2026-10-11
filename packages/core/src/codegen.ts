@@ -40,20 +40,22 @@ function indent(code: string): string {
 
 type FenceCode = { imports: string[]; body: string };
 
+function runtimeImport(runner: Runner, name: keyof FenceRuntime): string {
+  return `import { ${name} } from '${runner.runtime}';`;
+}
+
 function runtimeCall(
   runner: Runner,
   name: keyof FenceRuntime,
   ...args: readonly string[]
 ): FenceCode {
-  const imports = [`import { ${name} } from '${runner.runtime}';`];
-  return { imports, body: `${name}(${args.join(", ")})` };
+  return { imports: [runtimeImport(runner, name)], body: `${name}(${args.join(", ")})` };
 }
 
 function compileErrorCode(runner: Runner, doc: string, error: DdtCompileError): FenceCode {
-  const args = [JSON.stringify(doc), JSON.stringify(error.details)];
-  if (error.cause === undefined) return runtimeCall(runner, "compileError", ...args);
-  const cause = JSON.stringify(serializeCause(error.cause));
-  return runtimeCall(runner, "compileError", ...args, cause);
+  const details = [JSON.stringify(doc), JSON.stringify(error.details)];
+  const cause = error.cause === undefined ? [] : [JSON.stringify(serializeCause(error.cause))];
+  return runtimeCall(runner, "compileError", ...details, ...cause);
 }
 
 function serializeCause(cause: unknown): unknown {
@@ -62,13 +64,9 @@ function serializeCause(cause: unknown): unknown {
   return { name: cause.name, message: cause.message, ...code };
 }
 
-function runCode(runner: Runner, imports: string[], body: string): FenceCode {
-  return { imports: [...runner.fenceImports, ...imports], body: asyncFunction(body) };
-}
-
 function blockCode(runner: Runner, block: CodeBlock): FenceCode {
   const { imports, body } = block.splitImports();
-  const run = runCode(runner, imports, body);
+  const run = { imports: [...runner.fenceImports, ...imports], body: asyncFunction(body) };
   if (!block.shouldFail()) return run;
   const failure = runtimeCall(runner, "expectFailure", run.body);
   return { imports: [...run.imports, ...failure.imports], body: failure.body };
@@ -107,7 +105,7 @@ export function docModule(runner: Runner, fences: readonly Fence[]): string {
   });
   return [
     runner.testImport,
-    `import { loadFences } from '${runner.runtime}';`,
+    runtimeImport(runner, "loadFences"),
     "const fences = await loadFences([",
     ...loads,
     "]);",
