@@ -7,10 +7,11 @@ import {
   DocIndex,
   readDocs,
   resolveDocsOptions,
+  isSourceFile,
   type DocsOptions,
   type IndexOptions,
 } from "@ddtds/core";
-import { docModule, fenceModule } from "./codegen.ts";
+import { docModule, fenceModule, inSourceTests } from "./codegen.ts";
 import { createLogger, parseLogLevel, type LogLevel } from "@ddtds/core/log";
 
 export type { CodeBlock, DocIndex, DocsOptions, Fence } from "@ddtds/core";
@@ -31,9 +32,11 @@ export type DdtPluginOptions = DocsOptions & {
    *   3. `"info"` (default)
    */
   logLevel?: LogLevel;
+  /** Globs of source files whose JSDoc comments hold code fences to run as tests */
+  jsdoc?: string[];
 };
 
-export function ddtPlugin({ logLevel, ...docs }: DdtPluginOptions = {}): Plugin {
+export function ddtPlugin({ logLevel, jsdoc = [], ...docs }: DdtPluginOptions = {}): Plugin {
   const logger = createLogger(parseLogLevel(process.env.DDT_LOG_LEVEL ?? logLevel));
   const moduleDirName = `__ddtds__-${randomUUID().slice(0, 8)}`;
   const indexOptions = (root: string): IndexOptions => ({
@@ -51,7 +54,11 @@ export function ddtPlugin({ logLevel, ...docs }: DdtPluginOptions = {}): Plugin 
         ...docs,
         root: config.test?.root ?? config.root ?? process.cwd(),
       });
-      index = DocIndex.fromSources(readDocs(root, include, exclude), indexOptions(root));
+      const sources = new Map([
+        ...readDocs(root, include, exclude),
+        ...readDocs(root, jsdoc, exclude),
+      ]);
+      index = DocIndex.fromSources(sources, indexOptions(root));
       for (const { id, block } of index.fences()) {
         logger.debug(`${block.details.file}:${block.line} -> ${relative(root, id)}`);
       }
@@ -78,8 +85,14 @@ export function ddtPlugin({ logLevel, ...docs }: DdtPluginOptions = {}): Plugin 
       const fromRoot = join(index.root, "package.json");
       return this.resolve(source, fromRoot, { ...resolveOptions, skipSelf: true });
     },
+    transform(code, id) {
+      if (!isSourceFile(id)) return undefined;
+      const fences = index.fencesOf(id);
+      if (fences.length === 0) return undefined;
+      return `${code}\n${inSourceTests(fences)}`;
+    },
     load(id) {
-      if (index.hasDoc(id)) return docModule(index.fencesOf(id));
+      if (index.hasDoc(id) && !isSourceFile(id)) return docModule(index.fencesOf(id));
       const fence = index.fence(id);
       if (!fence) return undefined;
       this.addWatchFile(fence.doc);

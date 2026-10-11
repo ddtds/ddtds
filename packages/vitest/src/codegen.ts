@@ -62,7 +62,8 @@ export function fenceModule(fence: Fence): string {
   return `${header}\nexport default async function () {${run}}`;
 }
 
-export function docModule(fences: readonly Fence[]): string {
+/** Loads every fence, then registers a test for each */
+function fenceTests(fences: readonly Fence[]): string[] {
   const loads = fences.map(
     ({ id }) =>
       `  import(${JSON.stringify(id)}).then(\n    ({ default: run }) => run,\n    (error) => () => {\n      throw error;\n    },\n  ),`,
@@ -71,13 +72,20 @@ export function docModule(fences: readonly Fence[]): string {
     const name = JSON.stringify(`${fence.block.details.file}:${fence.block.line}`);
     return `test(${name}, fences[${i}]);`;
   });
-  return [
-    "import { test } from 'vitest';",
-    "const fences = await Promise.all([",
-    ...loads,
-    "]);",
-    ...tests,
-  ].join("\n");
+  return ["const fences = await Promise.all([", ...loads, "]);", ...tests];
+}
+
+export function docModule(fences: readonly Fence[]): string {
+  return ["import { test } from 'vitest';", ...fenceTests(fences)].join("\n");
+}
+
+/**
+ * Tests for a source file's JSDoc examples, appended to the file itself. Vitest only defines
+ * `import.meta.vitest` while it runs the file as an in-source test file.
+ */
+export function inSourceTests(fences: readonly Fence[]): string {
+  const body = ["const { test } = import.meta.vitest;", ...fenceTests(fences)];
+  return ["if (import.meta.vitest) {", ...body.map(indent), "}"].join("\n");
 }
 
 export function moduleFiles(index: DocIndex): Map<string, string> {
