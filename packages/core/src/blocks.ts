@@ -16,12 +16,20 @@ import type { Logger } from "./logger.ts";
 type AnnotationResult =
   | { tag: "ok"; annotation: Annotation }
   | { tag: "none" }
-  | { tag: "unknown"; raw: string };
+  | { tag: "conflict"; annotations: Annotation[] };
+
+/**
+ * Words of a fence's info string, which other tools share (`twoslash`, `title="…"`, `{1-3}`).
+ * Quoted values and `{…}` ranges stay whole, so a word inside them is never an annotation.
+ */
+const metaWords = /\S*?(?:"[^"]*"|\{[^}]*\})\S*|\S+/g;
 
 function parseAnnotation(meta: string): AnnotationResult {
-  if (!meta) return { tag: "none" };
-  if (isAnnotation(meta)) return { tag: "ok", annotation: meta };
-  return { tag: "unknown", raw: meta };
+  const annotations = (meta.match(metaWords) ?? []).filter((word) => isAnnotation(word));
+  const [annotation] = annotations;
+  if (!annotation) return { tag: "none" };
+  if (annotations.length > 1) return { tag: "conflict", annotations };
+  return { tag: "ok", annotation };
 }
 
 export type CodeBlockInit = {
@@ -103,8 +111,8 @@ export function parseCodeFences(source: string, path: string, log: Logger): Code
     if (!meta || !lang || !isLang(lang)) return;
 
     const result = parseAnnotation(meta);
-    if (result.tag === "unknown") {
-      log.error(`unknown annotation in code block: "${result.raw}"`);
+    if (result.tag === "conflict") {
+      log.error(`code block has more than one annotation: ${result.annotations.join(", ")}`);
       return;
     }
     if (result.tag === "none" || result.annotation === ANNOTATIONS.SKIP) return;

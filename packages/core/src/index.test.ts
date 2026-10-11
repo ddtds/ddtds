@@ -51,6 +51,27 @@ describe("parseBlocks", () => {
   });
 });
 
+function annotationOf(meta: string): string | null {
+  const [block] = parseCodeFences(`\`\`\`ts ${meta}\nconst x = 1\n\`\`\``, "t.md", silent);
+  return block?.details.annotation ?? null;
+}
+
+describe("fence info strings shared with other tools", () => {
+  test.each([
+    ["twoslash run", "run"],
+    ['title="astro.config.mjs" run', "run"],
+    ['run title="astro.config.mjs" {2-3}', "run"],
+    ['title="astro.config.mjs" ins={4} del={5} fail', "fail"],
+    ['ins="compile_fail" run', "run"],
+    ['title="run me"', null],
+    ["twoslash", null],
+    ["{1-3}", null],
+    ["run fail", null],
+  ])("%s → %s", (meta, annotation) => {
+    expect(annotationOf(meta)).toBe(annotation);
+  });
+});
+
 describe("CodeBlock.shouldFail / shouldFailToCompile", () => {
   test.each([
     [ANNOTATIONS.RUN, false, false],
