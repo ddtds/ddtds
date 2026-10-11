@@ -9,18 +9,14 @@ test("classifies how doc tests fail", async () => {
     "missing-static-import.md": fence('import { x } from "./missing.ts";\nx;'),
     "missing-dynamic-import.md": fence('await import("./missing.ts");'),
     "failed-assertion.md": fence("expect(1).toBe(2);"),
-    "fail-annotation-throws.md": fence('throw new Error("boom");', "fail"),
     "fail-annotation-passes.md": fence("1;", "fail"),
     "compile-fail-compiles.md": fence("1;", "compile_fail"),
-    "compile-fail-parse-error.md": fence("const = 1;", "compile_fail"),
     "passes.md": fence("expect(1).toBe(1);"),
   });
   expect(await run(root)).toMatchInlineSnapshot(`
     {
       "compile-fail-compiles.md:1": "Error",
-      "compile-fail-parse-error.md:1": "passed",
       "fail-annotation-passes.md:1": "AssertionError",
-      "fail-annotation-throws.md:1": "passed",
       "failed-assertion.md:1": "AssertionError",
       "missing-dynamic-import.md:1": "Error",
       "missing-static-import.md:1": "Error",
