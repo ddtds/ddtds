@@ -19,14 +19,15 @@ jobs:
         with:
           persist-credentials: false
       - uses: $/.github/actions/setup
+      # first: knip loads the examples' configs, which import the built plugin;
+      # also runs publint and attw, since CI is set
+      - run: pnpm run build
       - run: pnpm run validate:renovate
       - run: pnpm run lint
       - run: pnpm run sherif
       - run: pnpm run knip
       - run: pnpm run format:check
       - run: pnpm run typecheck
-      # also runs publint and attw, since CI is set
-      - run: pnpm run build
       - run: pnpm run publint
       - run: pnpm --filter @ddtds/core --filter ddtds --filter @ddtds/vitest publish --dry-run --no-git-checks
 
