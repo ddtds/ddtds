@@ -1,6 +1,5 @@
 import { bench, describe } from "vitest";
-import { CodeBlock, parseCodeFences } from "./blocks";
-import { createLogger } from "./logger";
+import { CodeBlock } from "./blocks";
 
 const code = `import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -46,28 +45,5 @@ describe("CodeBlock.splitImports", () => {
       range: { start: { line: 1, column: 1 }, end: { line: 1, column: 1 } },
       indent: 0,
     }).splitImports();
-  });
-});
-
-const guide = Array.from({ length: 50 }, (_, i) =>
-  [
-    `## Section ${i}`,
-    "",
-    "Some prose with `inline code`, a [link](https://example.com) and a list:",
-    "",
-    "- one",
-    "- two",
-    "",
-    "```ts run",
-    `const value = ${i};`,
-    "expect(value).toBe(value);",
-    "```",
-    "",
-  ].join("\n"),
-).join("\n");
-
-describe("parseCodeFences", () => {
-  bench("find fences in a 50 section doc", () => {
-    parseCodeFences(guide, "guide.md", createLogger("silent"));
   });
 });
