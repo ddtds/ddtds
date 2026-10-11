@@ -104,6 +104,20 @@ export async function failures(root: string): Promise<Record<string, Failure>> {
   return results;
 }
 
+/** Where each test is declared, as Vitest reports it to editors */
+export async function locations(root: string): Promise<Record<string, string>> {
+  await using instance = await vitest(root, { test: { includeTaskLocation: true } });
+  await instance.start();
+  const results: Record<string, string> = {};
+  for (const module of instance.state.getTestModules()) {
+    for (const testCase of module.children.allTests()) {
+      const { line, column } = testCase.location ?? {};
+      results[testCase.name] = `${line}:${column}`;
+    }
+  }
+  return results;
+}
+
 export async function watch(root: string, edit: () => void): Promise<Outcomes[]> {
   const runs: Outcomes[] = [];
   let rerunFinished: (() => void) | undefined;
