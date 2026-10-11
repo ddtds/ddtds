@@ -6,13 +6,13 @@ const calc = {
   "node_modules/calc/index.js": "export const add = (a, b) => a + b;",
 };
 
-test("a ddt comment before a fence runs hidden setup for it", async () => {
+test("a ddt-hide comment before a fence runs hidden setup for it", async () => {
   const root = fixture({
     ...calc,
     "guide.md": [
       "# Guide",
       "",
-      "<!-- ddt",
+      "<!-- ddt-hide",
       'import { add } from "calc";',
       "const total = add(1, 2);",
       "-->",
@@ -36,13 +36,13 @@ test("a ddt comment before a fence runs hidden setup for it", async () => {
 test("errors in hidden setup fail the fence, pointing at the comment", async () => {
   const root = fixture({
     "guide.md": [
-      "<!-- ddt",
+      "<!-- ddt-hide",
       "const value = 1;",
       'throw new Error("setup failed");',
       "-->",
       "",
       fence("expect(value).toBe(1);"),
-      "<!-- ddt",
+      "<!-- ddt-hide",
       "const = 1;",
       "-->",
       fence("1;"),

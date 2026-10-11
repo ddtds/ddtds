@@ -25,7 +25,7 @@ function parseAnnotation(meta: string): AnnotationResult {
   return { tag: "unknown", raw: meta };
 }
 
-/** Setup code from a `<!-- ddt ... -->` comment just before a fence, run before the fence */
+/** Setup code from a `<!-- ddt-hide ... -->` comment just before a fence, run before the fence */
 export type HiddenCode = Readonly<{
   code: string;
   /** 1 indexed line of the first line of code in the markdown */
@@ -119,15 +119,15 @@ export class CodeBlock {
   }
 }
 
-const ddtComment = /^<!--\s*ddt\s*\n(?<code>[\s\S]*)\n\s*-->$/;
+const ddtComment = /^<!--\s*ddt-hide\s*\n(?<code>[\s\S]*)\n\s*-->$/;
 
-/** Setup code from a `<!-- ddt` comment right before a fence, with code on the lines between */
+/** Setup code from a `<!-- ddt-hide` comment right before a fence, with code on the lines between */
 function hiddenCode(node: RootContent | undefined, log: Logger): HiddenCode | undefined {
   if (node?.type !== "html" || !node.position) return undefined;
-  if (!/^<!--\s*ddt\b/.test(node.value)) return undefined;
+  if (!/^<!--\s*ddt-hide\b/.test(node.value)) return undefined;
   const code = ddtComment.exec(node.value)?.groups?.["code"];
   if (code === undefined) {
-    log.error("ddt comments put setup code on the lines between `<!-- ddt` and `-->`");
+    log.error("ddt-hide comments put setup code on the lines between `<!-- ddt-hide` and `-->`");
     return undefined;
   }
   const { start } = node.position;
