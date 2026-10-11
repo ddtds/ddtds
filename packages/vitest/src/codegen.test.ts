@@ -134,9 +134,10 @@ describe("generateBlockFile: annotations", () => {
     expect(out).toMatchInlineSnapshot(`
       "import { expect } from 'vitest';
       import { a } from './a'
-      export default async function () {}
-      async function noRun() {
-        a()
+      export default async function () {
+        async function noRun() {
+          a()
+        }
       }"
     `);
   });

@@ -13,8 +13,7 @@ function ddtImport(...names: readonly DdtVitestExports[]): string {
   return `import { ${names.join(", ")} } from '@ddtds/vitest';`;
 }
 
-/** `body` runs as the test; `compiledOnly` is compiled with it but never called */
-type FenceCode = { imports: string[]; body: string; compiledOnly?: string };
+type FenceCode = { imports: string[]; body: string };
 
 function compileErrorCode(error: DdtCompileError): FenceCode {
   const cause =
@@ -38,7 +37,7 @@ function compiledCode(): FenceCode {
 
 function blockCode(block: CodeBlock): FenceCode {
   const { imports, body } = block.splitImports();
-  if (!block.shouldRun()) return { imports, body: "", compiledOnly: body };
+  if (!block.shouldRun()) return { imports, body: `async function noRun() {\n${indent(body)}\n}` };
   if (!block.shouldFail()) return { imports, body };
   const rejects = `await expect(async () => {\n${indent(body)}\n}).rejects.toThrow();`;
   return { imports, body: rejects };
@@ -58,12 +57,10 @@ function fenceCode({ block }: Fence): FenceCode {
 }
 
 export function fenceModule(fence: Fence): string {
-  const { imports, body, compiledOnly } = fenceCode(fence);
+  const { imports, body } = fenceCode(fence);
   const header = ["import { expect } from 'vitest';", ...imports].join("\n");
   const run = body.length === 0 ? "" : `\n${indent(body)}\n`;
-  const module = `${header}\nexport default async function () {${run}}`;
-  if (compiledOnly === undefined) return module;
-  return `${module}\nasync function noRun() {\n${indent(compiledOnly)}\n}`;
+  return `${header}\nexport default async function () {${run}}`;
 }
 
 export function docModule(fences: readonly Fence[]): string {
