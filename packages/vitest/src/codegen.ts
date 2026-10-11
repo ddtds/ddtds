@@ -22,10 +22,11 @@ function compileErrorCode(error: DdtCompileError): FenceCode {
   return { imports: [ddtImport("DdtCompileError")], body };
 }
 
+/** The cause as JSON, keeping its stack: a parser crash is a bug in the parser or ddtds */
 function serializeCause(cause: unknown): unknown {
   if (!(cause instanceof Error)) return cause;
   const code = "code" in cause ? { code: cause.code } : {};
-  return { name: cause.name, message: cause.message, ...code };
+  return { name: cause.name, message: cause.message, stack: cause.stack, ...code };
 }
 
 function compiledCode(): FenceCode {
