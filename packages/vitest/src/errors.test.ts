@@ -91,3 +91,25 @@ test("compile failures point at the markdown", async () => {
     }
   `);
 });
+
+test("fences can use CommonJS", async () => {
+  const root = fixture({
+    "node_modules/calc/package.json": '{ "name": "calc", "main": "index.js" }',
+    "node_modules/calc/index.js": "exports.add = (a, b) => a + b;",
+    "docs/helper.cjs": "module.exports = { twice: (x) => x * 2 };",
+    "docs/guide.md": [
+      fence('const { add } = require("calc");\nexpect(add(1, 2)).toBe(3);'),
+      fence('const { twice } = require("./helper.cjs");\nexpect(twice(2)).toBe(4);'),
+      fence("module.exports = { answer: 42 };\nexpect(exports).toBe(module.exports);"),
+      fence("const exports = 1;\nexpect(exports).toBe(1);"),
+    ].join(""),
+  });
+  expect(await run(root)).toMatchInlineSnapshot(`
+    {
+      "docs/guide.md:1": "passed",
+      "docs/guide.md:11": "passed",
+      "docs/guide.md:16": "passed",
+      "docs/guide.md:6": "passed",
+    }
+  `);
+});
