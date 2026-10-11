@@ -94,13 +94,17 @@ export class CodeBlock {
   }
 }
 
-/** Markdown, or MDX for `.mdx` files so fences inside components count */
+/**
+ * Markdown, or MDX for `.mdx` files so fences inside components count. Any text is valid
+ * markdown, so only MDX can fail to parse.
+ */
 function parseMarkdown(source: string, path: string): MdastNode {
   if (!path.endsWith(".mdx")) return markdownToMdast(source);
   try {
     return mdxToMdast(source);
   } catch (error) {
-    throw new Error(`${path} is not valid MDX`, { cause: error });
+    const reason = error instanceof Error ? error.message : String(error);
+    throw new Error(`${path} is not valid MDX: ${reason}`, { cause: error });
   }
 }
 

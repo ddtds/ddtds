@@ -28,10 +28,3 @@ test("finds fences inside JSX components in MDX", () => {
     ]
   `);
 });
-
-test("rejects invalid MDX, naming the doc", () => {
-  const source = "<Broken\n\n```ts run\nexpect(1).toBe(1);\n```\n";
-  expect(() => parseCodeFences(source, "guide.mdx", silent)).toThrow(
-    new Error("guide.mdx is not valid MDX"),
-  );
-});

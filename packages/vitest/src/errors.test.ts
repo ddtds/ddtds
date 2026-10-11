@@ -63,3 +63,26 @@ test("failures report the error the fence threw", async () => {
     }
   `);
 });
+
+test("any text is valid markdown: an unclosed fence takes the rest of the doc as code", async () => {
+  const root = fixture({
+    "unclosed.md": "```ts run\nexpect(1).toBe(1);\n\n## Next section\n",
+    "unclosed-html.md": "<div\n\n```ts run\nexpect(1).toBe(1);\n```\n",
+  });
+  expect(await run(root)).toMatchInlineSnapshot(`
+    {
+      "unclosed-html.md:3": "passed",
+      "unclosed.md:1": "DdtCompileError",
+    }
+  `);
+});
+
+test("invalid MDX fails the run, naming the doc", async () => {
+  const root = fixture({
+    "broken.mdx": "<div\n\n```ts run\nexpect(1).toBe(1);\n```\n",
+    "fine.md": fence("expect(1).toBe(1);"),
+  });
+  await expect(run(root)).rejects.toThrowErrorMatchingInlineSnapshot(
+    `[Error: broken.mdx is not valid MDX: 1:1: Unexpected character after \`<\`, expected a valid JSX tag (note: to create a link in MDX, use \`[text](url)\`) (mdx-jsx:unexpected-character)]`,
+  );
+});
