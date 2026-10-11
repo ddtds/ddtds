@@ -100,7 +100,7 @@ test("fences can use CommonJS", async () => {
     "docs/guide.md": [
       fence('const { add } = require("calc");\nexpect(add(1, 2)).toBe(3);'),
       fence('const { twice } = require("./helper.cjs");\nexpect(twice(2)).toBe(4);'),
-      fence("module.exports = { answer: 42 };\nexpect(exports).toBe(module.exports);"),
+      fence("exports.answer = 42;\nexpect(module.exports).toEqual({ answer: 42 });"),
       fence("const exports = 1;\nexpect(exports).toBe(1);"),
     ].join(""),
   });
