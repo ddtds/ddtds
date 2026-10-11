@@ -1,5 +1,5 @@
 import { expect, test } from "vitest";
-import { failures, fence, fixture, run } from "./test-utils.ts";
+import { errors, failures, fence, fixture, run } from "./test-utils.ts";
 
 test("classifies how doc tests fail", async () => {
   const root = fixture({
@@ -62,4 +62,13 @@ test("failures report the error the fence threw", async () => {
       },
     }
   `);
+});
+
+test("a parser crash keeps the parser's stack, since it points at a bug", async () => {
+  const root = fixture({ "guide.md": "```tsrx run\nfunction A() @{\n```\n" });
+  const { cause } = (await errors(root))["guide.md:1"] ?? {};
+  expect(cause).toMatchObject({
+    name: "ParserOperationalError",
+    stack: expect.stringMatching(/\n\s+at .*tsrx/),
+  });
 });
