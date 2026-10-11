@@ -13,6 +13,7 @@
     "@ddtds/core": "workspace:*"
   },
   "devDependencies": {
+    "typescript6": "npm:typescript@^6.0.3",
     "vitest": "catalog:dev"
   },
   "peerDependencies": {

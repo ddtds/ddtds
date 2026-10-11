@@ -34,7 +34,7 @@ export type DdtPluginOptions = DocsOptions & {
    *   3. `"info"` (default)
    */
   logLevel?: LogLevel;
-  /** Fail fences with type errors, checked with TypeScript 7 (needs `typescript` installed) */
+  /** Fail fences with type errors, checked with the project's TypeScript 5 or 6 */
   typecheck?: boolean;
 };
 
@@ -51,11 +51,11 @@ export function ddtPlugin({ logLevel, typecheck, ...docs }: DdtPluginOptions = {
     logger,
   });
   let index = DocIndex.fromSources(new Map(), indexOptions(process.cwd()));
-  let typeErrors: Promise<Map<string, DdtCompileError>> | undefined;
-  const typeErrorOf = async (fence: Fence): Promise<DdtCompileError | undefined> => {
+  let typeErrors: Map<string, DdtCompileError> | undefined;
+  const typeErrorOf = (fence: Fence): DdtCompileError | undefined => {
     if (!typecheck) return undefined;
     typeErrors ??= typecheckFences(index.root, vitestGlobals, index.fences());
-    return (await typeErrors).get(fence.id);
+    return typeErrors.get(fence.id);
   };
 
   return {
@@ -95,12 +95,12 @@ export function ddtPlugin({ logLevel, typecheck, ...docs }: DdtPluginOptions = {
       const fromRoot = join(index.root, "package.json");
       return this.resolve(source, fromRoot, { ...resolveOptions, skipSelf: true });
     },
-    async load(id) {
+    load(id) {
       if (index.hasDoc(id)) return docModule(index.fencesOf(id));
       const fence = index.fence(id);
       if (!fence) return undefined;
       this.addWatchFile(fence.doc);
-      return fenceModule(fence, await typeErrorOf(fence));
+      return fenceModule(fence, typeErrorOf(fence));
     },
   };
 }

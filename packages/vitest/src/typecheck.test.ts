@@ -1,7 +1,17 @@
-import { writeFileSync } from "node:fs";
-import { join } from "node:path";
+import { mkdirSync, symlinkSync, writeFileSync } from "node:fs";
+import { createRequire } from "node:module";
+import { dirname, join } from "node:path";
 import { expect, test } from "vitest";
-import { failures, fence, fixture, run, watch } from "./test-utils.ts";
+import { failures, fence, fixture as files, run, watch } from "./test-utils.ts";
+
+/** A fixture with TypeScript 6 installed, as a project using typecheck would have */
+function fixture(contents: Record<string, string>): string {
+  const root = files(contents);
+  const typescript = dirname(createRequire(import.meta.url).resolve("typescript6/package.json"));
+  mkdirSync(join(root, "node_modules"), { recursive: true });
+  symlinkSync(typescript, join(root, "node_modules/typescript"));
+  return root;
+}
 
 const guide = [
   "# Guide",
@@ -75,4 +85,11 @@ test("rechecks types when a doc is edited in watch mode", async () => {
       },
     ]
   `);
+});
+
+test("explains that TypeScript 7 has no compiler API yet", async () => {
+  // Without its own TypeScript, the fixture resolves this repo's TypeScript 7
+  const root = files({ "guide.md": fence("const count: number = 1;") });
+  const errors = Object.values(await failures(root, { typecheck: true })).map(({ error }) => error);
+  expect(errors.join("\n")).toContain("typecheck needs TypeScript 5 or 6 for its compiler API");
 });
