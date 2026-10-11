@@ -64,8 +64,12 @@ export function fenceModule(fence: Fence): string {
 
 export function docModule(doc: Doc): string {
   if (doc.tag === "invalid") {
-    const error = `throw new Error(${JSON.stringify(doc.message)});`;
-    return `import { test } from 'vitest';\ntest(${JSON.stringify(doc.file)}, () => {\n  ${error}\n});`;
+    return [
+      "import { test } from 'vitest';",
+      `test(${JSON.stringify(doc.file)}, () => {`,
+      `  throw new Error(${JSON.stringify(doc.message)});`,
+      "});",
+    ].join("\n");
   }
   return fenceTests(doc.fences);
 }
