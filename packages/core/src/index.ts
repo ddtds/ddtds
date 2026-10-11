@@ -11,7 +11,7 @@ export {
   defaultDocsExclude,
   defaultOutDir,
 } from "./constants.ts";
-export { DocIndex, type Fence, type IndexOptions } from "./docs.ts";
+export { DocIndex, type Doc, type Fence, type IndexOptions } from "./docs.ts";
 export {
   DdtCompileError,
   type CompileDiagnostic,

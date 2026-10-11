@@ -149,7 +149,7 @@ describe("in-memory modules", () => {
       doc: "/root/t.md",
       id: `/root/f${line}.ts`,
     }));
-    const out = docModule(fences);
+    const out = docModule({ tag: "fences", fences });
     expect(out).toContain('import("/root/f5.ts")');
     expect(out).toMatchInlineSnapshot(`
       "import { test } from 'vitest';

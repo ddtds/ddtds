@@ -1,5 +1,7 @@
+import { writeFileSync } from "node:fs";
+import { join } from "node:path";
 import { expect, test } from "vitest";
-import { failures, fence, fixture, run } from "./test-utils.ts";
+import { failures, fence, fixture, run, watch } from "./test-utils.ts";
 
 test("classifies how doc tests fail", async () => {
   const root = fixture({
@@ -91,4 +93,20 @@ test("invalid MDX fails its own doc with the parser's error", async () => {
   expect((await failures(root))["broken.mdx"]?.error).toMatchInlineSnapshot(
     `"Error: 3:1: Unexpected character \`!\` (U+0021) before name, expected a character that can start a name, such as a letter, \`$\`, or \`_\` (note: to create a comment in MDX, use \`{/* text */}\`) (mdx-jsx:unexpected-character)"`,
   );
+});
+
+test("fixing invalid MDX in watch mode runs its fences", async () => {
+  const root = fixture({ "guide.mdx": "<!-- TODO -->\n\n```ts run\nexpect(1).toBe(1);\n```\n" });
+  const edit = () =>
+    writeFileSync(join(root, "guide.mdx"), "{/* TODO */}\n\n```ts run\nexpect(1).toBe(1);\n```\n");
+  expect(await watch(root, edit)).toMatchInlineSnapshot(`
+    [
+      {
+        "guide.mdx": "Error",
+      },
+      {
+        "guide.mdx:3": "passed",
+      },
+    ]
+  `);
 });

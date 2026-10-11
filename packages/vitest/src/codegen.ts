@@ -1,4 +1,4 @@
-import { DdtCompileError, type CodeBlock, type DocIndex, type Fence } from "@ddtds/core";
+import { DdtCompileError, type CodeBlock, type Doc, type DocIndex, type Fence } from "@ddtds/core";
 
 type DdtVitestExports = keyof typeof import("./index.ts");
 
@@ -62,7 +62,15 @@ export function fenceModule(fence: Fence): string {
   return `${header}\nexport default async function () {${run}}`;
 }
 
-export function docModule(fences: readonly Fence[]): string {
+export function docModule(doc: Doc): string {
+  if (doc.tag === "invalid") {
+    const error = `throw new Error(${JSON.stringify(doc.message)});`;
+    return `import { test } from 'vitest';\ntest(${JSON.stringify(doc.file)}, () => {\n  ${error}\n});`;
+  }
+  return fenceTests(doc.fences);
+}
+
+function fenceTests(fences: readonly Fence[]): string {
   const loads = fences.map(
     ({ id }) =>
       `  import(${JSON.stringify(id)}).then(\n    ({ default: run }) => run,\n    (error) => () => {\n      throw error;\n    },\n  ),`,
@@ -82,9 +90,9 @@ export function docModule(fences: readonly Fence[]): string {
 
 export function moduleFiles(index: DocIndex): Map<string, string> {
   const files = new Map<string, string>();
-  for (const [doc, fences] of index.docs()) {
-    for (const fence of fences) files.set(fence.id, fenceModule(fence));
-    files.set(index.docModuleId(doc), docModule(fences));
+  for (const [path, doc] of index.docs()) {
+    files.set(index.docModuleId(path), docModule(doc));
   }
+  for (const fence of index.fences()) files.set(fence.id, fenceModule(fence));
   return files;
 }

@@ -15,9 +15,9 @@ function index(sources: Record<string, string>): DocIndex {
 
 function summary(index: DocIndex): Record<string, string[]> {
   return Object.fromEntries(
-    [...index.docs()].map(([doc, fences]) => [
-      doc,
-      fences.map((fence) => `${fence.block.line} ${fence.id}`),
+    [...index.docs()].map(([path, doc]) => [
+      path,
+      doc.tag === "fences" ? doc.fences.map((fence) => `${fence.block.line} ${fence.id}`) : [],
     ]),
   );
 }
