@@ -77,12 +77,18 @@ test("any text is valid markdown: an unclosed fence takes the rest of the doc as
   `);
 });
 
-test("invalid MDX fails the run with the parser's error", async () => {
+test("invalid MDX fails its own doc with the parser's error", async () => {
   const root = fixture({
     "broken.mdx": "# Guide\n\n<!-- TODO: explain -->\n\n```ts run\nexpect(1).toBe(1);\n```\n",
     "fine.md": fence("expect(1).toBe(1);"),
   });
-  await expect(run(root)).rejects.toThrowErrorMatchingInlineSnapshot(
-    `[Error: 3:1: Unexpected character \`!\` (U+0021) before name, expected a character that can start a name, such as a letter, \`$\`, or \`_\` (note: to create a comment in MDX, use \`{/* text */}\`) (mdx-jsx:unexpected-character)]`,
+  expect(await run(root)).toMatchInlineSnapshot(`
+    {
+      "broken.mdx": "Error",
+      "fine.md:1": "passed",
+    }
+  `);
+  expect((await failures(root))["broken.mdx"]?.error).toMatchInlineSnapshot(
+    `"Error: 3:1: Unexpected character \`!\` (U+0021) before name, expected a character that can start a name, such as a letter, \`$\`, or \`_\` (note: to create a comment in MDX, use \`{/* text */}\`) (mdx-jsx:unexpected-character)"`,
   );
 });
