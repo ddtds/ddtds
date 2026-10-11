@@ -8,7 +8,7 @@
     "format:check": "oxfmt --check",
     "lint": "oxlint . --max-warnings 0",
     "lint:fix": "oxlint . --fix",
-    "bench": "pnpm --filter @ddtds/core bench",
+    "bench": "pnpm --filter @ddtds/benches bench",
     "typecheck": "pnpm -r run typecheck",
     "test": "vitest run",
     "test:packages": "pnpm --filter './packages/*' run test",
