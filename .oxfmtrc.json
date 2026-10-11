@@ -1,4 +1,5 @@
 {
   "$schema": "./node_modules/oxfmt/configuration_schema.json",
-  "ignorePatterns": []
+  // vendored agent skills, kept byte-for-byte with upstream (see skills-lock.json)
+  "ignorePatterns": [".claude/skills/**"]
 }
