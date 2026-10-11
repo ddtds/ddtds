@@ -1,5 +1,4 @@
-import { remark } from "remark";
-import { visit } from "unist-util-visit";
+import MarkdownIt from "markdown-it";
 import {
   ANNOTATIONS,
   LANGS,
@@ -94,39 +93,46 @@ export class CodeBlock {
   }
 }
 
-export function parseCodeFences(source: string, path: string, log: Logger): CodeBlock[] {
-  const tree = remark().parse(source);
-  const blocks: CodeBlock[] = [];
+/** HTML blocks on, as in CommonMark, so code inside HTML isn't read as fences */
+const markdown = new MarkdownIt({ html: true });
 
-  visit(tree, "code", (node) => {
-    const { lang, meta } = node;
-    if (!meta || !lang || !isLang(lang)) return;
+/** A fence's info string: the language, then the rest */
+function splitInfo(info: string): { lang: string; meta: string } {
+  const [lang = "", ...rest] = info.trim().split(/\s+/);
+  return { lang, meta: rest.join(" ") };
+}
+
+export function parseCodeFences(source: string, path: string, log: Logger): CodeBlock[] {
+  const lines = source.split("\n");
+  return markdown.parse(source, {}).flatMap((token) => {
+    if (token.type !== "fence") return [];
+    const { lang, meta } = splitInfo(token.info);
+    if (!meta || !isLang(lang)) return [];
 
     const result = parseAnnotation(meta);
     if (result.tag === "unknown") {
       log.error(`unknown annotation in code block: "${result.raw}"`);
-      return;
+      return [];
     }
-    if (result.tag === "none" || result.annotation === ANNOTATIONS.SKIP) return;
-    if (!node.position) {
+    if (result.tag === "none" || result.annotation === ANNOTATIONS.SKIP) return [];
+    if (!token.map) {
       log.error(`code block missing position info, skipping`);
-      return;
+      return [];
     }
-    const { start, end } = node.position;
-    blocks.push(
+    const [start, end] = token.map;
+    const column = (lines[start] ?? "").search(/[`~]/) + 1;
+    return [
       new CodeBlock({
-        code: node.value,
+        code: token.content.replace(/\n$/, ""),
         lang,
         annotation: result.annotation,
         path,
         range: {
-          start: { line: start.line, column: start.column },
-          end: { line: end.line, column: end.column },
+          start: { line: start + 1, column },
+          end: { line: end, column: (lines[end - 1] ?? "").length + 1 },
         },
-        indent: start.column - 1,
+        indent: column - 1,
       }),
-    );
+    ];
   });
-
-  return blocks;
 }
