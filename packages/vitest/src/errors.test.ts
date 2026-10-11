@@ -77,12 +77,12 @@ test("any text is valid markdown: an unclosed fence takes the rest of the doc as
   `);
 });
 
-test("invalid MDX fails the run, naming the doc", async () => {
+test("invalid MDX fails the run with the parser's error", async () => {
   const root = fixture({
-    "broken.mdx": "<div\n\n```ts run\nexpect(1).toBe(1);\n```\n",
+    "broken.mdx": "# Guide\n\n<!-- TODO: explain -->\n\n```ts run\nexpect(1).toBe(1);\n```\n",
     "fine.md": fence("expect(1).toBe(1);"),
   });
   await expect(run(root)).rejects.toThrowErrorMatchingInlineSnapshot(
-    `[Error: broken.mdx is not valid MDX: 1:1: Unexpected character after \`<\`, expected a valid JSX tag (note: to create a link in MDX, use \`[text](url)\`) (mdx-jsx:unexpected-character)]`,
+    `[Error: 3:1: Unexpected character \`!\` (U+0021) before name, expected a character that can start a name, such as a letter, \`$\`, or \`_\` (note: to create a comment in MDX, use \`{/* text */}\`) (mdx-jsx:unexpected-character)]`,
   );
 });
