@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import type { RegisterHooksOptions } from "node:module";
 import { join } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
-import { DocIndex, docModule, fenceModule } from "@ddtds/core";
+import { DocIndex, docModule, fenceModule, type GeneratedModule } from "@ddtds/core";
 import { createLogger, parseLogLevel } from "@ddtds/core/log";
 import { nodeRunner } from "./runner.ts";
 
@@ -26,13 +26,18 @@ export function ddtHooks(root: string): RegisterHooksOptions {
       const path = fileURLToPath(url);
       if (docExtension.test(path)) {
         index = index.withDoc(path, readFileSync(path, "utf8"));
-        const source = docModule(nodeRunner, index.fencesOf(path));
+        const source = withMap(docModule(nodeRunner, path, index.fencesOf(path)));
         return { format: "module", source, shortCircuit: true };
       }
       const fence = index.fence(path);
       if (!fence) return next(url, context);
-      const source = fenceModule(nodeRunner, fence);
+      const source = withMap(fenceModule(nodeRunner, fence));
       return { format: "module-typescript", source, shortCircuit: true };
     },
   };
+}
+
+/** Node maps stacks and test locations back to the markdown with an inline source map */
+function withMap({ code, map }: GeneratedModule): string {
+  return `${code}\n//# sourceMappingURL=${map.toUrl()}`;
 }

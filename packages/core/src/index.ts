@@ -17,6 +17,7 @@ export {
   fenceModule,
   moduleFiles,
   typedImports,
+  type GeneratedModule,
   type Runner,
   type RuntimeModule,
 } from "./codegen.ts";

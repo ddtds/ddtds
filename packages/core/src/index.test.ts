@@ -127,17 +127,22 @@ function compileError(b: CodeBlock): DdtCompileError {
   throw new Error("expected a DdtCompileError");
 }
 
+function split(b: CodeBlock): { imports: string[]; body: string } {
+  const { imports, body } = b.splitImports();
+  return { imports: imports.map(String), body: body.join("\n") };
+}
+
 describe("CodeBlock.splitImports", () => {
   test("hoists static imports to file level", () => {
     const b = block("import { foo } from './foo'\nexpect(foo).toBe(1)");
-    const { imports, body } = b.splitImports();
+    const { imports, body } = split(b);
     expect(imports).toEqual(["import { foo } from './foo'"]);
     expect(body).not.toContain("import {");
   });
 
   test("strips export modifiers from runtime declarations", () => {
     const b = block("export const base = 2;\nexport function addOne(x: number) { return x + 1; }");
-    const { body } = b.splitImports();
+    const { body } = split(b);
     expect(body).toContain("const base = 2;");
     expect(body).toContain("function addOne");
     expect(body).not.toContain("export");
@@ -145,7 +150,7 @@ describe("CodeBlock.splitImports", () => {
 
   test("strips export default from named declarations", () => {
     const b = block("export default class Greeter {}\nconst g = new Greeter();");
-    const { body } = b.splitImports();
+    const { body } = split(b);
     expect(body).toContain("class Greeter {}");
     expect(body).toContain("const g = new Greeter();");
     expect(body).not.toContain("export default");
@@ -153,13 +158,13 @@ describe("CodeBlock.splitImports", () => {
 
   test("rewrites export default expressions", () => {
     const b = block("export default 1;");
-    const { body } = b.splitImports();
+    const { body } = split(b);
     expect(body).toMatchInlineSnapshot(`"const ______default_that_does_not_conflict = 1;"`);
   });
 
   test("parses tsrx with @tsrx/oxc", () => {
     const b = block("import { x } from './x'\nfunction A() @{\n  <p>{x}</p>\n}", null, 1, "tsrx");
-    expect(b.splitImports()).toEqual({
+    expect(split(b)).toEqual({
       imports: ["import { x } from './x'"],
       body: "function A() @{\n  <p>{x}</p>\n}",
     });

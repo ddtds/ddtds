@@ -85,7 +85,7 @@ export function ddtPlugin({ logLevel, ...docs }: DdtPluginOptions = {}): Plugin 
       return this.resolve(source, fromRoot, { ...resolveOptions, skipSelf: true });
     },
     load(id) {
-      if (index.hasDoc(id)) return docModule(vitestRunner, index.fencesOf(id));
+      if (index.hasDoc(id)) return docModule(vitestRunner, id, index.fencesOf(id));
       const fence = index.fence(id);
       if (!fence) return undefined;
       this.addWatchFile(fence.doc);

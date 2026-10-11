@@ -10,8 +10,9 @@ import {
 } from "@ddtds/core";
 import { vitestRunner } from "./runner.ts";
 
-const fenceModule = (fence: Fence): string => generateFenceModule(vitestRunner, fence);
-const docModule = (fences: readonly Fence[]): string => generateDocModule(vitestRunner, fences);
+const fenceModule = (fence: Fence): string => generateFenceModule(vitestRunner, fence).code;
+const docModule = (fences: readonly Fence[]): string =>
+  generateDocModule(vitestRunner, "/root/t.md", fences).code;
 
 function block(
   code: string,
