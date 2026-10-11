@@ -12,12 +12,7 @@ import {
   type ParserError,
 } from "./compile-error.ts";
 
-type ParsedBodyNode = Program["body"][number];
-type SyntheticDefaultNode = {
-  kind: "synthetic-default";
-  declaration: ExportDefaultDeclarationKind;
-};
-type BodyNode = ParsedBodyNode | SyntheticDefaultNode;
+type Statement = Program["body"][number];
 
 export type PreparedBlock = {
   imports: string[];
@@ -29,8 +24,7 @@ export function splitImportsAndBlock(block: CodeBlock): PreparedBlock {
 
   const imports = staticImports.map((staticImport) => sliceSource(block.code, staticImport));
 
-  const transformed = sanitizeProgram(program);
-  const body = transformed.map((node) => printBodyNode(block.code, node)).join("\n");
+  const body = program.body.flatMap((node) => bodyText(block.code, node) ?? []).join("\n");
 
   return { imports, body };
 }
@@ -120,41 +114,23 @@ function tsrxParser(): typeof TsrxParser {
   }
 }
 
-function sanitizeProgram(program: Program): BodyNode[] {
-  return program.body.flatMap(sanitizeStatement);
-}
-
-function sanitizeStatement(node: ParsedBodyNode): BodyNode[] {
-  if (node.type === "ImportDeclaration") return [];
-  if (node.type === "ExportAllDeclaration") return [];
-
+/** A statement's code as the test runs it, without imports and exports */
+function bodyText(code: string, node: Statement): string | undefined {
+  if (node.type === "ImportDeclaration" || node.type === "ExportAllDeclaration") return undefined;
   if (node.type === "ExportNamedDeclaration") {
-    if (!node.declaration) {
-      return [];
-    }
-    return [node.declaration];
+    return node.declaration ? sliceSource(code, node.declaration) : undefined;
   }
-
-  if (node.type === "ExportDefaultDeclaration") {
-    const decl = node.declaration;
-
-    // An anonymous function or class is only valid as an expression
-    if ((decl.type === "FunctionDeclaration" || decl.type === "ClassDeclaration") && decl.id) {
-      return [decl];
-    }
-
-    return [{ kind: "synthetic-default", declaration: decl }];
-  }
-
-  return [node];
+  if (node.type === "ExportDefaultDeclaration") return defaultExportText(code, node.declaration);
+  return sliceSource(code, node);
 }
 
-function printBodyNode(source: string, node: BodyNode): string {
-  if ("kind" in node && node.kind === "synthetic-default") {
-    return `const ______default_that_does_not_conflict = ${sliceSource(source, node.declaration)};`;
-  }
-
-  return sliceSource(source, node);
+/** A named function or class stays a declaration; anything else becomes an unused const */
+function defaultExportText(code: string, declaration: ExportDefaultDeclarationKind): string {
+  const text = sliceSource(code, declaration);
+  const isDeclaration =
+    declaration.type === "FunctionDeclaration" || declaration.type === "ClassDeclaration";
+  if (isDeclaration && declaration.id) return text;
+  return `const ______default_that_does_not_conflict = ${text};`;
 }
 
 type Range = { start: number; end: number };
