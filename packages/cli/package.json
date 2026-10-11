@@ -4,6 +4,12 @@
   "bin": {
     "ddt": "./src/index.ts"
   },
+  "files": [
+    "src",
+    "!src/**/*.test.ts",
+    "!src/**/*.bench.ts",
+    "!src/test-utils.ts"
+  ],
   "type": "module",
   "scripts": {
     "test": "vitest run",
