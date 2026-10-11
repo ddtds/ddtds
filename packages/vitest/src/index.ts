@@ -7,6 +7,9 @@ import {
   DocIndex,
   readDocs,
   resolveDocsOptions,
+  typecheck as typecheckFences,
+  type DdtCompileError,
+  type Fence,
   type DocsOptions,
   type IndexOptions,
 } from "@ddtds/core";
@@ -31,9 +34,15 @@ export type DdtPluginOptions = DocsOptions & {
    *   3. `"info"` (default)
    */
   logLevel?: LogLevel;
+  /** Fail fences with type errors, checked with TypeScript 7 (needs `typescript` installed) */
+  typecheck?: boolean;
 };
 
-export function ddtPlugin({ logLevel, ...docs }: DdtPluginOptions = {}): Plugin {
+/** Fences use vitest's `expect` without importing it */
+const vitestGlobals =
+  'export {};\ndeclare global {\n  var expect: typeof import("vitest").expect;\n}';
+
+export function ddtPlugin({ logLevel, typecheck, ...docs }: DdtPluginOptions = {}): Plugin {
   const logger = createLogger(parseLogLevel(process.env.DDT_LOG_LEVEL ?? logLevel));
   const moduleDirName = `__ddtds__-${randomUUID().slice(0, 8)}`;
   const indexOptions = (root: string): IndexOptions => ({
@@ -42,6 +51,12 @@ export function ddtPlugin({ logLevel, ...docs }: DdtPluginOptions = {}): Plugin 
     logger,
   });
   let index = DocIndex.fromSources(new Map(), indexOptions(process.cwd()));
+  let typeErrors: Promise<Map<string, DdtCompileError>> | undefined;
+  const typeErrorOf = async (fence: Fence): Promise<DdtCompileError | undefined> => {
+    if (!typecheck) return undefined;
+    typeErrors ??= typecheckFences(index.root, vitestGlobals, index.fences());
+    return (await typeErrors).get(fence.id);
+  };
 
   return {
     name: "vite-plugin-ddtds",
@@ -70,7 +85,9 @@ export function ddtPlugin({ logLevel, ...docs }: DdtPluginOptions = {}): Plugin 
       };
     },
     watchChange(id) {
-      if (index.hasDoc(id)) index = index.withDoc(id, readFileSync(id, "utf8"));
+      if (!index.hasDoc(id)) return;
+      index = index.withDoc(id, readFileSync(id, "utf8"));
+      typeErrors = undefined;
     },
     resolveId(source, importer, resolveOptions) {
       if (index.fence(source)) return source;
@@ -78,12 +95,12 @@ export function ddtPlugin({ logLevel, ...docs }: DdtPluginOptions = {}): Plugin 
       const fromRoot = join(index.root, "package.json");
       return this.resolve(source, fromRoot, { ...resolveOptions, skipSelf: true });
     },
-    load(id) {
+    async load(id) {
       if (index.hasDoc(id)) return docModule(index.fencesOf(id));
       const fence = index.fence(id);
       if (!fence) return undefined;
       this.addWatchFile(fence.doc);
-      return fenceModule(fence);
+      return fenceModule(fence, await typeErrorOf(fence));
     },
   };
 }

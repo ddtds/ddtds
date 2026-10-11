@@ -22,13 +22,18 @@
     "@codspeed/vitest-plugin": "5.7.1",
     "@tsrx/oxc": "catalog:dev",
     "@types/node": "catalog:dev",
+    "typescript": "catalog:dev",
     "vitest": "^4.1.11"
   },
   "peerDependencies": {
-    "@tsrx/oxc": "^0.20.0"
+    "@tsrx/oxc": "^0.20.0",
+    "typescript": "^7.0.0"
   },
   "peerDependenciesMeta": {
     "@tsrx/oxc": {
+      "optional": true
+    },
+    "typescript": {
       "optional": true
     }
   }

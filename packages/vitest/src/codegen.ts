@@ -42,21 +42,22 @@ function blockCode(block: CodeBlock): FenceCode {
   return { imports, body: rejects };
 }
 
-function fenceCode({ block }: Fence): FenceCode {
+function fenceCode({ block }: Fence, typeError?: DdtCompileError): FenceCode {
   try {
     const code = blockCode(block);
+    if (typeError) throw typeError;
     return block.shouldFailToCompile() ? compiledCode() : code;
   } catch (error) {
     if (!(error instanceof DdtCompileError)) throw error;
-    if (block.shouldFailToCompile() && error.details.phase === "parse") {
+    if (block.shouldFailToCompile() && error.details.phase !== "parser-crash") {
       return { imports: [], body: "" };
     }
     return compileErrorCode(error);
   }
 }
 
-export function fenceModule(fence: Fence): string {
-  const { imports, body } = fenceCode(fence);
+export function fenceModule(fence: Fence, typeError?: DdtCompileError): string {
+  const { imports, body } = fenceCode(fence, typeError);
   const header = ["import { expect } from 'vitest';", ...imports].join("\n");
   const run = body.length === 0 ? "" : `\n${indent(body)}\n`;
   return `${header}\nexport default async function () {${run}}`;
