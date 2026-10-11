@@ -1,0 +1,17 @@
+{
+  "name": "@ddtds/benches",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "bench": "vitest bench --run",
+    "typecheck": "tsc"
+  },
+  "devDependencies": {
+    "@codspeed/vitest-plugin": "5.7.1",
+    "@ddtds/core": "workspace:*",
+    "@ddtds/vitest": "workspace:*",
+    "@types/node": "catalog:dev",
+    "vitest": "^4.1.11"
+  }
+}

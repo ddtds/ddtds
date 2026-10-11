@@ -1,7 +1,6 @@
 import { bench, describe } from "vitest";
-import { parseCodeFences } from "./blocks.ts";
-import { DocIndex, type IndexOptions } from "./docs.ts";
-import { createLogger } from "./logger.ts";
+import { DocIndex, parseCodeFences, type IndexOptions } from "@ddtds/core";
+import { createLogger } from "@ddtds/core/log";
 
 const logger = createLogger("silent");
 

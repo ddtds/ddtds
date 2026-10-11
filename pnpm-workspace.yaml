@@ -1,5 +1,6 @@
 packages:
   - "packages/*"
+  - "benches"
   - "examples/*"
   - "examples/monorepo/packages/*"
 
