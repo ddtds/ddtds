@@ -26,8 +26,6 @@ pre-push:
             run: pnpm run typecheck
           - name: publint
             run: pnpm run publint
-          - name: attw
-            run: pnpm run attw
           # not `pnpm test`, whose pretest would rebuild while other checks read dist
           - name: test
             run: pnpm exec vitest run

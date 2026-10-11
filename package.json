@@ -21,12 +21,11 @@
     "pretest:coverage": "pnpm run build",
     "knip": "knip --treat-config-hints-as-errors",
     "publint": "pnpm --filter './packages/*' exec publint --strict",
-    "attw": "node scripts/attw.ts",
     "sherif": "sherif --fail-on-warnings",
     "validate:renovate": "renovate-config-validator renovate.json"
   },
   "devDependencies": {
-    "@arethetypeswrong/cli": "0.18.5",
+    "@arethetypeswrong/core": "0.18.5",
     "@types/node": "catalog:dev",
     "@vitest/coverage-v8": "catalog:dev",
     "knip": "6.40.0",
