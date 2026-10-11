@@ -5,12 +5,15 @@ import { defaultExclude, defaultInclude, type Plugin } from "vitest/config";
 import {
   defaultOutDir,
   DocIndex,
+  docModule,
+  fenceModule,
+  moduleFiles as generateModuleFiles,
   readDocs,
   resolveDocsOptions,
   type DocsOptions,
   type IndexOptions,
 } from "@ddtds/core";
-import { docModule, fenceModule } from "./codegen.ts";
+import { vitestRunner } from "./runner.ts";
 import { createLogger, parseLogLevel, type LogLevel } from "@ddtds/core/log";
 
 export type { CodeBlock, DocIndex, DocsOptions, Fence } from "@ddtds/core";
@@ -20,7 +23,10 @@ export {
   defaultDocsExclude,
   defaultOutDir,
 } from "@ddtds/core";
-export { moduleFiles } from "./codegen.ts";
+/** Generated doc and fence modules for `ddt build` */
+export function moduleFiles(index: DocIndex): Map<string, string> {
+  return generateModuleFiles(vitestRunner, index);
+}
 export type { LogLevel } from "@ddtds/core/log";
 
 export type DdtPluginOptions = DocsOptions & {
@@ -79,11 +85,11 @@ export function ddtPlugin({ logLevel, ...docs }: DdtPluginOptions = {}): Plugin 
       return this.resolve(source, fromRoot, { ...resolveOptions, skipSelf: true });
     },
     load(id) {
-      if (index.hasDoc(id)) return docModule(index.fencesOf(id));
+      if (index.hasDoc(id)) return docModule(vitestRunner, index.fencesOf(id));
       const fence = index.fence(id);
       if (!fence) return undefined;
       this.addWatchFile(fence.doc);
-      return fenceModule(fence);
+      return fenceModule(vitestRunner, fence);
     },
   };
 }
