@@ -42,17 +42,22 @@ function blockCode(block: CodeBlock): FenceCode {
   return { imports, body: rejects };
 }
 
+/** A fence that doesn't compile passes when annotated `compile_fail`, unless the parser crashed */
+function failedCode(block: CodeBlock, error: DdtCompileError): FenceCode {
+  if (block.shouldFailToCompile() && error.details.phase !== "parser-crash") {
+    return { imports: [], body: "" };
+  }
+  return compileErrorCode(error);
+}
+
 function fenceCode({ block }: Fence, typeError?: DdtCompileError): FenceCode {
   try {
     const code = blockCode(block);
-    if (typeError) throw typeError;
+    if (typeError) return failedCode(block, typeError);
     return block.shouldFailToCompile() ? compiledCode() : code;
   } catch (error) {
     if (!(error instanceof DdtCompileError)) throw error;
-    if (block.shouldFailToCompile() && error.details.phase !== "parser-crash") {
-      return { imports: [], body: "" };
-    }
-    return compileErrorCode(error);
+    return failedCode(block, error);
   }
 }
 
