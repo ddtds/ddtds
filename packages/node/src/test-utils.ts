@@ -1,8 +1,11 @@
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
-import { dirname, join } from "node:path";
+import { dirname, join, relative } from "node:path";
 import { spawn } from "node:child_process";
 import { run } from "node:test";
 import { onTestFinished } from "vitest";
+
+/** How docs are run: `node --enable-source-maps --test --import @ddtds/node/register` */
+const execArgv = ["--enable-source-maps", "--import", join(import.meta.dirname, "register.ts")];
 
 export function fixture(files: Record<string, string>): string {
   const root = mkdtempSync(join(import.meta.dirname, "../.fixture-"));
@@ -24,7 +27,7 @@ export async function runDocs(root: string, docs: string[]): Promise<Record<stri
   const stream = run({
     cwd: root,
     files: docs.map((doc) => join(root, doc)),
-    execArgv: ["--import", join(import.meta.dirname, "register.ts")],
+    execArgv,
   });
   for await (const event of stream) {
     if (event.type === "test:pass") results[event.data.name] = "passed";
@@ -46,8 +49,7 @@ export async function watchDocs(
   doc: string,
   edit: () => void,
 ): Promise<Record<string, string>[]> {
-  const register = join(import.meta.dirname, "register.ts");
-  const args = ["--test", "--watch", "--test-reporter=tap", "--import", register, doc];
+  const args = [...execArgv, "--test", "--watch", "--test-reporter=tap", doc];
   const child = spawn(process.execPath, args, { cwd: root });
   onTestFinished(() => void child.kill());
   const runs: Record<string, string>[] = [];
@@ -70,4 +72,31 @@ function tapOutcomes(tap: string): Record<string, string> {
     if (name) results[name] = ok === "ok" ? "passed" : "failed";
   }
   return results;
+}
+
+type Report = { location: string; frames?: string[] };
+
+/** Where node:test places each test, and the stack frames inside the fixture of failures */
+export async function reportDocs(root: string, docs: string[]): Promise<Record<string, Report>> {
+  const results: Record<string, Report> = {};
+  const stream = run({
+    cwd: root,
+    files: docs.map((doc) => join(root, doc)),
+    execArgv,
+  });
+  for await (const event of stream) {
+    if (event.type !== "test:pass" && event.type !== "test:fail") continue;
+    const { name, file = "", line, column, details } = event.data;
+    const location = `${relative(root, file)}:${line}:${column}`;
+    if (event.type === "test:pass") results[name] = { location };
+    else results[name] = { location, frames: frames(root, details.error) };
+  }
+  return results;
+}
+
+function frames(root: string, { cause }: Error): string[] {
+  const stack = cause instanceof Error ? (cause.stack ?? "") : "";
+  return [...stack.matchAll(/\((?:file:\/\/)?([^()]+):(\d+):(\d+)\)$/gm)]
+    .filter(([, file]) => file?.startsWith(root))
+    .map(([, file = "", line, column]) => `${relative(root, file)}:${line}:${column}`);
 }

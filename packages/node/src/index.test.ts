@@ -1,7 +1,7 @@
 import { writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { expect, test } from "vitest";
-import { fence, fixture, runDocs, watchDocs } from "./test-utils.ts";
+import { fence, fixture, reportDocs, runDocs, watchDocs } from "./test-utils.ts";
 
 test("runs fences in markdown with node:test", async () => {
   const root = fixture({
@@ -77,5 +77,36 @@ test("reruns a doc when it is edited in watch mode", async () => {
         "guide.md:1": "failed",
       },
     ]
+  `);
+});
+
+test("failures and test locations point at the markdown", async () => {
+  const root = fixture({
+    "node_modules/calc/package.json": '{ "name": "calc", "type": "module", "main": "index.js" }',
+    "node_modules/calc/index.js": "export const add = (a, b) => a - b;",
+    "README.md": [
+      "# Calc",
+      "",
+      fence('import { add } from "calc";\n\nconst sum: number = add(1, 2);\nassert.equal(sum, 3);'),
+      "1. In a list:",
+      "",
+      "   ```ts run",
+      "   assert.equal(1 + 1, 2);",
+      "   ```",
+      "",
+    ].join("\n"),
+  });
+  expect(await reportDocs(root, ["README.md"])).toMatchInlineSnapshot(`
+    {
+      "README.md:13": {
+        "location": "README.md:13:4",
+      },
+      "README.md:3": {
+        "frames": [
+          "README.md:7:8",
+        ],
+        "location": "README.md:3:1",
+      },
+    }
   `);
 });
