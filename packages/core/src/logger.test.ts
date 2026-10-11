@@ -1,6 +1,8 @@
-import { configureSync, resetSync } from "@logtape/logtape";
+import { configureSync, getLogger, resetSync } from "@logtape/logtape";
 import { afterEach, expect, test } from "vitest";
-import { configureLogging, logger, renderMessage } from "./logger.ts";
+import { configureLogging, renderMessage } from "./logger.ts";
+
+const logger = getLogger(["ddtds", "test"]);
 
 afterEach(() => resetSync());
 
@@ -34,7 +36,7 @@ test("leaves LogTape alone when the application configured it", () => {
     sinks: { app: app.sink },
     loggers: [
       { category: ["ddtds"], sinks: ["app"] },
-      { category: ["logtape", "meta"], sinks: [] },
+      { category: ["logtape", "meta"], lowestLevel: "warning", sinks: ["app"] },
     ],
   });
   const ours = collect();

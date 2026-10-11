@@ -11,13 +11,8 @@ import {
   type IndexOptions,
 } from "@ddtds/core";
 import { docModule, fenceModule } from "./codegen.ts";
-import {
-  configureLogging,
-  consoleSink,
-  logger,
-  parseLogLevel,
-  type LogLevel,
-} from "@ddtds/core/log";
+import { configureLogging, consoleSink, parseLogLevel, type LogLevel } from "@ddtds/core/log";
+import { getLogger } from "@logtape/logtape";
 
 export type { CodeBlock, DocIndex, DocsOptions, Fence } from "@ddtds/core";
 export {
@@ -28,6 +23,8 @@ export {
 } from "@ddtds/core";
 export { moduleFiles } from "./codegen.ts";
 export type { LogLevel } from "@ddtds/core/log";
+
+const logger = getLogger(["ddtds", "vitest"]);
 
 export type DdtPluginOptions = DocsOptions & {
   /**
@@ -58,9 +55,13 @@ export function ddtPlugin({ logLevel, ...docs }: DdtPluginOptions = {}): Plugin 
       });
       index = DocIndex.fromSources(readDocs(root, include, exclude), indexOptions(root));
       for (const { id, block } of index.fences()) {
-        logger.debug(`${block.details.file}:${block.line} -> ${relative(root, id)}`);
+        logger.debug("{file}:{line} -> {id}", () => ({
+          file: block.details.file,
+          line: block.line,
+          id: relative(root, id),
+        }));
       }
-      logger.info(`Total: ${index.size} tests`);
+      logger.info("Total: {size} tests", { size: index.size });
 
       const docFiles = index
         .docs()

@@ -11,6 +11,7 @@
     "typeAware": true
   },
   "plugins": ["eslint", "typescript", "unicorn", "vitest", "import", "node", "promise", "oxc"],
+  "jsPlugins": [{ "name": "@logtape", "specifier": "@logtape/lint/eslint" }],
   "rules": {
     "no-console": "error",
     "no-restricted-properties": [
@@ -19,6 +20,12 @@
       { "object": "process", "property": "stderr", "message": "Use the logger." }
     ],
     "no-shadow": "off",
+    "@logtape/no-dynamic-message": "error",
+    "@logtape/no-unrendered-properties": "error",
+    "@logtape/no-message-interpolation": "error",
+    "@logtape/prefer-lazy-evaluation": "error",
+    "@logtape/no-unawaited-log": "error",
+    "@logtape/require-meta-sink": "error",
     "typescript/no-non-null-assertion": "warn",
     "typescript/explicit-member-accessibility": "warn",
     "typescript/explicit-function-return-type": "warn",

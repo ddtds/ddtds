@@ -9,8 +9,11 @@ import {
   resolveDocsOptions,
   writeFiles,
 } from "@ddtds/core";
-import { configureLogging, consoleSink, logger, parseLogLevel } from "@ddtds/core/log";
+import { configureLogging, consoleSink, parseLogLevel } from "@ddtds/core/log";
+import { getLogger } from "@logtape/logtape";
 import { moduleFiles } from "@ddtds/vitest";
+
+const logger = getLogger(["ddtds", "cli"]);
 
 const buildCmd = command(
   {
@@ -40,7 +43,7 @@ const buildCmd = command(
       moduleDir,
     });
     writeFiles(moduleDir, moduleFiles(index));
-    logger.info(`Total: ${index.size} tests`);
+    logger.info("Total: {size} tests", { size: index.size });
   },
 );
 

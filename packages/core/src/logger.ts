@@ -1,11 +1,4 @@
-import {
-  configureSync,
-  getConfig,
-  getLogger,
-  type Logger,
-  type LogRecord,
-  type Sink,
-} from "@logtape/logtape";
+import { configureSync, getConfig, type LogRecord, type Sink } from "@logtape/logtape";
 
 const LOG_LEVELS = ["silent", "error", "info", "debug", "trace"] as const;
 
@@ -25,9 +18,6 @@ export function parseLogLevel(value: string | undefined): LogLevel {
   return normalized;
 }
 
-/** ddtds logs under the `ddtds` LogTape category, which applications can route themselves */
-export const logger: Logger = getLogger(["ddtds"]);
-
 /** A log line's text, without LogTape's timestamp and category */
 export function renderMessage({ message }: LogRecord): string {
   return message.join("");
@@ -37,6 +27,7 @@ export function renderMessage({ message }: LogRecord): string {
 let ours: ReturnType<typeof getConfig> = null;
 
 /**
+ * ddtds logs under the `ddtds` LogTape category, which applications can route themselves.
  * Sends ddtds logs at `level` and above to `sink`. Leaves LogTape alone when the application
  * configured it, so ddtds logs follow the application's own config.
  */
@@ -49,7 +40,7 @@ export function configureLogging(level: LogLevel, sink: Sink): void {
     sinks: { ddtds: sink },
     loggers: [
       { category: ["ddtds"], ...route },
-      { category: ["logtape", "meta"], sinks: [] },
+      { category: ["logtape", "meta"], lowestLevel: "warning", sinks: ["ddtds"] },
     ],
   });
   ours = getConfig();
