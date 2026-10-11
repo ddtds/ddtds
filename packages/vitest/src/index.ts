@@ -11,8 +11,8 @@ import {
   type IndexOptions,
 } from "@ddtds/core";
 import { docModule, fenceModule } from "./codegen.ts";
-import { configureLogging, consoleSink, parseLogLevel, type LogLevel } from "@ddtds/core/log";
-import { getLogger } from "@logtape/logtape";
+import { configureLogging, consoleSink } from "@ddtds/core/log";
+import { getLogger, parseLogLevel, type LogLevel } from "@logtape/logtape";
 
 export type { CodeBlock, DocIndex, DocsOptions, Fence } from "@ddtds/core";
 export {
@@ -22,7 +22,7 @@ export {
   defaultOutDir,
 } from "@ddtds/core";
 export { moduleFiles } from "./codegen.ts";
-export type { LogLevel } from "@ddtds/core/log";
+export type { LogLevel } from "@logtape/logtape";
 
 const logger = getLogger(["ddtds", "vitest"]);
 
@@ -37,7 +37,7 @@ export type DdtPluginOptions = DocsOptions & {
 };
 
 export function ddtPlugin({ logLevel, ...docs }: DdtPluginOptions = {}): Plugin {
-  configureLogging(parseLogLevel(process.env.DDT_LOG_LEVEL ?? logLevel), consoleSink);
+  configureLogging(parseLogLevel(process.env.DDT_LOG_LEVEL ?? logLevel ?? "info"), consoleSink);
   const moduleDirName = `__ddtds__-${randomUUID().slice(0, 8)}`;
   const indexOptions = (root: string): IndexOptions => ({
     root,

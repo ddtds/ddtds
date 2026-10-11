@@ -39,7 +39,7 @@ async function vitest(
     "test",
     { root, config: false, watch, reporters: [reporter] },
     {
-      plugins: [ddtPlugin({ logLevel: "silent", ...plugin })],
+      plugins: [ddtPlugin({ logLevel: "fatal", ...plugin })],
       test,
     },
   );

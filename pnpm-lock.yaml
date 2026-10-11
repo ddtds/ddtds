@@ -167,6 +167,9 @@ catalogs:
     '@logtape/lint':
       specifier: 2.4.0
       version: 2.4.0
+    '@logtape/testing':
+      specifier: 2.4.0
+      version: 2.4.0
     '@tsrx/oxc':
       specifier: 0.20.0
       version: 0.20.0
@@ -615,6 +618,9 @@ importers:
         specifier: ^5.1.0
         version: 5.1.0
     devDependencies:
+      '@logtape/testing':
+        specifier: catalog:dev
+        version: 2.4.0(@logtape/logtape@2.4.0)
       '@tsrx/oxc':
         specifier: catalog:dev
         version: 0.20.0(svelte@5.57.2)
@@ -1273,6 +1279,11 @@ packages:
 
   '@logtape/logtape@2.4.0':
     resolution: {integrity: sha512-xhvG/NwfBXs+a+oJxl6xOmqA4zX8giP1brvd5lVbL3qUHUkZfVt+4QE/+9p/Vf76JNwe/upH3XYTNItocKQ8Qg==}
+
+  '@logtape/testing@2.4.0':
+    resolution: {integrity: sha512-syPTrkBObk3jpczkiEa9/WdrH6ac6qwmLREhtlWFahTHIX0aB8PJDtCMxolsB8LzofZwtU+PudUzMzxkrL/T6g==}
+    peerDependencies:
+      '@logtape/logtape': ^2.4.0
 
   '@napi-rs/lzma-linux-x64-gnu@1.5.1':
     resolution: {integrity: sha512-oTXEIha4SsuXdTA4Iyskj0kpdx2yVXdhd75c2v3xGrHFfVMsbhTPZU/nMPL4sWKo4pBHm3aucLaqGlF696dTyQ==}
@@ -7141,6 +7152,10 @@ snapshots:
   '@logtape/lint@2.4.0': {}
 
   '@logtape/logtape@2.4.0': {}
+
+  '@logtape/testing@2.4.0(@logtape/logtape@2.4.0)':
+    dependencies:
+      '@logtape/logtape': 2.4.0
 
   '@napi-rs/lzma-linux-x64-gnu@1.5.1':
     optional: true

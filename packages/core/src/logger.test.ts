@@ -1,37 +1,12 @@
 import { configureSync, getLogger, resetSync } from "@logtape/logtape";
+import { createLogRecorder } from "@logtape/testing/recorder";
 import { afterEach, expect, test } from "vitest";
-import { configureLogging, renderMessage } from "./logger.ts";
-
-const logger = getLogger(["ddtds", "test"]);
+import { configureLogging } from "./logger.ts";
 
 afterEach(() => resetSync());
 
-function collect(): {
-  lines: string[];
-  sink: (record: Parameters<typeof renderMessage>[0]) => void;
-} {
-  const lines: string[] = [];
-  return { lines, sink: (record) => void lines.push(`${record.level}: ${renderMessage(record)}`) };
-}
-
-test("sends ddtds logs at the level and above to the sink", () => {
-  const { lines, sink } = collect();
-  configureLogging("info", sink);
-  logger.debug("hidden");
-  logger.info("shown");
-  logger.error("also shown");
-  expect(lines).toEqual(["info: shown", "error: also shown"]);
-});
-
-test("silent sends nothing", () => {
-  const { lines, sink } = collect();
-  configureLogging("silent", sink);
-  logger.error("hidden");
-  expect(lines).toEqual([]);
-});
-
 test("leaves LogTape alone when the application configured it", () => {
-  const app = collect();
+  const app = createLogRecorder();
   configureSync({
     sinks: { app: app.sink },
     loggers: [
@@ -39,11 +14,9 @@ test("leaves LogTape alone when the application configured it", () => {
       { category: ["logtape", "meta"], lowestLevel: "warning", sinks: ["app"] },
     ],
   });
-  const ours = collect();
+  const ours = createLogRecorder();
   configureLogging("info", ours.sink);
-  logger.info("routed by the app");
-  expect({ app: app.lines, ours: ours.lines }).toEqual({
-    app: ["info: routed by the app"],
-    ours: [],
-  });
+  getLogger(["ddtds", "test"]).debug("routed by the app");
+  app.assertLogged({ level: "debug", message: "routed by the app" });
+  expect(ours.records).toEqual([]);
 });

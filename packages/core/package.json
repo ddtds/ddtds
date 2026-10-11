@@ -36,6 +36,7 @@
     "unist-util-visit": "^5.1.0"
   },
   "devDependencies": {
+    "@logtape/testing": "catalog:dev",
     "@tsrx/oxc": "catalog:dev",
     "@types/node": "catalog:dev",
     "vitest": "catalog:dev"
