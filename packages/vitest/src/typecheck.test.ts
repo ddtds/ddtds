@@ -21,7 +21,11 @@ const guide = [
   fence("const name: string = 1;", "compile_fail"),
 ].join("\n");
 
-describe.each([["TypeScript 6", withTypeScript6]])("%s", (_, fixture) => {
+// TypeScript 6 checks with the stable compiler API; this repo's TypeScript 7 with its unstable API
+describe.each([
+  ["TypeScript 6", withTypeScript6],
+  ["TypeScript 7", files],
+])("%s", (_, fixture) => {
   test("type errors only fail fences when typecheck is on", async () => {
     const root = fixture({ "guide.md": guide });
     expect(await run(root)).toMatchInlineSnapshot(`

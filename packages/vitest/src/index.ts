@@ -34,7 +34,7 @@ export type DdtPluginOptions = DocsOptions & {
    *   3. `"info"` (default)
    */
   logLevel?: LogLevel;
-  /** Fail fences with type errors, checked with the project's TypeScript 5 or 6 */
+  /** Fail fences with type errors, checked with the project's TypeScript (5 to 7) */
   typecheck?: boolean;
 };
 
