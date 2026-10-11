@@ -26,7 +26,7 @@
   },
   "devDependencies": {
     "@arethetypeswrong/core": "0.18.5",
-    "@logtape/lint": "2.4.0",
+    "@logtape/lint": "catalog:dev",
     "@types/node": "catalog:dev",
     "@vitest/coverage-v8": "catalog:dev",
     "knip": "6.40.0",

@@ -164,6 +164,9 @@ settings:
 
 catalogs:
   dev:
+    '@logtape/lint':
+      specifier: 2.4.0
+      version: 2.4.0
     '@tsrx/oxc':
       specifier: 0.20.0
       version: 0.20.0
@@ -249,6 +252,10 @@ catalogs:
     vue:
       specifier: ^3.5.43
       version: 3.5.43
+  prod:
+    '@logtape/logtape':
+      specifier: ^2.4.0
+      version: 2.4.0
 
 importers:
 
@@ -258,7 +265,7 @@ importers:
         specifier: 0.18.5
         version: 0.18.5
       '@logtape/lint':
-        specifier: 2.4.0
+        specifier: catalog:dev
         version: 2.4.0
       '@types/node':
         specifier: catalog:dev
@@ -577,7 +584,7 @@ importers:
         specifier: workspace:*
         version: link:../vitest
       '@logtape/logtape':
-        specifier: ^2.4.0
+        specifier: catalog:prod
         version: 2.4.0
       cleye:
         specifier: ^2.6.0
@@ -590,7 +597,7 @@ importers:
   packages/core:
     dependencies:
       '@logtape/logtape':
-        specifier: ^2.4.0
+        specifier: catalog:prod
         version: 2.4.0
       '@oxc-project/types':
         specifier: ^0.150.0
@@ -624,7 +631,7 @@ importers:
         specifier: workspace:*
         version: link:../core
       '@logtape/logtape':
-        specifier: ^2.4.0
+        specifier: catalog:prod
         version: 2.4.0
     devDependencies:
       vitest:

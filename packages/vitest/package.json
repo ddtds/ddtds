@@ -24,7 +24,7 @@
   },
   "dependencies": {
     "@ddtds/core": "workspace:*",
-    "@logtape/logtape": "^2.4.0"
+    "@logtape/logtape": "catalog:prod"
   },
   "devDependencies": {
     "vitest": "catalog:dev"
