@@ -91,18 +91,12 @@ test("coverage reports which markdown lines ran", async () => {
       'import { add } from "calc";\n\nconst sum = add(1, 2);\nif (sum > 100) {\n  throw new Error("too big");\n}',
     ),
   });
-  expect(await coverage(root)).toMatchInlineSnapshot(`
+  const { "README.md": readme, ...sources } = await coverage(root);
+  // Vitest 5 also counts the test() call, mapped to the fence's opening line; Vitest 4 does not
+  expect(readme?.covered.filter((line) => line > 1)).toEqual([4, 5]);
+  expect(readme?.uncovered).toEqual([6]);
+  expect(sources).toMatchInlineSnapshot(`
     {
-      "README.md": {
-        "covered": [
-          1,
-          4,
-          5,
-        ],
-        "uncovered": [
-          6,
-        ],
-      },
       "src/index.ts": {
         "covered": [
           2,
