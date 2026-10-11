@@ -1,6 +1,12 @@
 {
   "version": 1,
   "skills": {
+    "logtape": {
+      "source": "dahlia/logtape",
+      "sourceType": "github",
+      "skillPath": "packages/logtape/skills/logtape/SKILL.md",
+      "computedHash": "5d18cbab372db5d3907bee1c5d070719072f10be4c8d30fac04033434a6d36bc"
+    },
     "tsdown": {
       "source": "rolldown/tsdown",
       "sourceType": "github",
