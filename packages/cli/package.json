@@ -2,12 +2,10 @@
   "name": "ddtds",
   "version": "0.0.0",
   "bin": {
-    "ddt": "./src/index.ts"
+    "ddt": "./dist/index.mjs"
   },
   "files": [
-    "src",
-    "!src/**/*.test.ts",
-    "!src/test-utils.ts"
+    "dist"
   ],
   "type": "module",
   "scripts": {

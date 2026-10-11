@@ -19,6 +19,7 @@ jobs:
         with:
           persist-credentials: false
       - uses: $/.github/actions/setup
+      - run: pnpm run build
       - run: pnpm run validate:renovate
       - run: pnpm run lint
       - run: pnpm run sherif

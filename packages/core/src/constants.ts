@@ -1,5 +1,5 @@
-export const defaultDocsInclude = ["**/*.{md,mdx}"];
-export const defaultDocsExclude = ["**/node_modules/**", "**/CHANGELOG.md"];
+export const defaultDocsInclude: string[] = ["**/*.{md,mdx}"];
+export const defaultDocsExclude: string[] = ["**/node_modules/**", "**/CHANGELOG.md"];
 export const defaultOutDir = "__doctests__";
 
 const PARSERS = ["ts", "js", "tsx", "jsx", "tsrx"] as const;
@@ -9,7 +9,7 @@ const OUTPUT_EXTENSIONS = ["ts", "tsx", "tsrx"] as const;
 export type OutputExtension = (typeof OUTPUT_EXTENSIONS)[number];
 
 /** Code fence languages, the parser for each, and the extension of its generated test file. */
-export const LANGS = {
+const LANGS = {
   ts: { parser: "ts", extension: "ts" },
   typescript: { parser: "ts", extension: "ts" },
   js: { parser: "js", extension: "ts" },
@@ -17,12 +17,20 @@ export const LANGS = {
   tsx: { parser: "tsx", extension: "tsx" },
   jsx: { parser: "jsx", extension: "tsx" },
   tsrx: { parser: "tsrx", extension: "tsrx" },
-} as const satisfies Record<string, { parser: Parser; extension: OutputExtension }>;
+} as const;
 
 export type Lang = keyof typeof LANGS;
 
 export function isLang(s: string): s is Lang {
   return Object.hasOwn(LANGS, s);
+}
+
+export function parserOf(lang: Lang): Parser {
+  return LANGS[lang].parser;
+}
+
+export function extensionOf(lang: Lang): OutputExtension {
+  return LANGS[lang].extension;
 }
 
 export const ANNOTATIONS = {

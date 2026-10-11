@@ -3,7 +3,7 @@ import { dirname, join, relative } from "node:path";
 import { onTestFinished, type ParsedStack } from "vitest";
 import type { ViteUserConfig } from "vitest/config";
 import { createVitest, type Reporter, type TestModule, type Vitest } from "vitest/node";
-import { ddtPlugin, type DdtPluginOptions } from "./index.ts";
+import { ddtPlugin, type DdtPluginOptions } from "@ddtds/vitest";
 
 type Outcomes = Record<string, string>;
 
@@ -40,7 +40,6 @@ async function vitest(
     { root, config: false, watch, reporters: [reporter] },
     {
       plugins: [ddtPlugin({ logLevel: "silent", ...plugin })],
-      resolve: { alias: { "@ddtds/vitest": join(import.meta.dirname, "index.ts") } },
       test,
     },
   );

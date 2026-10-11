@@ -3,7 +3,7 @@ import { fileURLToPath } from "node:url";
 import { expect, test } from "vitest";
 
 function help(...args: string[]): string {
-  const bin = fileURLToPath(new URL("index.ts", import.meta.url));
+  const bin = fileURLToPath(new URL("../dist/index.mjs", import.meta.url));
   return execFileSync(process.execPath, [bin, ...args, "--help"], { encoding: "utf8" });
 }
 

@@ -7,7 +7,7 @@ export default defineConfig({
     projects: ["packages/*", "examples/{js,ts,react}", "examples/monorepo/packages/*"],
     coverage: {
       provider: "v8",
-      include: ["packages/*/src/**/*.ts"],
+      include: ["packages/*/src/**/*.ts", "packages/*/dist/**/*.mjs"],
       exclude: ["**/*.test.ts", "**/*.bench.ts", "**/test-utils.ts"],
     },
   },
