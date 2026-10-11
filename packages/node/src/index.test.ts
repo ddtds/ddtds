@@ -1,5 +1,7 @@
+import { writeFileSync } from "node:fs";
+import { join } from "node:path";
 import { expect, test } from "vitest";
-import { fence, fixture, runDocs } from "./test-utils.ts";
+import { fence, fixture, runDocs, watchDocs } from "./test-utils.ts";
 
 test("runs fences in markdown with node:test", async () => {
   const root = fixture({
@@ -60,5 +62,20 @@ test("imports packages from the project", async () => {
     {
       "README.md:1": "passed",
     }
+  `);
+});
+
+test("reruns a doc when it is edited in watch mode", async () => {
+  const root = fixture({ "guide.md": fence("assert.equal(1, 1);") });
+  const edit = () => writeFileSync(join(root, "guide.md"), fence("assert.equal(1, 2);"));
+  expect(await watchDocs(root, "guide.md", edit)).toMatchInlineSnapshot(`
+    [
+      {
+        "guide.md:1": "passed",
+      },
+      {
+        "guide.md:1": "failed",
+      },
+    ]
   `);
 });

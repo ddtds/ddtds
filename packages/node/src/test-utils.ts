@@ -1,5 +1,6 @@
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
+import { spawn } from "node:child_process";
 import { run } from "node:test";
 import { onTestFinished } from "vitest";
 
@@ -37,4 +38,36 @@ function failure(error: Error): string {
   const { cause } = error;
   if (!(cause instanceof Error)) return error.name;
   return "code" in cause ? `${cause.name} ${String(cause.code)}` : cause.name;
+}
+
+/** Runs a doc with `node --test --watch`, edits it after the first run, outcomes of both runs */
+export async function watchDocs(
+  root: string,
+  doc: string,
+  edit: () => void,
+): Promise<Record<string, string>[]> {
+  const register = join(import.meta.dirname, "register.ts");
+  const args = ["--test", "--watch", "--test-reporter=tap", "--import", register, doc];
+  const child = spawn(process.execPath, args, { cwd: root });
+  onTestFinished(() => void child.kill());
+  const runs: Record<string, string>[] = [];
+  let output = "";
+  for await (const chunk of child.stdout) {
+    output += String(chunk);
+    // tap prints a plan line like `1..1` after every run
+    const plans = output.match(/^1\.\.\d+$/gm) ?? [];
+    if (plans.length === runs.length) continue;
+    runs.push(tapOutcomes(output.split(/^1\.\.\d+$/m).at(-2) ?? ""));
+    if (runs.length === 1) edit();
+    if (runs.length === 2) break;
+  }
+  return runs;
+}
+
+function tapOutcomes(tap: string): Record<string, string> {
+  const results: Record<string, string> = {};
+  for (const [, ok, name] of tap.matchAll(/^(ok|not ok) \d+ - (.+)$/gm)) {
+    if (name) results[name] = ok === "ok" ? "passed" : "failed";
+  }
+  return results;
 }
