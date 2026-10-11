@@ -1,12 +1,15 @@
 import { describe, expect, test } from "vitest";
-import { ANNOTATIONS, CodeBlock, type Annotation, type Fence, type Lang } from "@ddtds/core";
+import { CodeBlock, type Fence } from "@ddtds/core";
+
+type BlockInit = ConstructorParameters<typeof CodeBlock>[0];
+type Annotation = BlockInit["annotation"];
 import { docModule, fenceModule } from "./codegen";
 
 function block(
   code: string,
-  annotation: Annotation | null = null,
+  annotation: Annotation = null,
   line = 1,
-  lang: Lang = "ts",
+  lang: BlockInit["lang"] = "ts",
 ): CodeBlock {
   return new CodeBlock({
     code,
@@ -18,7 +21,7 @@ function block(
   });
 }
 
-function fence(code: string, annotation: Annotation | null = null): Fence {
+function fence(code: string, annotation: Annotation = null): Fence {
   return {
     id: "/repo/__doctests__/t_md_1.ts",
     doc: "/repo/docs/t.md",
@@ -77,13 +80,13 @@ describe("generateBlockFile: imports", () => {
 
 describe("generateBlockFile: annotations", () => {
   test("run annotation generates plain test", () => {
-    const out = fenceModule(fence("expect(1).toBe(1)", ANNOTATIONS.RUN));
+    const out = fenceModule(fence("expect(1).toBe(1)", "run"));
     assertTestRun(out);
     expect(out).not.toContain("rejects");
   });
 
   test("fail annotation wraps in rejects.toThrow", () => {
-    const out = fenceModule(fence('throw new Error("boom")', ANNOTATIONS.FAIL));
+    const out = fenceModule(fence('throw new Error("boom")', "fail"));
 
     assertTestReject(out);
     expect(out).toContain(".rejects.toThrow();");
@@ -98,7 +101,7 @@ describe("generateBlockFile: annotations", () => {
   });
 
   test("parse errors fail even with the fail annotation", () => {
-    const out = fenceModule(fence("const = 1;", ANNOTATIONS.FAIL));
+    const out = fenceModule(fence("const = 1;", "fail"));
     expect(out.replace(/DdtCompileError\(\{.*\}\);/, "DdtCompileError(details);"))
       .toMatchInlineSnapshot(`
         "import { expect } from 'vitest';
@@ -110,7 +113,7 @@ describe("generateBlockFile: annotations", () => {
   });
 
   test("compile_fail passes when the block does not parse", () => {
-    const out = fenceModule(fence("const = 1;", ANNOTATIONS.COMPILE_FAIL));
+    const out = fenceModule(fence("const = 1;", "compile_fail"));
     expect(out).not.toContain("throw");
     expect(out).toMatchInlineSnapshot(`
       "import { expect } from 'vitest';
@@ -119,7 +122,7 @@ describe("generateBlockFile: annotations", () => {
   });
 
   test("compile_fail fails when the block parses", () => {
-    const out = fenceModule(fence("const ok = 1;", ANNOTATIONS.COMPILE_FAIL));
+    const out = fenceModule(fence("const ok = 1;", "compile_fail"));
     expect(out).toContain("expected a compile_fail block");
     expect(out).toMatchInlineSnapshot(`
       "import { expect } from 'vitest';

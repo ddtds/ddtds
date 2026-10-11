@@ -2,17 +2,15 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join, relative } from "node:path";
 import { describe, test, expect, onTestFinished } from "vitest";
+import { ANNOTATIONS, type Annotation, type Lang } from "./constants.ts";
 import {
-  ANNOTATIONS,
   CodeBlock,
   DdtCompileError,
   parseCodeFences,
   defaultDocsExclude,
   defaultDocsInclude,
-  findDocs,
+  readDocs,
   resolveDocsOptions,
-  type Annotation,
-  type Lang,
 } from "./index";
 import { isLang } from "./constants";
 import { createLogger } from "./logger";
@@ -334,7 +332,5 @@ function fixture(): string {
 }
 
 function find(root: string, include = defaultDocsInclude, exclude = defaultDocsExclude): string[] {
-  return findDocs(root, include, exclude)
-    .map((doc) => relative(root, doc))
-    .toSorted();
+  return [...readDocs(root, include, exclude).keys()].map((doc) => relative(root, doc)).toSorted();
 }

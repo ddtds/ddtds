@@ -13,13 +13,7 @@ import {
 import { docModule, fenceModule } from "./codegen.ts";
 import { createLogger, parseLogLevel, type LogLevel } from "@ddtds/core/log";
 
-export type { CodeBlock, DocIndex, DocsOptions, Fence } from "@ddtds/core";
-export {
-  DdtCompileError,
-  defaultDocsInclude,
-  defaultDocsExclude,
-  defaultOutDir,
-} from "@ddtds/core";
+export { DdtCompileError, defaultDocsInclude, defaultDocsExclude } from "@ddtds/core";
 export { moduleFiles } from "./codegen.ts";
 export type { LogLevel } from "@ddtds/core/log";
 

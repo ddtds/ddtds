@@ -3,22 +3,9 @@ import { globSync } from "tinyglobby";
 import { defaultDocsExclude, defaultDocsInclude } from "./constants.ts";
 
 export { CodeBlock, parseCodeFences } from "./blocks.ts";
-export {
-  type Lang,
-  ANNOTATIONS,
-  type Annotation,
-  defaultDocsInclude,
-  defaultDocsExclude,
-  defaultOutDir,
-} from "./constants.ts";
+export { defaultDocsInclude, defaultDocsExclude, defaultOutDir } from "./constants.ts";
 export { DocIndex, type Fence, type IndexOptions } from "./docs.ts";
-export {
-  DdtCompileError,
-  type CompileDiagnostic,
-  type CompileErrorDetails,
-  type CompileLabel,
-  type Position,
-} from "./compile-error.ts";
+export { DdtCompileError } from "./compile-error.ts";
 
 export type DocsOptions = {
   /** Globs of docs to test, relative to the root. Defaults to `defaultDocsInclude` when unset or empty. */
@@ -27,11 +14,11 @@ export type DocsOptions = {
   exclude?: string[];
 };
 
-export function findDocs(root: string, include: string[], exclude: string[]): string[] {
+function findDocs(root: string, include: string[], exclude: string[]): string[] {
   return globSync(include, { cwd: root, ignore: exclude, absolute: true });
 }
 
-export type DocsConfig = DocsOptions & {
+type DocsConfig = DocsOptions & {
   /** Directory that `include` and `exclude` are relative to. */
   root: string;
 };
