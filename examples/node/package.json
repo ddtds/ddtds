@@ -7,7 +7,7 @@
     ".": "./src/index.ts"
   },
   "scripts": {
-    "test": "node --enable-source-maps --test --import @ddtds/node/register \"*.md\""
+    "test": "node --enable-source-maps --test --import @ddtds/node/register \"test/*.test.ts\" \"docs/*.md\" README.md"
   },
   "devDependencies": {
     "@ddtds/node": "workspace:*"

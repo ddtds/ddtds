@@ -1,6 +1,12 @@
 # Node Example
 
-Fences run with `node --test`, asserting with `assert` from `node:assert` in strict mode.
+A small string library whose unit tests and docs both run with `node --test`:
+
+```sh
+node --enable-source-maps --test --import @ddtds/node/register "test/*.test.ts" "docs/*.md" README.md
+```
+
+Fences assert with `assert` from `node:assert`, in strict mode:
 
 ```ts run
 import { slugify } from "@ddtds/example-node";
@@ -8,17 +14,4 @@ import { slugify } from "@ddtds/example-node";
 assert.equal(slugify("Hello, World!"), "hello-world");
 ```
 
-Types are stripped by Node, so fences can be TypeScript:
-
-```ts run
-import { slugify } from "@ddtds/example-node";
-
-const titles: string[] = ["  Getting Started ", "API & Usage"];
-assert.deepEqual(titles.map(slugify), ["getting-started", "api-usage"]);
-```
-
-A `fail` fence passes only when it throws:
-
-```ts fail
-assert.equal(1 + 1, 3);
-```
+See [the guide](docs/guide.md) for more.
