@@ -48,9 +48,9 @@ test("errors in hidden setup fail the fence, pointing at the comment", async () 
       fence("1;"),
     ].join("\n"),
   });
-  const errors = Object.entries(await failures(root)).map(
-    ([name, { error }]) => `${name} ${error}`,
-  );
+  const errors = Object.entries(await failures(root))
+    .map(([name, { error }]) => `${name} ${error}`)
+    .toSorted();
   expect(errors).toMatchInlineSnapshot(`
     [
       "guide.md:14 DdtCompileError: guide.md:12:7 Unexpected token (ts block at line 14)",
