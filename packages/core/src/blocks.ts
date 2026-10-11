@@ -119,15 +119,26 @@ export class CodeBlock {
   }
 }
 
-const ddtComment = /^<!--\s*ddt\s*\n(?<code>[\s\S]*)\n\s*-->$/;
+/** A ddt comment's opening line, and the whole comment with the setup code on the lines between */
+type DdtComment = Readonly<{ open: RegExp; comment: RegExp }>;
 
-/** Setup code from a `<!-- ddt` comment right before a fence, with code on the lines between */
+/** `<!-- ddt` in markdown; `{/* ddt` in MDX, which has no HTML comments */
+const ddtComments: Partial<Record<RootContent["type"], DdtComment>> = {
+  html: { open: /^<!--\s*ddt\b/, comment: /^<!--\s*ddt\s*\n(?<code>[\s\S]*)\n\s*-->$/ },
+  mdxFlowExpression: {
+    open: /^\/\*\s*ddt\b/,
+    comment: /^\/\*\s*ddt\s*\n(?<code>[\s\S]*)\n\s*\*\/$/,
+  },
+};
+
+/** Setup code from a ddt comment right before a fence */
 function hiddenCode(node: RootContent | undefined, log: Logger): HiddenCode | undefined {
-  if (node?.type !== "html" || !node.position) return undefined;
-  if (!/^<!--\s*ddt\b/.test(node.value)) return undefined;
-  const code = ddtComment.exec(node.value)?.groups?.["code"];
+  if (!node || !("value" in node) || !node.position) return undefined;
+  const ddt = ddtComments[node.type];
+  if (!ddt?.open.test(node.value)) return undefined;
+  const code = ddt.comment.exec(node.value)?.groups?.["code"];
   if (code === undefined) {
-    log.error("ddt comments put setup code on the lines between `<!-- ddt` and `-->`");
+    log.error("ddt comments put setup code on the lines between the opening and closing lines");
     return undefined;
   }
   const { start } = node.position;
