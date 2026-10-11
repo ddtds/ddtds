@@ -153,7 +153,6 @@ describe("in-memory modules", () => {
     expect(out).toContain('import("/root/f5.ts")');
     expect(out).toMatchInlineSnapshot(`
       "import { test } from 'vitest';
-      import { wrapDdtTest } from '@ddtds/vitest';
       const fences = await Promise.all([
         import("/root/f1.ts").then(
           ({ default: run }) => run,
@@ -168,8 +167,8 @@ describe("in-memory modules", () => {
           },
         ),
       ]);
-      test("t.md:1", () => wrapDdtTest(() => fences[0]()));
-      test("t.md:5", () => wrapDdtTest(() => fences[1]()));"
+      test("t.md:1", fences[0]);
+      test("t.md:5", fences[1]);"
     `);
   });
 });

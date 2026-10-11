@@ -75,7 +75,7 @@ test("reruns a doc when it is edited in watch mode", async () => {
         "guide.md:1": "passed",
       },
       {
-        "guide.md:1": "runtime-failure",
+        "guide.md:1": "AssertionError",
       },
     ]
   `);

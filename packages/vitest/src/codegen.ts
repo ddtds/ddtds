@@ -69,11 +69,10 @@ export function docModule(fences: readonly Fence[]): string {
   );
   const tests = fences.map((fence, i) => {
     const name = JSON.stringify(`${fence.block.details.file}:${fence.block.line}`);
-    return `test(${name}, () => wrapDdtTest(() => fences[${i}]()));`;
+    return `test(${name}, fences[${i}]);`;
   });
   return [
     "import { test } from 'vitest';",
-    ddtImport("wrapDdtTest"),
     "const fences = await Promise.all([",
     ...loads,
     "]);",

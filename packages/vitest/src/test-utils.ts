@@ -1,6 +1,6 @@
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { dirname, join, relative } from "node:path";
-import { onTestFinished } from "vitest";
+import { onTestFinished, type ParsedStack } from "vitest";
 import type { ViteUserConfig } from "vitest/config";
 import { createVitest, type Reporter, type TestModule, type Vitest } from "vitest/node";
 import { ddtPlugin, type DdtPluginOptions } from "./index.ts";
@@ -54,8 +54,7 @@ function outcomes(modules: readonly TestModule[]): Outcomes {
     for (const error of module.errors()) results[module.moduleId] = error.message;
     for (const testCase of module.children.allTests()) {
       const { state, errors } = testCase.result();
-      const kind = errors?.[0]?.kind;
-      results[testCase.name] = typeof kind === "string" ? kind : state;
+      results[testCase.name] = errors?.[0]?.name ?? state;
     }
   }
   return results;
@@ -75,6 +74,34 @@ export async function run(root: string, plugin: DdtPluginOptions = {}): Promise<
   await using instance = await vitest(root, { plugin });
   await instance.start();
   return outcomes(instance.state.getTestModules());
+}
+
+type Failure = { error: string; diff?: string; frames: string[] };
+
+function frame(root: string, { file, line }: ParsedStack): string {
+  return `${relative(root, file).replace(/__ddtds__-\w+/, "__ddtds__")}:${line}`;
+}
+
+/** The first error of each failed test, with only the stack frames inside the fixture */
+export async function failures(root: string): Promise<Record<string, Failure>> {
+  await using instance = await vitest(root);
+  await instance.start();
+  const results: Record<string, Failure> = {};
+  for (const module of instance.state.getTestModules()) {
+    for (const testCase of module.children.allTests()) {
+      const [error] = testCase.result().errors ?? [];
+      if (!error) continue;
+      const frames = (error.stacks ?? [])
+        .filter(({ file }) => file.startsWith(root))
+        .map((stack) => frame(root, stack));
+      results[testCase.name] = {
+        error: `${error.name}: ${error.message}`,
+        diff: error.diff,
+        frames,
+      };
+    }
+  }
+  return results;
 }
 
 export async function watch(root: string, edit: () => void): Promise<Outcomes[]> {
