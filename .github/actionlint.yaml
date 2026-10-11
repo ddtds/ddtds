@@ -1,4 +1,4 @@
 paths:
-  .github/workflows/ci\.yml:
+  .github/workflows/*.yml:
     ignore:
       - "ref is missing"
