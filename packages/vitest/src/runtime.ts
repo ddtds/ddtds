@@ -21,9 +21,11 @@ export async function loadFences(
 }
 
 export function expectFailure(run: FenceRun): FenceRun {
-  // A fail fence may throw any error
-  // oxlint-disable-next-line vitest/require-to-throw-message
-  return () => expect(run).rejects.toThrow();
+  return async () => {
+    // A fail fence may throw any error
+    // oxlint-disable-next-line vitest/require-to-throw-message
+    await expect(run).rejects.toThrow();
+  };
 }
 
 export function compileError(details: CompileErrorDetails, cause?: unknown): FenceRun {

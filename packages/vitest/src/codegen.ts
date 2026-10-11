@@ -19,24 +19,20 @@ function importFrom<Module extends keyof ModuleExports>(
   return `import { ${names.join(", ")} } from '${module}';`;
 }
 
-type RuntimeExport = keyof ModuleExports["@ddtds/vitest/runtime"];
-
-function runtimeImport(...names: readonly RuntimeExport[]): string {
-  return importFrom("@ddtds/vitest/runtime", ...names);
-}
-
 type FenceCode = { imports: string[]; body: string };
 
-function runtimeCall(name: RuntimeExport, ...args: readonly string[]): FenceCode {
-  return { imports: [runtimeImport(name)], body: `${name}(${args.join(", ")})` };
+function runtimeCall(
+  name: keyof ModuleExports["@ddtds/vitest/runtime"],
+  ...args: readonly string[]
+): FenceCode {
+  const imports = [importFrom("@ddtds/vitest/runtime", name)];
+  return { imports, body: `${name}(${args.join(", ")})` };
 }
 
 function compileErrorCode(error: DdtCompileError): FenceCode {
-  const cause = error.cause === undefined ? [] : [serializeCause(error.cause)];
-  return runtimeCall(
-    "compileError",
-    ...[error.details, ...cause].map((arg) => JSON.stringify(arg)),
-  );
+  const details = JSON.stringify(error.details);
+  if (error.cause === undefined) return runtimeCall("compileError", details);
+  return runtimeCall("compileError", details, JSON.stringify(serializeCause(error.cause)));
 }
 
 function serializeCause(cause: unknown): unknown {
@@ -51,8 +47,8 @@ function runCode(imports: string[], body: string): FenceCode {
 
 function blockCode(block: CodeBlock): FenceCode {
   const { imports, body } = block.splitImports();
-  if (!block.shouldFail()) return runCode(imports, body);
   const run = runCode(imports, body);
+  if (!block.shouldFail()) return run;
   const failure = runtimeCall("expectFailure", run.body);
   return { imports: [...run.imports, ...failure.imports], body: failure.body };
 }
@@ -89,7 +85,7 @@ export function docModule(fences: readonly Fence[]): string {
   });
   return [
     importFrom("vitest", "test"),
-    runtimeImport("loadFences"),
+    importFrom("@ddtds/vitest/runtime", "loadFences"),
     "const fences = await loadFences([",
     ...loads,
     "]);",
