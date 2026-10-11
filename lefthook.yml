@@ -8,15 +8,26 @@ pre-commit:
       run: pnpm run validate:renovate
 
 pre-push:
-  parallel: true
+  # build once, then check in parallel; checks that load packages use the build
+  piped: true
   jobs:
-    - name: lint
-      run: pnpm run lint
-    - name: sherif
-      run: pnpm run sherif
-    - name: knip
-      run: pnpm run knip
-    - name: typecheck
-      run: pnpm run typecheck
-    - name: test
-      run: pnpm run test
+    - name: build
+      run: pnpm run build
+    - group:
+        parallel: true
+        jobs:
+          - name: lint
+            run: pnpm run lint
+          - name: sherif
+            run: pnpm run sherif
+          - name: knip
+            run: pnpm run knip
+          - name: typecheck
+            run: pnpm run typecheck
+          - name: publint
+            run: pnpm run publint
+          - name: attw
+            run: pnpm run attw
+          # not `pnpm test`, whose pretest would rebuild while other checks read dist
+          - name: test
+            run: pnpm exec vitest run
