@@ -1,6 +1,11 @@
 {
   "name": "@ddtds/core",
   "version": "0.0.0",
+  "files": [
+    "src",
+    "!src/**/*.test.ts",
+    "!src/test-utils.ts"
+  ],
   "type": "module",
   "exports": {
     ".": "./src/index.ts",
