@@ -1,6 +1,17 @@
 import { describe, expect, test } from "vitest";
-import { ANNOTATIONS, CodeBlock, type Annotation, type Fence, type Lang } from "@ddtds/core";
-import { docModule, fenceModule } from "./codegen";
+import {
+  ANNOTATIONS,
+  CodeBlock,
+  docModule as generateDocModule,
+  fenceModule as generateFenceModule,
+  type Annotation,
+  type Fence,
+  type Lang,
+} from "@ddtds/core";
+import { vitestRunner } from "./runner.ts";
+
+const fenceModule = (fence: Fence): string => generateFenceModule(vitestRunner, fence);
+const docModule = (fences: readonly Fence[]): string => generateDocModule(vitestRunner, fences);
 
 function block(
   code: string,

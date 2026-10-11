@@ -13,6 +13,15 @@ export {
 } from "./constants.ts";
 export { DocIndex, type Fence, type IndexOptions } from "./docs.ts";
 export {
+  docModule,
+  fenceModule,
+  moduleFiles,
+  typedImports,
+  type Runner,
+  type RuntimeModule,
+} from "./codegen.ts";
+export type { FenceRun, FenceRuntime } from "./runtime.ts";
+export {
   DdtCompileError,
   type CompileDiagnostic,
   type CompileErrorDetails,
