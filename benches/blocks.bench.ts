@@ -1,5 +1,5 @@
 import { bench, describe } from "vitest";
-import { CodeBlock } from "./blocks";
+import { CodeBlock } from "@ddtds/core";
 
 const code = `import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
