@@ -8,9 +8,9 @@ export { DocIndex, type Fence, type IndexOptions } from "./docs.ts";
 export { DdtCompileError } from "./compile-error.ts";
 
 export type DocsOptions = {
-  /** Globs of docs to test, relative to the root. Defaults to `defaultDocsInclude` when unset or empty. */
+  /** Globs of docs to test, relative to the root. Defaults to `defaultInclude` from `@ddtds/vitest/config` when unset or empty. */
   include?: string[];
-  /** Globs of docs to skip, relative to the root. Replaces `defaultDocsExclude` unless unset or empty. */
+  /** Globs of docs to skip, relative to the root. Replaces `defaultExclude` from `@ddtds/vitest/config` unless unset or empty. */
   exclude?: string[];
 };
 

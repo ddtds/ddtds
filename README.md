@@ -6,6 +6,37 @@ ddtds doctests that don't suck
 
 runs your code blocks as tests with your framework of choice
 
+## Usage
+
+Add the plugin to your Vitest config. Doc fences annotated `run` (or `fail`, `compile_fail`) run as tests:
+
+```ts
+// vitest.config.ts
+import { defineConfig } from "vitest/config";
+import { ddtPlugin } from "@ddtds/vitest";
+
+export default defineConfig({
+  plugins: [ddtPlugin()],
+});
+```
+
+`@ddtds/vitest/config` exports the plugin's defaults, named like Vitest's. Import it as a namespace so
+the names don't clash with `vitest/config`'s:
+
+```ts
+// vitest.config.ts
+import { defaultExclude, defineConfig } from "vitest/config";
+import { ddtPlugin } from "@ddtds/vitest";
+import * as ddtConfig from "@ddtds/vitest/config";
+
+export default defineConfig({
+  // docs to skip: ddtds's defaults plus drafts
+  plugins: [ddtPlugin({ exclude: [...ddtConfig.defaultExclude, "drafts/**"] })],
+  // test files to skip: Vitest's defaults plus e2e tests
+  test: { exclude: [...defaultExclude, "e2e/**"] },
+});
+```
+
 ## Architecture
 
 1. parse codeblocks + tags

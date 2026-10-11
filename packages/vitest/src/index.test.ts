@@ -1,7 +1,7 @@
 import { writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { expect, test } from "vitest";
-import { defaultDocsExclude } from "@ddtds/vitest/config";
+import * as ddtConfig from "@ddtds/vitest/config";
 import { collect, fence, fixture, run, watch } from "./test-utils.ts";
 
 const files = {
@@ -53,7 +53,7 @@ test("passes include and exclude to findDocs", async () => {
 
 test("extends the default exclude from @ddtds/vitest/config", async () => {
   const root = fixture({ ...files, "node_modules/dep/README.md": fence("1;") });
-  const plugin = { exclude: [...defaultDocsExclude, "nested/**"] };
+  const plugin = { exclude: [...ddtConfig.defaultExclude, "nested/**"] };
   expect(await collect(root, plugin)).toMatchInlineSnapshot(`
     [
       "guide.md",
