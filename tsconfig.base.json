@@ -12,6 +12,7 @@
     "strict": true,
     "noUncheckedIndexedAccess": true,
     "noImplicitOverride": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "customConditions": ["@ddtds/source"]
   }
 }

@@ -1,9 +1,22 @@
 {
   "name": "@ddtds/vitest",
   "version": "0.0.0",
+  "files": [
+    "dist"
+  ],
   "type": "module",
   "exports": {
-    ".": "./src/index.ts"
+    ".": {
+      "@ddtds/source": "./src/index.ts",
+      "default": "./dist/index.mjs"
+    },
+    "./package.json": "./package.json"
+  },
+  "publishConfig": {
+    "exports": {
+      ".": "./dist/index.mjs",
+      "./package.json": "./package.json"
+    }
   },
   "scripts": {
     "test": "vitest run",
