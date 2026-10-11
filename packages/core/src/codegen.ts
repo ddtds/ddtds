@@ -20,9 +20,12 @@ export type Runner = Readonly<{
 export function typedImports<Modules>() {
   return <Module extends keyof Modules & string>(
     module: Module,
-    ...names: readonly (keyof Modules[Module] & string)[]
+    ...names: readonly ImportName<keyof Modules[Module] & string>[]
   ): string => `import { ${names.join(", ")} } from '${module}';`;
 }
+
+/** An export, or an export renamed with `as` */
+type ImportName<Export extends string> = Export | `${Export} as ${string}`;
 
 /**
  * A runtime module path, checked against the module's type, e.g.

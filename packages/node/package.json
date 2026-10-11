@@ -1,0 +1,20 @@
+{
+  "name": "@ddtds/node",
+  "version": "0.0.0",
+  "type": "module",
+  "exports": {
+    "./register": "./src/register.ts",
+    "./runtime": "./src/runtime.ts"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc"
+  },
+  "dependencies": {
+    "@ddtds/core": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "catalog:dev",
+    "vitest": "catalog:dev"
+  }
+}
