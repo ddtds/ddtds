@@ -1,6 +1,7 @@
 import { writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { expect, test } from "vitest";
+import { defaultDocsExclude } from "@ddtds/vitest/config";
 import { collect, fence, fixture, run, watch } from "./test-utils.ts";
 
 const files = {
@@ -43,6 +44,17 @@ test("finds docs when the user sets test.dir", async () => {
 test("passes include and exclude to findDocs", async () => {
   const plugin = { include: ["**/*.md"], exclude: ["nested/**"] };
   expect(await collect(fixture(files), plugin)).toMatchInlineSnapshot(`
+    [
+      "guide.md",
+      "unit.test.ts",
+    ]
+  `);
+});
+
+test("extends the default exclude from @ddtds/vitest/config", async () => {
+  const root = fixture({ ...files, "node_modules/dep/README.md": fence("1;") });
+  const plugin = { exclude: [...defaultDocsExclude, "nested/**"] };
+  expect(await collect(root, plugin)).toMatchInlineSnapshot(`
     [
       "guide.md",
       "unit.test.ts",
