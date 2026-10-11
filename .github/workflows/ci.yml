@@ -46,3 +46,12 @@ jobs:
           VITEST_VERSION: ${{ matrix.vitest-version }}
       - run: pnpm install --no-frozen-lockfile
       - run: pnpm run test:coverage
+
+  node:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: $/.github/actions/setup
+      - run: pnpm --filter @ddtds/example-node test
