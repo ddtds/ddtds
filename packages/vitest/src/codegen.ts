@@ -2,7 +2,7 @@ import { DdtCompileError, type CodeBlock, type DocIndex, type Fence } from "@ddt
 
 type ModuleExports = {
   vitest: typeof import("vitest");
-  "@ddtds/vitest": typeof import("./index.ts");
+  "@ddtds/vitest/runtime": typeof import("./runtime.ts");
 };
 
 function indent(code: string): string {
@@ -19,13 +19,24 @@ function importFrom<Module extends keyof ModuleExports>(
   return `import { ${names.join(", ")} } from '${module}';`;
 }
 
+type RuntimeExport = keyof ModuleExports["@ddtds/vitest/runtime"];
+
+function runtimeImport(...names: readonly RuntimeExport[]): string {
+  return importFrom("@ddtds/vitest/runtime", ...names);
+}
+
 type FenceCode = { imports: string[]; body: string };
 
+function runtimeCall(name: RuntimeExport, ...args: readonly string[]): FenceCode {
+  return { imports: [runtimeImport(name)], body: `${name}(${args.join(", ")})` };
+}
+
 function compileErrorCode(error: DdtCompileError): FenceCode {
-  const cause =
-    error.cause === undefined ? "" : `, { cause: ${JSON.stringify(serializeCause(error.cause))} }`;
-  const body = `throw new DdtCompileError(${JSON.stringify(error.details)}${cause});`;
-  return { imports: [importFrom("@ddtds/vitest", "DdtCompileError")], body };
+  const cause = error.cause === undefined ? [] : [serializeCause(error.cause)];
+  return runtimeCall(
+    "compileError",
+    ...[error.details, ...cause].map((arg) => JSON.stringify(arg)),
+  );
 }
 
 function serializeCause(cause: unknown): unknown {
@@ -34,52 +45,52 @@ function serializeCause(cause: unknown): unknown {
   return { name: cause.name, message: cause.message, ...code };
 }
 
-function compiledCode(): FenceCode {
-  return {
-    imports: [],
-    body: 'throw new Error("expected a compile_fail block to fail to compile");',
-  };
+function runCode(imports: string[], body: string): FenceCode {
+  return { imports: [importFrom("vitest", "expect"), ...imports], body: asyncFunction(body) };
 }
 
 function blockCode(block: CodeBlock): FenceCode {
   const { imports, body } = block.splitImports();
-  if (!block.shouldFail()) return { imports, body };
-  const rejects = `await expect(async () => {\n${indent(body)}\n}).rejects.toThrow();`;
-  return { imports, body: rejects };
+  if (!block.shouldFail()) return runCode(imports, body);
+  const run = runCode(imports, body);
+  const failure = runtimeCall("expectFailure", run.body);
+  return { imports: [...run.imports, ...failure.imports], body: failure.body };
 }
 
 function fenceCode({ block }: Fence): FenceCode {
   try {
     const code = blockCode(block);
-    return block.shouldFailToCompile() ? compiledCode() : code;
+    if (!block.shouldFailToCompile()) return code;
+    return runtimeCall("missingCompileError");
   } catch (error) {
     if (!(error instanceof DdtCompileError)) throw error;
     if (block.shouldFailToCompile() && error.details.phase === "parse") {
-      return { imports: [], body: "" };
+      return { imports: [], body: asyncFunction("") };
     }
     return compileErrorCode(error);
   }
 }
 
+function asyncFunction(body: string): string {
+  if (body.length === 0) return "async () => {}";
+  return `async () => {\n${indent(body)}\n}`;
+}
+
 export function fenceModule(fence: Fence): string {
   const { imports, body } = fenceCode(fence);
-  const header = [importFrom("vitest", "expect"), ...imports].join("\n");
-  const run = body.length === 0 ? "" : `\n${indent(body)}\n`;
-  return `${header}\nexport default async function () {${run}}`;
+  return [...imports, `export default ${body};`].join("\n");
 }
 
 export function docModule(fences: readonly Fence[]): string {
-  const loads = fences.map(
-    ({ id }) =>
-      `  import(${JSON.stringify(id)}).then(\n    ({ default: run }) => run,\n    (error) => () => {\n      throw error;\n    },\n  ),`,
-  );
+  const loads = fences.map(({ id }) => `  () => import(${JSON.stringify(id)}),`);
   const tests = fences.map((fence, i) => {
     const name = JSON.stringify(`${fence.block.details.file}:${fence.block.line}`);
     return `test(${name}, fences[${i}]);`;
   });
   return [
     importFrom("vitest", "test"),
-    "const fences = await Promise.all([",
+    runtimeImport("loadFences"),
+    "const fences = await loadFences([",
     ...loads,
     "]);",
     ...tests,
