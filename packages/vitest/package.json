@@ -10,11 +10,16 @@
       "@ddtds/source": "./src/index.ts",
       "default": "./dist/index.mjs"
     },
+    "./config": {
+      "@ddtds/source": "./src/config.ts",
+      "default": "./dist/config.mjs"
+    },
     "./package.json": "./package.json"
   },
   "publishConfig": {
     "exports": {
       ".": "./dist/index.mjs",
+      "./config": "./dist/config.mjs",
       "./package.json": "./package.json"
     }
   },
