@@ -1,4 +1,5 @@
 import { remark } from "remark";
+import type { RootContent } from "mdast";
 import { visit } from "unist-util-visit";
 import {
   ANNOTATIONS,
@@ -24,6 +25,14 @@ function parseAnnotation(meta: string): AnnotationResult {
   return { tag: "unknown", raw: meta };
 }
 
+/** Setup code from a `<!-- ddt ... -->` comment just before a fence, run before the fence */
+export type HiddenCode = Readonly<{
+  code: string;
+  /** 1 indexed line of the first line of code in the markdown */
+  line: number;
+  indent: number;
+}>;
+
 export type CodeBlockInit = {
   code: string;
   lang: Lang;
@@ -31,6 +40,7 @@ export type CodeBlockInit = {
   path: string;
   range: SourceRange;
   indent: number;
+  hidden?: HiddenCode;
 };
 
 export class CodeBlock {
@@ -40,9 +50,11 @@ export class CodeBlock {
   readonly #path: string;
   readonly #range: SourceRange;
   readonly #indent: number;
+  readonly #hidden: HiddenCode | undefined;
 
-  public constructor({ code, lang, annotation, path, range, indent }: CodeBlockInit) {
+  public constructor({ code, lang, annotation, path, range, indent, hidden }: CodeBlockInit) {
     this.#code = code;
+    this.#hidden = hidden;
     this.lang = lang;
     this.#annotation = annotation;
     this.#path = path;
@@ -65,12 +77,25 @@ export class CodeBlock {
     };
   }
 
-  /** maps code block offset to file position */
+  /** The code that runs: hidden setup, then the fence's own code */
+  public get source(): string {
+    return this.#hidden ? `${this.#hidden.code}\n${this.#code}` : this.#code;
+  }
+
+  /** Maps an offset in {@link source} to its position in the markdown */
   public positionAt(offset: number): Position {
-    const before = this.#code.slice(0, offset);
-    const line = this.line + before.split("\n").length;
-    const column = offset - this.#code.lastIndexOf("\n", offset - 1) + this.#indent;
-    return { line, column };
+    const before = this.source.slice(0, offset);
+    const line = before.split("\n").length - 1;
+    return this.docPosition(line, offset - before.lastIndexOf("\n") - 1);
+  }
+
+  /** Maps a 0 indexed line and column in {@link source} to its position in the markdown */
+  public docPosition(line: number, column: number): Position {
+    const hiddenLines = this.#hidden?.code.split("\n").length ?? 0;
+    if (this.#hidden && line < hiddenLines) {
+      return { line: this.#hidden.line + line, column: column + 1 + this.#hidden.indent };
+    }
+    return { line: this.line + 1 + line - hiddenLines, column: column + 1 + this.#indent };
   }
 
   public get outputExtension(): OutputExtension {
@@ -94,11 +119,26 @@ export class CodeBlock {
   }
 }
 
+const ddtComment = /^<!--\s*ddt\s*\n(?<code>[\s\S]*)\n\s*-->$/;
+
+/** Setup code from a `<!-- ddt` comment right before a fence, with code on the lines between */
+function hiddenCode(node: RootContent | undefined, log: Logger): HiddenCode | undefined {
+  if (node?.type !== "html" || !node.position) return undefined;
+  if (!/^<!--\s*ddt\b/.test(node.value)) return undefined;
+  const code = ddtComment.exec(node.value)?.groups?.["code"];
+  if (code === undefined) {
+    log.error("ddt comments put setup code on the lines between `<!-- ddt` and `-->`");
+    return undefined;
+  }
+  const { start } = node.position;
+  return { code, line: start.line + 1, indent: start.column - 1 };
+}
+
 export function parseCodeFences(source: string, path: string, log: Logger): CodeBlock[] {
   const tree = remark().parse(source);
   const blocks: CodeBlock[] = [];
 
-  visit(tree, "code", (node) => {
+  visit(tree, "code", (node, index, parent) => {
     const { lang, meta } = node;
     if (!meta || !lang || !isLang(lang)) return;
 
@@ -124,6 +164,7 @@ export function parseCodeFences(source: string, path: string, log: Logger): Code
           end: { line: end.line, column: end.column },
         },
         indent: start.column - 1,
+        hidden: hiddenCode(index === undefined ? undefined : parent?.children[index - 1], log),
       }),
     );
   });

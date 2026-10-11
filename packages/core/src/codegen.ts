@@ -84,7 +84,7 @@ function commonJs(doc: string): string[] {
 
 function blockCode(runner: Runner, doc: string, block: CodeBlock): FenceCode {
   const { imports, body } = block.splitImports();
-  const cjs = commonJsNames.test(block.code) ? commonJs(doc) : [];
+  const cjs = commonJsNames.test(block.source) ? commonJs(doc) : [];
   const run = runCode(runner, [...imports, ...cjs], body);
   if (!block.shouldFail()) return run;
   const failure = runtimeCall(runner, "expectFailure", run.body);

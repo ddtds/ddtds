@@ -92,3 +92,20 @@ test("fences can use CommonJS", async () => {
     }
   `);
 });
+
+test("a ddt comment before a fence runs hidden setup for it", async () => {
+  const root = fixture({
+    "guide.md": [
+      "<!-- ddt",
+      "const total = 1 + 2;",
+      "-->",
+      "",
+      fence("assert.equal(total, 3);"),
+    ].join("\n"),
+  });
+  expect(await runDocs(root, ["guide.md"])).toMatchInlineSnapshot(`
+    {
+      "guide.md:5": "passed",
+    }
+  `);
+});
