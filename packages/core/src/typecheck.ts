@@ -131,8 +131,8 @@ async function checkWithNativeApi(
   const typescript = new API({
     cwd: root,
     fs: {
-      readFile: (file) => virtual.get(file),
-      fileExists: (file) => (virtual.has(file) ? true : undefined),
+      readFile: (file): string | undefined => virtual.get(file),
+      fileExists: (file): true | undefined => (virtual.has(file) ? true : undefined),
     },
   });
   try {
