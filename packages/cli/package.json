@@ -7,7 +7,6 @@
   "files": [
     "src",
     "!src/**/*.test.ts",
-    "!src/**/*.bench.ts",
     "!src/test-utils.ts"
   ],
   "type": "module",
