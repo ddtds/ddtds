@@ -4,6 +4,7 @@ import { join, relative } from "node:path";
 import { defaultExclude, defaultInclude, type Plugin } from "vitest/config";
 import {
   defaultOutDir,
+  type DdtCompileError,
   DocIndex,
   readDocs,
   resolveDocsOptions,
@@ -14,6 +15,9 @@ import { docModule, fenceModule } from "./codegen.ts";
 import { createLogger, parseLogLevel, type LogLevel } from "@ddtds/core/log";
 
 export { DdtCompileError } from "@ddtds/core";
+
+/** Why a fence did not compile: its block, the parser, and each diagnostic */
+export type CompileErrorDetails = DdtCompileError["details"];
 export { moduleFiles } from "./codegen.ts";
 export type { LogLevel } from "@ddtds/core/log";
 

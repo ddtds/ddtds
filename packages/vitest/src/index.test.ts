@@ -1,6 +1,7 @@
 import { writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { expect, test } from "vitest";
+import { expect, expectTypeOf, test } from "vitest";
+import type { CompileErrorDetails } from "@ddtds/vitest";
 import * as ddtConfig from "@ddtds/vitest/config";
 import { collect, fence, fixture, run, watch } from "./test-utils.ts";
 
@@ -101,4 +102,9 @@ test("keeps the user's test.exclude and still skips ddt build output", async () 
       "nested/guide.md",
     ]
   `);
+});
+
+test("exports the type of a compile error's details", () => {
+  expectTypeOf<CompileErrorDetails["phase"]>().toEqualTypeOf<"parse" | "parser-crash">();
+  expectTypeOf<CompileErrorDetails["block"]["lang"]>().toExtend<string>();
 });
