@@ -8,6 +8,8 @@
   },
   "devDependencies": {
     "@ddtds/vitest": "workspace:*",
+    "@types/node": "catalog:dev",
+    "typescript": "^6.0.3",
     "vitest": "catalog:dev"
   }
 }
