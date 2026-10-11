@@ -147,14 +147,12 @@ function hiddenCode(node: RootContent | undefined, log: Logger): HiddenCode | un
   return { code, line: start.line + 1, indent: start.column - 1 };
 }
 
-/** Markdown, or MDX for `.mdx` files so fences inside components count */
+/**
+ * Markdown, or MDX for `.mdx` files so fences inside components count. Any text is valid
+ * markdown, so only MDX can fail to parse.
+ */
 function parseMarkdown(source: string, path: string): MdastNode {
-  if (!path.endsWith(".mdx")) return markdownToMdast(source);
-  try {
-    return mdxToMdast(source);
-  } catch (error) {
-    throw new Error(`${path} is not valid MDX`, { cause: error });
-  }
+  return path.endsWith(".mdx") ? mdxToMdast(source) : markdownToMdast(source);
 }
 
 export function parseCodeFences(source: string, path: string, log: Logger): CodeBlock[] {
