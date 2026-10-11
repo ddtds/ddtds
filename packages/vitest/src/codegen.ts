@@ -1,6 +1,9 @@
 import { DdtCompileError, type CodeBlock, type DocIndex, type Fence } from "@ddtds/core";
 
-type DdtVitestExports = keyof typeof import("./index.ts");
+type ModuleExports = {
+  vitest: typeof import("vitest");
+  "@ddtds/vitest": typeof import("./index.ts");
+};
 
 function indent(code: string): string {
   return code
@@ -9,8 +12,11 @@ function indent(code: string): string {
     .join("\n");
 }
 
-function ddtImport(...names: readonly DdtVitestExports[]): string {
-  return `import { ${names.join(", ")} } from '@ddtds/vitest';`;
+function importFrom<Module extends keyof ModuleExports>(
+  module: Module,
+  ...names: readonly (keyof ModuleExports[Module] & string)[]
+): string {
+  return `import { ${names.join(", ")} } from '${module}';`;
 }
 
 type FenceCode = { imports: string[]; body: string };
@@ -19,7 +25,7 @@ function compileErrorCode(error: DdtCompileError): FenceCode {
   const cause =
     error.cause === undefined ? "" : `, { cause: ${JSON.stringify(serializeCause(error.cause))} }`;
   const body = `throw new DdtCompileError(${JSON.stringify(error.details)}${cause});`;
-  return { imports: [ddtImport("DdtCompileError")], body };
+  return { imports: [importFrom("@ddtds/vitest", "DdtCompileError")], body };
 }
 
 function serializeCause(cause: unknown): unknown {
@@ -57,7 +63,7 @@ function fenceCode({ block }: Fence): FenceCode {
 
 export function fenceModule(fence: Fence): string {
   const { imports, body } = fenceCode(fence);
-  const header = ["import { expect } from 'vitest';", ...imports].join("\n");
+  const header = [importFrom("vitest", "expect"), ...imports].join("\n");
   const run = body.length === 0 ? "" : `\n${indent(body)}\n`;
   return `${header}\nexport default async function () {${run}}`;
 }
@@ -72,7 +78,7 @@ export function docModule(fences: readonly Fence[]): string {
     return `test(${name}, fences[${i}]);`;
   });
   return [
-    "import { test } from 'vitest';",
+    importFrom("vitest", "test"),
     "const fences = await Promise.all([",
     ...loads,
     "]);",
