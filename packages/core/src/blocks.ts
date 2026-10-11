@@ -11,7 +11,7 @@ import {
 } from "./constants.ts";
 import type { BlockDetails, Position, SourceRange } from "./compile-error.ts";
 import { splitImportsAndBlock } from "./parse.ts";
-import type { Logger } from "./logger.ts";
+import { logger } from "./logger.ts";
 
 type AnnotationResult =
   | { tag: "ok"; annotation: Annotation }
@@ -102,7 +102,7 @@ function parseMarkdown(source: string, path: string): MdastNode {
   return path.endsWith(".mdx") ? mdxToMdast(source) : markdownToMdast(source);
 }
 
-export function parseCodeFences(source: string, path: string, log: Logger): CodeBlock[] {
+export function parseCodeFences(source: string, path: string): CodeBlock[] {
   const tree = parseMarkdown(source, path);
   const blocks: CodeBlock[] = [];
 
@@ -112,12 +112,12 @@ export function parseCodeFences(source: string, path: string, log: Logger): Code
 
     const result = parseAnnotation(meta);
     if (result.tag === "unknown") {
-      log.error(`unknown annotation in code block: "${result.raw}"`);
+      logger.error(`unknown annotation in code block: "${result.raw}"`);
       return;
     }
     if (result.tag === "none" || result.annotation === ANNOTATIONS.SKIP) return;
     if (!node.position) {
-      log.error(`code block missing position info, skipping`);
+      logger.error(`code block missing position info, skipping`);
       return;
     }
     const { start, end } = node.position;

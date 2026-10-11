@@ -1,20 +1,18 @@
+import {
+  configureSync,
+  getConfig,
+  getLogger,
+  type Logger,
+  type LogRecord,
+  type Sink,
+} from "@logtape/logtape";
+
 const LOG_LEVELS = ["silent", "error", "info", "debug", "trace"] as const;
 
 export type LogLevel = (typeof LOG_LEVELS)[number];
 
-export interface Logger {
-  error: (message: string) => void;
-  info: (message: string) => void;
-  debug: (message: string) => void;
-  trace: (message: string) => void;
-}
-
 function isLogLevel(value: string): value is LogLevel {
   return LOG_LEVELS.some((level) => level === value);
-}
-
-function isEnabled(configuredLevel: LogLevel, messageLevel: Exclude<LogLevel, "silent">): boolean {
-  return LOG_LEVELS.indexOf(configuredLevel) >= LOG_LEVELS.indexOf(messageLevel);
 }
 
 export function parseLogLevel(value: string | undefined): LogLevel {
@@ -27,23 +25,37 @@ export function parseLogLevel(value: string | undefined): LogLevel {
   return normalized;
 }
 
-export function createLogger(level: LogLevel = "info"): Logger {
-  return {
-    error: (message) => {
-      if (isEnabled(level, "error")) console.error(message);
-    },
-    info: (message) => {
-      if (isEnabled(level, "info")) console.log(message);
-    },
-    debug: (message) => {
-      if (isEnabled(level, "debug")) console.debug(message);
-    },
-    trace: (message) => {
-      if (isEnabled(level, "trace")) console.debug(message);
-    },
-  };
+/** ddtds logs under the `ddtds` LogTape category, which applications can route themselves */
+export const logger: Logger = getLogger(["ddtds"]);
+
+/** A log line's text, without LogTape's timestamp and category */
+export function renderMessage({ message }: LogRecord): string {
+  return message.join("");
 }
 
-export function createLoggerFromEnv(): Logger {
-  return createLogger(parseLogLevel(process.env.DDT_LOG_LEVEL));
+/** The LogTape config ddtds set, to tell it apart from an application's own */
+let ours: ReturnType<typeof getConfig> = null;
+
+/**
+ * Sends ddtds logs at `level` and above to `sink`. Leaves LogTape alone when the application
+ * configured it, so ddtds logs follow the application's own config.
+ */
+export function configureLogging(level: LogLevel, sink: Sink): void {
+  const current = getConfig();
+  if (current !== null && current !== ours) return;
+  const route = level === "silent" ? { sinks: [] } : { lowestLevel: level, sinks: ["ddtds"] };
+  configureSync({
+    reset: true,
+    sinks: { ddtds: sink },
+    loggers: [
+      { category: ["ddtds"], ...route },
+      { category: ["logtape", "meta"], sinks: [] },
+    ],
+  });
+  ours = getConfig();
 }
+
+export const consoleSink: Sink = (record) => {
+  if (record.level === "error" || record.level === "fatal") console.error(renderMessage(record));
+  else console.log(renderMessage(record));
+};

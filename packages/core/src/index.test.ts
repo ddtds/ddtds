@@ -15,9 +15,6 @@ import {
   type Lang,
 } from "./index";
 import { isLang } from "./constants";
-import { createLogger } from "./logger";
-
-const silent = createLogger("silent");
 
 describe("parseBlocks", () => {
   test.each([
@@ -28,11 +25,7 @@ describe("parseBlocks", () => {
     ["ts", ANNOTATIONS.FAIL],
     ["ts", ANNOTATIONS.COMPILE_FAIL],
   ])("collects %s blocks annotated %s", (lang, annotation) => {
-    const blocks = parseCodeFences(
-      `\`\`\`${lang} ${annotation}\nconst x = 1\n\`\`\``,
-      "t.md",
-      silent,
-    );
+    const blocks = parseCodeFences(`\`\`\`${lang} ${annotation}\nconst x = 1\n\`\`\``, "t.md");
     expect(blocks).toHaveLength(1);
     expect(blocks[0]!).toMatchObject({ lang });
   });
@@ -47,7 +40,7 @@ describe("parseBlocks", () => {
     const src = meta
       ? `\`\`\`${lang} ${meta}\nconst x = 1\n\`\`\``
       : `\`\`\`${lang}\nconst x = 1\n\`\`\``;
-    expect(parseCodeFences(src, "t.md", silent)).toHaveLength(0);
+    expect(parseCodeFences(src, "t.md")).toHaveLength(0);
   });
 });
 
@@ -94,7 +87,7 @@ describe("parseBlocks: line numbers", () => {
       "```",
     ].join("\n");
 
-    const blocks = parseCodeFences(source, "t.md", silent);
+    const blocks = parseCodeFences(source, "t.md");
     expect(blocks).toHaveLength(2);
     expect(blocks[0]!.line).toBe(1);
     expect(blocks[1]!.line).toBe(7);
@@ -194,7 +187,7 @@ describe("CodeBlock.splitImports", () => {
 
   test("adds the fence indent to columns", () => {
     const source = "- step one:\n\n  ```ts run\n  const = 1;\n  ```\n";
-    const [b] = parseCodeFences(source, "t.md", silent);
+    const [b] = parseCodeFences(source, "t.md");
     expect(b && compileError(b).message).toMatchInlineSnapshot(
       `"t.md:4:9 Unexpected token (ts block at line 3)"`,
     );
@@ -202,7 +195,7 @@ describe("CodeBlock.splitImports", () => {
 
   test("keeps every label and the raw parser error", () => {
     const source = "# Guide\n\n```ts run\nlet x = 1;\nlet x = 2;\n```\n";
-    const [b] = parseCodeFences(source, "t.md", silent);
+    const [b] = parseCodeFences(source, "t.md");
     const error = b && compileError(b);
     expect(error?.message).toMatchInlineSnapshot(
       `"t.md:4:5 Identifier \`x\` has already been declared (ts block at line 3)"`,

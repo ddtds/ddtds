@@ -28,6 +28,7 @@
     "typecheck": "tsc"
   },
   "dependencies": {
+    "@logtape/logtape": "^2.4.0",
     "@oxc-project/types": "^0.150.0",
     "oxc-parser": "^0.150.0",
     "satteri": "^0.10.5",
