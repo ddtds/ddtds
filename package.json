@@ -19,9 +19,9 @@
     "test:update-snapshots": "vitest run -u",
     "test:coverage": "vitest run --coverage",
     "pretest:coverage": "pnpm run build",
-    "knip": "knip",
-    "publint": "pnpm --filter './packages/*' exec publint",
-    "sherif": "sherif",
+    "knip": "knip --treat-config-hints-as-errors",
+    "publint": "pnpm --filter './packages/*' exec publint --strict",
+    "sherif": "sherif --fail-on-warnings",
     "validate:renovate": "renovate-config-validator renovate.json"
   },
   "devDependencies": {
