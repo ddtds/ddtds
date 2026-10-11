@@ -25,7 +25,7 @@ function parseAnnotation(meta: string): AnnotationResult {
   return { tag: "unknown", raw: meta };
 }
 
-/** Setup code from a `<!-- ddt ... -->` comment just before a fence, run before the fence */
+/** Setup code from a `<!-- ddt-hide ... -->` comment just before a fence, run before the fence */
 export type HiddenCode = Readonly<{
   code: string;
   /** 1 indexed line of the first line of code in the markdown */
@@ -119,26 +119,28 @@ export class CodeBlock {
   }
 }
 
-/** A ddt comment's opening line, and the whole comment with the setup code on the lines between */
+/** A ddt-hide comment's opening line, and the whole comment with the setup code on the lines between */
 type DdtComment = Readonly<{ open: RegExp; comment: RegExp }>;
 
-/** `<!-- ddt` in markdown; `{/* ddt` in MDX, which has no HTML comments */
+/** `<!-- ddt-hide` in markdown; `{/* ddt-hide` in MDX, which has no HTML comments */
 const ddtComments: Partial<Record<RootContent["type"], DdtComment>> = {
-  html: { open: /^<!--\s*ddt\b/, comment: /^<!--\s*ddt\s*\n(?<code>[\s\S]*)\n\s*-->$/ },
+  html: { open: /^<!--\s*ddt-hide\b/, comment: /^<!--\s*ddt-hide\s*\n(?<code>[\s\S]*)\n\s*-->$/ },
   mdxFlowExpression: {
-    open: /^\/\*\s*ddt\b/,
-    comment: /^\/\*\s*ddt\s*\n(?<code>[\s\S]*)\n\s*\*\/$/,
+    open: /^\/\*\s*ddt-hide\b/,
+    comment: /^\/\*\s*ddt-hide\s*\n(?<code>[\s\S]*)\n\s*\*\/$/,
   },
 };
 
-/** Setup code from a ddt comment right before a fence */
+/** Setup code from a ddt-hide comment right before a fence */
 function hiddenCode(node: RootContent | undefined, log: Logger): HiddenCode | undefined {
   if (!node || !("value" in node) || !node.position) return undefined;
   const ddt = ddtComments[node.type];
   if (!ddt?.open.test(node.value)) return undefined;
   const code = ddt.comment.exec(node.value)?.groups?.["code"];
   if (code === undefined) {
-    log.error("ddt comments put setup code on the lines between the opening and closing lines");
+    log.error(
+      "ddt-hide comments put setup code on the lines between the opening and closing lines",
+    );
     return undefined;
   }
   const { start } = node.position;
