@@ -83,8 +83,11 @@ function frame(root: string, { file, line }: ParsedStack): string {
 }
 
 /** The first error of each failed test, with only the stack frames inside the fixture */
-export async function failures(root: string): Promise<Record<string, Failure>> {
-  await using instance = await vitest(root);
+export async function failures(
+  root: string,
+  plugin: DdtPluginOptions = {},
+): Promise<Record<string, Failure>> {
+  await using instance = await vitest(root, { plugin });
   await instance.start();
   const results: Record<string, Failure> = {};
   for (const module of instance.state.getTestModules()) {
@@ -104,7 +107,11 @@ export async function failures(root: string): Promise<Record<string, Failure>> {
   return results;
 }
 
-export async function watch(root: string, edit: () => void): Promise<Outcomes[]> {
+export async function watch(
+  root: string,
+  edit: () => void,
+  plugin: DdtPluginOptions = {},
+): Promise<Outcomes[]> {
   const runs: Outcomes[] = [];
   let rerunFinished: (() => void) | undefined;
   const reporter: Reporter = {
@@ -113,7 +120,7 @@ export async function watch(root: string, edit: () => void): Promise<Outcomes[]>
       rerunFinished?.();
     },
   };
-  await using instance = await vitest(root, { watch: true, reporter });
+  await using instance = await vitest(root, { plugin, watch: true, reporter });
   await instance.start();
   const rerun = new Promise<void>((resolve) => (rerunFinished = resolve));
   edit();
