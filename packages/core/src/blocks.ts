@@ -25,7 +25,9 @@ type AnnotationResult =
 const metaWords = /\S*?(?:"[^"]*"|\{[^}]*\})\S*|\S+/g;
 
 function parseAnnotation(meta: string): AnnotationResult {
-  const annotations = (meta.match(metaWords) ?? []).filter((word) => isAnnotation(word));
+  const annotations = (meta.match(metaWords) ?? []).flatMap((word) =>
+    isAnnotation(word) ? [word] : [],
+  );
   const [annotation] = annotations;
   if (!annotation) return { tag: "none" };
   if (annotations.length > 1) return { tag: "conflict", annotations };
