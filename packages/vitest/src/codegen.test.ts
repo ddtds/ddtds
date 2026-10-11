@@ -81,10 +81,10 @@ describe("generateBlockFile: annotations", () => {
 
   test("parse errors fail even with the fail annotation", () => {
     const out = fenceModule(fence("const = 1;", ANNOTATIONS.FAIL));
-    expect(out.replace(/compileError\(\{.*\}\);/, "compileError(details);")).toMatchInlineSnapshot(`
-        "import { compileError } from '@ddtds/vitest/runtime';
-        export default compileError(details);"
-      `);
+    expect(out.replace(/, \{.*\}\);/, ", details);")).toMatchInlineSnapshot(`
+      "import { compileError } from '@ddtds/vitest/runtime';
+      export default compileError("/repo/docs/t.md", details);"
+    `);
   });
 
   test("compile_fail passes when the block does not parse", () => {
@@ -95,10 +95,10 @@ describe("generateBlockFile: annotations", () => {
 
   test("compile_fail fails when the block parses", () => {
     const out = fenceModule(fence("const ok = 1;", ANNOTATIONS.COMPILE_FAIL));
-    expect(out).toContain("missingCompileError()");
+    expect(out).toContain("missingCompileError(");
     expect(out).toMatchInlineSnapshot(`
       "import { missingCompileError } from '@ddtds/vitest/runtime';
-      export default missingCompileError();"
+      export default missingCompileError("/repo/docs/t.md", {"line":1,"column":1});"
     `);
   });
 });

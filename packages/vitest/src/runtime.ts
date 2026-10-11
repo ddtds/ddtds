@@ -1,5 +1,5 @@
 import { expect } from "vitest";
-import { DdtCompileError, type CompileErrorDetails } from "@ddtds/core";
+import { DdtCompileError, type CompileErrorDetails, type Position } from "@ddtds/core";
 
 /** Runtime helpers that generated doc and fence modules import */
 
@@ -28,11 +28,23 @@ export function expectFailure(run: FenceRun): FenceRun {
   };
 }
 
-export function compileError(details: CompileErrorDetails, cause?: unknown): FenceRun {
-  const options = cause === undefined ? undefined : { cause };
-  return () => Promise.reject(new DdtCompileError(details, options));
+/** Point the error's stack at the markdown, since no generated code is to blame */
+function thrownAt(error: Error, doc: string, { line, column }: Position): Error {
+  error.stack = `${error.name}: ${error.message}\n    at ${doc}:${line}:${column}`;
+  return error;
 }
 
-export function missingCompileError(): FenceRun {
-  return () => Promise.reject(new Error("expected a compile_fail block to fail to compile"));
+export function compileError(doc: string, details: CompileErrorDetails, cause?: unknown): FenceRun {
+  const options = cause === undefined ? undefined : { cause };
+  const position = details.diagnostics[0]?.labels[0]?.start ?? details.block.range.start;
+  return async () => {
+    throw thrownAt(new DdtCompileError(details, options), doc, position);
+  };
+}
+
+export function missingCompileError(doc: string, position: Position): FenceRun {
+  return async () => {
+    const error = new Error("expected a compile_fail block to fail to compile");
+    throw thrownAt(error, doc, position);
+  };
 }

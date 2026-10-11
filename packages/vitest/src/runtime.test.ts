@@ -42,19 +42,25 @@ describe("expectFailure", () => {
 
 describe("compileError", () => {
   test("rejects with the compile error", async () => {
-    const error: unknown = await compileError(details)().catch((caught: unknown) => caught);
+    const error: unknown = await compileError("/docs/t.md", details)().catch(
+      (caught: unknown) => caught,
+    );
     expect(error).toBeInstanceOf(DdtCompileError);
     expect(error).not.toHaveProperty("cause");
   });
 
   test("keeps the cause when given", async () => {
     const cause = { name: "Error", message: "inner" };
-    await expect(compileError(details, cause)()).rejects.toHaveProperty("cause", cause);
+    await expect(compileError("/docs/t.md", details, cause)()).rejects.toHaveProperty(
+      "cause",
+      cause,
+    );
   });
 });
 
-test("missingCompileError explains what was expected", async () => {
-  await expect(missingCompileError()()).rejects.toThrow(
-    "expected a compile_fail block to fail to compile",
-  );
+test("missingCompileError points at the fence in the markdown", async () => {
+  const run = missingCompileError("/docs/t.md", { line: 3, column: 1 });
+  const error: unknown = await run().catch((caught: unknown) => caught);
+  expect(error).toHaveProperty("message", "expected a compile_fail block to fail to compile");
+  expect(error).toHaveProperty("stack", expect.stringContaining("at /docs/t.md:3:1"));
 });

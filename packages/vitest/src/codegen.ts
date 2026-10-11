@@ -29,10 +29,10 @@ function runtimeCall(
   return { imports, body: `${name}(${args.join(", ")})` };
 }
 
-function compileErrorCode(error: DdtCompileError): FenceCode {
-  const details = JSON.stringify(error.details);
-  if (error.cause === undefined) return runtimeCall("compileError", details);
-  return runtimeCall("compileError", details, JSON.stringify(serializeCause(error.cause)));
+function compileErrorCode(doc: string, error: DdtCompileError): FenceCode {
+  const args = [JSON.stringify(doc), JSON.stringify(error.details)];
+  if (error.cause === undefined) return runtimeCall("compileError", ...args);
+  return runtimeCall("compileError", ...args, JSON.stringify(serializeCause(error.cause)));
 }
 
 function serializeCause(cause: unknown): unknown {
@@ -53,17 +53,18 @@ function blockCode(block: CodeBlock): FenceCode {
   return { imports: [...run.imports, ...failure.imports], body: failure.body };
 }
 
-function fenceCode({ block }: Fence): FenceCode {
+function fenceCode({ doc, block }: Fence): FenceCode {
   try {
     const code = blockCode(block);
     if (!block.shouldFailToCompile()) return code;
-    return runtimeCall("missingCompileError");
+    const start = JSON.stringify(block.details.range.start);
+    return runtimeCall("missingCompileError", JSON.stringify(doc), start);
   } catch (error) {
     if (!(error instanceof DdtCompileError)) throw error;
     if (block.shouldFailToCompile() && error.details.phase === "parse") {
       return { imports: [], body: asyncFunction("") };
     }
-    return compileErrorCode(error);
+    return compileErrorCode(doc, error);
   }
 }
 

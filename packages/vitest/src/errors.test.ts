@@ -67,3 +67,27 @@ test("failures report the error the fence threw", async () => {
     }
   `);
 });
+
+test("compile failures point at the markdown", async () => {
+  const root = fixture({
+    "guide.md": `# Guide\n\n${fence("const ok = 1;\nconst = 1;")}${fence("1;", "compile_fail")}`,
+  });
+  expect(await failures(root)).toMatchInlineSnapshot(`
+    {
+      "guide.md:3": {
+        "diff": undefined,
+        "error": "DdtCompileError: guide.md:5:7 Unexpected token (ts block at line 3)",
+        "frames": [
+          "guide.md:5",
+        ],
+      },
+      "guide.md:8": {
+        "diff": undefined,
+        "error": "Error: expected a compile_fail block to fail to compile",
+        "frames": [
+          "guide.md:8",
+        ],
+      },
+    }
+  `);
+});
