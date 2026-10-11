@@ -2,9 +2,10 @@ import { expect, test } from "vitest";
 import { parseCodeFences } from "./blocks.ts";
 import type { Logger } from "./logger.ts";
 
+function ignore(): void {}
+
 function capture(): { logger: Logger; errors: string[] } {
   const errors: string[] = [];
-  const ignore = (): void => {};
   return {
     errors,
     logger: { error: (m) => void errors.push(m), info: ignore, debug: ignore, trace: ignore },
