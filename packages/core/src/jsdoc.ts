@@ -1,5 +1,6 @@
 import { parseSync } from "oxc-parser";
 import { CodeBlock, parseCodeFences } from "./blocks.ts";
+import type { Position } from "./compile-error.ts";
 import type { Logger } from "./logger.ts";
 
 /** Whether a doc is a source file, whose JSDoc comments hold the code fences */
@@ -29,7 +30,7 @@ export function parseJsDocFences(source: string, path: string, log: Logger): Cod
 
 function moved(block: CodeBlock, lines: number, columns: number): CodeBlock {
   const { contents, lang, annotation, file, range, indent } = block.details;
-  const move = ({ line, column }: { line: number; column: number }) => ({
+  const move = ({ line, column }: Position): Position => ({
     line: line + lines,
     column: column + columns,
   });
