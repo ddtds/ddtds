@@ -69,9 +69,23 @@ function runCode(runner: Runner, imports: string[], body: string): FenceCode {
   return { imports: [...runner.fenceImports, ...imports], body: asyncFunction(body) };
 }
 
-function blockCode(runner: Runner, block: CodeBlock): FenceCode {
+const importNodeModule = typedImports<{ "node:module": typeof import("node:module") }>();
+const commonJsNames = /\b(?:require|module|exports)\b/;
+
+/** CommonJS fences get `require` resolving from the doc, like a file beside it, and a `module` */
+function commonJs(doc: string): string[] {
+  return [
+    importNodeModule("node:module", "createRequire as __ddtCreateRequire"),
+    `const require = __ddtCreateRequire(${JSON.stringify(doc)});`,
+    "const module = { exports: {} };",
+    "const exports = module.exports;",
+  ];
+}
+
+function blockCode(runner: Runner, doc: string, block: CodeBlock): FenceCode {
   const { imports, body } = block.splitImports();
-  const run = runCode(runner, imports, body);
+  const cjs = commonJsNames.test(block.code) ? commonJs(doc) : [];
+  const run = runCode(runner, [...imports, ...cjs], body);
   if (!block.shouldFail()) return run;
   const failure = runtimeCall(runner, "expectFailure", run.body);
   return { imports: [...run.imports, ...failure.imports], body: failure.body };
@@ -79,7 +93,7 @@ function blockCode(runner: Runner, block: CodeBlock): FenceCode {
 
 function fenceCode(runner: Runner, { doc, block }: Fence): FenceCode {
   try {
-    const code = blockCode(runner, block);
+    const code = blockCode(runner, doc, block);
     if (!block.shouldFailToCompile()) return code;
     const start = JSON.stringify(block.details.range.start);
     return runtimeCall(runner, "missingCompileError", JSON.stringify(doc), start);
