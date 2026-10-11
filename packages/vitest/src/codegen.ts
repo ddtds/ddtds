@@ -63,18 +63,9 @@ export function fenceModule(fence: Fence): string {
 }
 
 export function docModule(doc: Doc): string {
-  if (doc.tag === "invalid") {
-    return [
-      "import { test } from 'vitest';",
-      `test(${JSON.stringify(doc.file)}, () => {`,
-      `  throw new Error(${JSON.stringify(doc.message)});`,
-      "});",
-    ].join("\n");
-  }
-  return fenceTests(doc.fences);
-}
-
-function fenceTests(fences: readonly Fence[]): string {
+  // Vitest reports a doc module that throws as a failed file, like a test file with a syntax error
+  if (doc.tag === "invalid") return `throw new Error(${JSON.stringify(doc.message)});`;
+  const { fences } = doc;
   const loads = fences.map(
     ({ id }) =>
       `  import(${JSON.stringify(id)}).then(\n    ({ default: run }) => run,\n    (error) => () => {\n      throw error;\n    },\n  ),`,

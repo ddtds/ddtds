@@ -11,7 +11,7 @@ export type Fence = Readonly<{
 /** A doc's fences, or the error that kept it from being read, e.g. invalid MDX */
 export type Doc =
   | Readonly<{ tag: "fences"; fences: readonly Fence[] }>
-  | Readonly<{ tag: "invalid"; file: string; message: string }>;
+  | Readonly<{ tag: "invalid"; message: string }>;
 
 export type IndexOptions = Readonly<{ root: string; moduleDir: string; logger: Logger }>;
 
@@ -23,7 +23,6 @@ export class DocIndex {
   private constructor(options: IndexOptions, docs: ReadonlyMap<string, Doc>) {
     this.#options = options;
     this.#docs = docs;
-    /** Transform docs map into a map of fence ids and code fences */
     const fences = [...docs.values()].flatMap((doc) => (doc.tag === "fences" ? doc.fences : []));
     this.#fences = new Map(fences.map((fence) => [fence.id, fence]));
   }
@@ -81,7 +80,7 @@ function parseDoc(options: IndexOptions, doc: string, source: string): Doc {
     return { tag: "fences", fences: parseFences(options, doc, source) };
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
-    return { tag: "invalid", file: relative(options.root, doc), message };
+    return { tag: "invalid", message };
   }
 }
 

@@ -86,13 +86,10 @@ test("invalid MDX fails its own doc with the parser's error", async () => {
   });
   expect(await run(root)).toMatchInlineSnapshot(`
     {
-      "broken.mdx": "Error",
+      "broken.mdx": "3:1: Unexpected character \`!\` (U+0021) before name, expected a character that can start a name, such as a letter, \`$\`, or \`_\` (note: to create a comment in MDX, use \`{/* text */}\`) (mdx-jsx:unexpected-character)",
       "fine.md:1": "passed",
     }
   `);
-  expect((await failures(root))["broken.mdx"]?.error).toMatchInlineSnapshot(
-    `"Error: 3:1: Unexpected character \`!\` (U+0021) before name, expected a character that can start a name, such as a letter, \`$\`, or \`_\` (note: to create a comment in MDX, use \`{/* text */}\`) (mdx-jsx:unexpected-character)"`,
-  );
 });
 
 test("fixing invalid MDX in watch mode runs its fences", async () => {
@@ -102,7 +99,7 @@ test("fixing invalid MDX in watch mode runs its fences", async () => {
   expect(await watch(root, edit)).toMatchInlineSnapshot(`
     [
       {
-        "guide.mdx": "Error",
+        "guide.mdx": "1:1: Unexpected character \`!\` (U+0021) before name, expected a character that can start a name, such as a letter, \`$\`, or \`_\` (note: to create a comment in MDX, use \`{/* text */}\`) (mdx-jsx:unexpected-character)",
       },
       {
         "guide.mdx:3": "passed",
