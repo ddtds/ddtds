@@ -1,6 +1,9 @@
 import { mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { getLogger } from "@logtape/logtape";
 import { globSync } from "tinyglobby";
 import { defaultDocsExclude, defaultDocsInclude } from "./constants.ts";
+
+const logger = getLogger(["ddtds", "docs"]);
 
 export { CodeBlock, parseCodeFences } from "./blocks.ts";
 export {
@@ -29,7 +32,14 @@ export type DocsOptions = {
 };
 
 export function findDocs(root: string, include: string[], exclude: string[]): string[] {
-  return globSync(include, { cwd: root, ignore: exclude, absolute: true });
+  const docs = globSync(include, { cwd: root, ignore: exclude, absolute: true });
+  for (const pattern of include) {
+    if (pattern.startsWith("!")) continue;
+    if (globSync(pattern, { cwd: root, ignore: exclude, absolute: true }).length === 0) {
+      logger.warning("include matched no markdown files: {pattern}", { pattern });
+    }
+  }
+  return docs;
 }
 
 export type DocsConfig = DocsOptions & {

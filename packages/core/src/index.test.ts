@@ -1,6 +1,7 @@
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join, relative } from "node:path";
+import { configureSync, resetSync, type LogRecord } from "@logtape/logtape";
 import { describe, test, expect, onTestFinished } from "vitest";
 import {
   ANNOTATIONS,
@@ -299,6 +300,16 @@ describe("findDocs", () => {
   test("keeps the default exclude when spread", () => {
     expect(find(fixture(), undefined, [...defaultDocsExclude, "nested/**"])).toEqual(["guide.md"]);
   });
+
+  test("warns for each include pattern that matches no docs", () => {
+    const records = recordLogs(() =>
+      find(fixture(), ["nested/*.md", "missing/*.md", "!ignored.md"]),
+    );
+    expect(records).toHaveLength(1);
+    expect(records[0]?.level).toBe("warning");
+    expect(records[0]?.rawMessage).toBe("include matched no markdown files: {pattern}");
+    expect(records[0]?.properties).toEqual({ pattern: "missing/*.md" });
+  });
 });
 
 describe("resolveDocsOptions", () => {
@@ -330,4 +341,21 @@ function find(root: string, include = defaultDocsInclude, exclude = defaultDocsE
   return findDocs(root, include, exclude)
     .map((doc) => relative(root, doc))
     .toSorted();
+}
+
+function recordLogs(run: () => void): LogRecord[] {
+  const records: LogRecord[] = [];
+  configureSync({
+    sinks: { test: (record) => void records.push(record) },
+    loggers: [
+      { category: ["ddtds"], sinks: ["test"] },
+      { category: ["logtape", "meta"], lowestLevel: "warning", sinks: ["test"] },
+    ],
+  });
+  try {
+    run();
+  } finally {
+    resetSync();
+  }
+  return records;
 }
