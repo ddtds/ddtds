@@ -1,7 +1,7 @@
 import { writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { expect, test } from "vitest";
-import { collect, fence, fixture, run, watch } from "./test-utils.ts";
+import { collect, fence, fixture, logs, run, watch } from "./test-utils.ts";
 
 const files = {
   "guide.md": fence("1;"),
@@ -87,6 +87,29 @@ test("keeps the user's test.exclude and still skips ddt build output", async () 
     [
       "guide.md",
       "nested/guide.md",
+    ]
+  `);
+});
+
+test("logs through Vite's logger, which Vitest keeps at warn unless configured", async () => {
+  const root = fixture({
+    "guide.md": fence("expect(1).toBe(1);"),
+    "bad.md": "```ts run fail\n1;\n```\n",
+  });
+  expect(await logs(root, { logLevel: "info" })).toMatchInlineSnapshot(`
+    [
+      "stderr: [ddtds] unknown annotation in code block: "run fail"",
+    ]
+  `);
+  expect(await logs(root, { logLevel: "info" }, "info")).toMatchInlineSnapshot(`
+    [
+      "stderr: [ddtds] unknown annotation in code block: "run fail"",
+      "stdout: [ddtds] Total: 1 tests",
+    ]
+  `);
+  expect(await logs(root, { logLevel: "error" }, "info")).toMatchInlineSnapshot(`
+    [
+      "stderr: [ddtds] unknown annotation in code block: "run fail"",
     ]
   `);
 });

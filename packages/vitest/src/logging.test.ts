@@ -1,9 +1,18 @@
 import { configureSync, getLogger, resetSync } from "@logtape/logtape";
 import { createLogRecorder } from "@logtape/testing/recorder";
 import { afterEach, expect, test } from "vitest";
-import { configureLogging } from "./logger.ts";
+import { parseCodeFences } from "@ddtds/core";
+import { configureLogging } from "./logging.ts";
 
 afterEach(() => resetSync());
+
+test("routes core logs to the configured sink", () => {
+  const recorder = createLogRecorder();
+  configureLogging("info", recorder.sink);
+  parseCodeFences("```ts rnu\n1;\n```\n", "t.md");
+  expect(recorder.records).toHaveLength(1);
+  recorder.assertLogged({ level: "error", message: /unknown annotation/ });
+});
 
 test("leaves LogTape alone when the application configured it", () => {
   const app = createLogRecorder();

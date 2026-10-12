@@ -1,5 +1,6 @@
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { dirname, join, relative } from "node:path";
+import { Writable } from "node:stream";
 import { onTestFinished, type ParsedStack } from "vitest";
 import type { ViteUserConfig } from "vitest/config";
 import { createVitest, type Reporter, type TestModule, type Vitest } from "vitest/node";
@@ -28,11 +29,15 @@ async function vitest(
     test = {},
     watch = false,
     reporter = {},
+    output = {},
+    logLevel,
   }: {
     plugin?: DdtPluginOptions;
     test?: ViteUserConfig["test"];
     watch?: boolean;
     reporter?: Reporter;
+    output?: { stdout?: Writable; stderr?: Writable };
+    logLevel?: ViteUserConfig["logLevel"];
   } = {},
 ): Promise<Vitest & AsyncDisposable> {
   const instance = await createVitest(
@@ -41,7 +46,9 @@ async function vitest(
     {
       plugins: [ddtPlugin({ logLevel: "fatal", ...plugin })],
       test,
+      logLevel,
     },
+    output,
   );
   // vitest v4 does not make vitest a Disposable
   return Object.assign(instance, { [Symbol.asyncDispose]: () => instance.close() });
@@ -57,6 +64,28 @@ function outcomes(modules: readonly TestModule[]): Outcomes {
     }
   }
   return results;
+}
+
+/** Lines the plugin logs through Vite's logger, as `stdout: …` or `stderr: …` */
+export async function logs(
+  root: string,
+  plugin: DdtPluginOptions,
+  logLevel?: ViteUserConfig["logLevel"],
+): Promise<string[]> {
+  const lines: string[] = [];
+  const stream = (name: string): Writable =>
+    new Writable({
+      write(chunk: Buffer, _encoding, done): void {
+        for (const line of String(chunk).split("\n")) {
+          if (line.includes("[ddtds]")) lines.push(`${name}: ${line.trim()}`);
+        }
+        done();
+      },
+    });
+  const output = { stdout: stream("stdout"), stderr: stream("stderr") };
+  await using instance = await vitest(root, { plugin, output, logLevel });
+  await instance.globTestSpecifications();
+  return lines;
 }
 
 export async function collect(

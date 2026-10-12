@@ -27,6 +27,7 @@
     "@logtape/logtape": "catalog:prod"
   },
   "devDependencies": {
+    "@logtape/testing": "catalog:dev",
     "vitest": "catalog:dev"
   },
   "peerDependencies": {

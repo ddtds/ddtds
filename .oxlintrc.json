@@ -44,12 +44,6 @@
   },
   "overrides": [
     {
-      "files": ["packages/core/src/logger.ts"],
-      "rules": {
-        "no-console": "off"
-      }
-    },
-    {
       "files": ["**/*.test.ts"],
       "rules": {
         "typescript/no-non-null-assertion": "off",

@@ -9,9 +9,9 @@ import {
   resolveDocsOptions,
   writeFiles,
 } from "@ddtds/core";
-import { configureLogging, consoleSink } from "@ddtds/core/log";
-import { getLogger, parseLogLevel } from "@logtape/logtape";
+import { getLogger } from "@logtape/logtape";
 import { moduleFiles } from "@ddtds/vitest";
+import { configureLogging } from "./logging.ts";
 
 const logger = getLogger(["ddtds", "cli"]);
 
@@ -31,7 +31,7 @@ const buildCmd = command(
     },
   },
   (argv) => {
-    configureLogging(parseLogLevel(process.env.DDT_LOG_LEVEL ?? "info"), consoleSink);
+    configureLogging();
     const { root, include, exclude } = resolveDocsOptions({
       root: process.cwd(),
       include: argv._.include,

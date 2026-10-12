@@ -10,16 +10,11 @@
       "@ddtds/source": "./src/index.ts",
       "default": "./dist/index.mjs"
     },
-    "./log": {
-      "@ddtds/source": "./src/logger.ts",
-      "default": "./dist/log.mjs"
-    },
     "./package.json": "./package.json"
   },
   "publishConfig": {
     "exports": {
       ".": "./dist/index.mjs",
-      "./log": "./dist/log.mjs",
       "./package.json": "./package.json"
     }
   },
@@ -36,7 +31,6 @@
     "unist-util-visit": "^5.1.0"
   },
   "devDependencies": {
-    "@logtape/testing": "catalog:dev",
     "@tsrx/oxc": "catalog:dev",
     "@types/node": "catalog:dev",
     "vitest": "catalog:dev"
