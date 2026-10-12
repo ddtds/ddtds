@@ -35,7 +35,7 @@
     "oxlint": "1.87.0",
     "oxlint-tsgolint": "7.0.2003",
     "publint": "0.3.25",
-    "renovate": "44.148.4",
+    "renovate": "44.148.5",
     "sherif": "1.13.0",
     "tsdown": "0.23.0",
     "typescript": "catalog:dev",
