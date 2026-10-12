@@ -11,38 +11,35 @@ type ViteLogger = Record<"info" | "warn" | "error", (message: string) => void>;
 
 const format = getTextFormatter({ value: "bare", format: ({ message }) => message });
 
-/**
- * Sends ddtds logs to Vite's logger, holding them until Vite resolves its config.
- */
-export class ViteSink {
-  #logger: ViteLogger | undefined;
-  readonly #pending: LogRecord[] = [];
+export interface ViteSink extends Sink {
+  attach(logger: ViteLogger): void;
+}
 
-  public readonly sink: Sink = (record) => {
-    const logger = this.#logger;
+export function createViteSink(): ViteSink {
+  let logger: ViteLogger | undefined;
+  const pending: LogRecord[] = [];
+
+  function sink(record: LogRecord): void {
     if (!logger) {
-      this.#pending.push(record);
+      pending.push(record);
       return;
     }
     const message = `[ddtds] ${format(record)}`;
     if (record.level === "error" || record.level === "fatal") logger.error(message);
     else if (record.level === "warning") logger.warn(message);
     else logger.info(message);
-  };
-
-  public attach(logger: ViteLogger): void {
-    this.#logger = logger;
-    for (const record of this.#pending.splice(0)) this.sink(record);
   }
+
+  return Object.assign(sink, {
+    attach(next: ViteLogger): void {
+      logger = next;
+      for (const record of pending.splice(0)) sink(record);
+    },
+  });
 }
 
-/** The LogTape config ddtds set, to tell it apart from an application's own */
 let ours: ReturnType<typeof getConfig> = null;
 
-/**
- * Sends logs under the `ddtds` category at `level` and above to `sink`. Leaves LogTape
- * alone when the application configured it, so ddtds logs follow the application's config.
- */
 export function configureLogging(level: LogLevel, sink: Sink): void {
   const current = getConfig();
   if (current !== null && current !== ours) return;

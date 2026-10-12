@@ -7,14 +7,16 @@ import {
   DocIndex,
   readDocs,
   resolveDocsOptions,
+  resolveLogLevel,
   type DocsOptions,
   type IndexOptions,
+  type LogLevel,
 } from "@ddtds/core";
-import { getLogger, parseLogLevel, type LogLevel } from "@logtape/logtape";
+import { getLogger } from "@logtape/logtape";
 import { docModule, fenceModule } from "./codegen.ts";
-import { configureLogging, ViteSink } from "./logging.ts";
+import { configureLogging, createViteSink } from "./logging.ts";
 
-export type { CodeBlock, DocIndex, DocsOptions, Fence } from "@ddtds/core";
+export type { CodeBlock, DocIndex, DocsOptions, Fence, LogLevel } from "@ddtds/core";
 export {
   DdtCompileError,
   defaultDocsInclude,
@@ -22,7 +24,6 @@ export {
   defaultOutDir,
 } from "@ddtds/core";
 export { moduleFiles } from "./codegen.ts";
-export type { LogLevel } from "@logtape/logtape";
 
 const logger = getLogger(["ddtds", "vitest"]);
 
@@ -37,8 +38,8 @@ export type DdtPluginOptions = DocsOptions & {
 };
 
 export function ddtPlugin({ logLevel, ...docs }: DdtPluginOptions = {}): Plugin {
-  const vite = new ViteSink();
-  configureLogging(parseLogLevel(process.env.DDT_LOG_LEVEL ?? logLevel ?? "info"), vite.sink);
+  const vite = createViteSink();
+  configureLogging(resolveLogLevel(logLevel), vite);
   const moduleDirName = `__ddtds__-${randomUUID().slice(0, 8)}`;
   const indexOptions = (root: string): IndexOptions => ({
     root,

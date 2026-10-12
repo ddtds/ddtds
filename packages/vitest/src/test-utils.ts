@@ -66,7 +66,6 @@ function outcomes(modules: readonly TestModule[]): Outcomes {
   return results;
 }
 
-/** Lines the plugin logs through Vite's logger, as `stdout: …` or `stderr: …` */
 export async function logs(
   root: string,
   plugin: DdtPluginOptions,
