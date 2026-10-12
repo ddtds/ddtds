@@ -35,7 +35,7 @@ catalogs:
     "@types/react-dom": ^19.3.0
     "@vitejs/plugin-react": ^6.1.2
     "@vitejs/plugin-vue": ^6.0.9
-    happy-dom: 20.14.5
+    happy-dom: 20.14.6
     lit: ^3.3.3
     octane: ^0.10.0
     preact: ^11.0.0
