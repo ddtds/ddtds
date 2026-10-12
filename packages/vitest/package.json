@@ -23,9 +23,11 @@
     "typecheck": "tsc"
   },
   "dependencies": {
-    "@ddtds/core": "workspace:*"
+    "@ddtds/core": "workspace:*",
+    "@logtape/logtape": "catalog:prod"
   },
   "devDependencies": {
+    "@logtape/testing": "catalog:dev",
     "vitest": "catalog:dev"
   },
   "peerDependencies": {

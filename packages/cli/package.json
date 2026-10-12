@@ -15,6 +15,7 @@
   "dependencies": {
     "@ddtds/core": "workspace:*",
     "@ddtds/vitest": "workspace:*",
+    "@logtape/logtape": "catalog:prod",
     "cleye": "^2.6.0"
   },
   "devDependencies": {

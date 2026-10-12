@@ -1,6 +1,5 @@
 import { join, relative, sep } from "node:path";
 import { parseCodeFences, type CodeBlock } from "./blocks.ts";
-import type { Logger } from "./logger.ts";
 
 export type Fence = Readonly<{
   id: string;
@@ -8,7 +7,7 @@ export type Fence = Readonly<{
   block: CodeBlock;
 }>;
 
-export type IndexOptions = Readonly<{ root: string; moduleDir: string; logger: Logger }>;
+export type IndexOptions = Readonly<{ root: string; moduleDir: string }>;
 
 export class DocIndex {
   readonly #options: IndexOptions;
@@ -70,12 +69,8 @@ export class DocIndex {
   }
 }
 
-function parseFences(
-  { root, moduleDir, logger }: IndexOptions,
-  doc: string,
-  source: string,
-): Fence[] {
-  return parseCodeFences(source, relative(root, doc), logger).map((block) => ({
+function parseFences({ root, moduleDir }: IndexOptions, doc: string, source: string): Fence[] {
+  return parseCodeFences(source, relative(root, doc)).map((block) => ({
     id: join(moduleDir, `${flatName(root, doc)}_${block.line}.${block.outputExtension}`),
     doc,
     block,

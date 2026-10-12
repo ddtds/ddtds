@@ -9,8 +9,11 @@ import {
   resolveDocsOptions,
   writeFiles,
 } from "@ddtds/core";
-import { createLoggerFromEnv } from "@ddtds/core/log";
+import { getLogger } from "@logtape/logtape";
 import { moduleFiles } from "@ddtds/vitest";
+import { configureLogging } from "./logging.ts";
+
+const logger = getLogger(["ddtds", "cli"]);
 
 const buildCmd = command(
   {
@@ -28,7 +31,7 @@ const buildCmd = command(
     },
   },
   (argv) => {
-    const logger = createLoggerFromEnv();
+    configureLogging();
     const { root, include, exclude } = resolveDocsOptions({
       root: process.cwd(),
       include: argv._.include,
@@ -38,10 +41,9 @@ const buildCmd = command(
     const index = DocIndex.fromSources(readDocs(root, include, exclude), {
       root,
       moduleDir,
-      logger,
     });
     writeFiles(moduleDir, moduleFiles(index));
-    logger.info(`Total: ${index.size} tests`);
+    logger.info("Total: {size} tests", { size: index.size });
   },
 );
 

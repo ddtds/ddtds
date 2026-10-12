@@ -10,16 +10,11 @@
       "@ddtds/source": "./src/index.ts",
       "default": "./dist/index.mjs"
     },
-    "./log": {
-      "@ddtds/source": "./src/logger.ts",
-      "default": "./dist/log.mjs"
-    },
     "./package.json": "./package.json"
   },
   "publishConfig": {
     "exports": {
       ".": "./dist/index.mjs",
-      "./log": "./dist/log.mjs",
       "./package.json": "./package.json"
     }
   },
@@ -28,6 +23,7 @@
     "typecheck": "tsc"
   },
   "dependencies": {
+    "@logtape/logtape": "catalog:prod",
     "@oxc-project/types": "^0.150.0",
     "oxc-parser": "^0.150.0",
     "satteri": "^0.10.5",

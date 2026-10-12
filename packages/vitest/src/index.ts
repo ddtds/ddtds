@@ -7,13 +7,16 @@ import {
   DocIndex,
   readDocs,
   resolveDocsOptions,
+  resolveLogLevel,
   type DocsOptions,
   type IndexOptions,
+  type LogLevel,
 } from "@ddtds/core";
+import { getLogger } from "@logtape/logtape";
 import { docModule, fenceModule } from "./codegen.ts";
-import { createLogger, parseLogLevel, type LogLevel } from "@ddtds/core/log";
+import { configureLogging, createViteSink } from "./logging.ts";
 
-export type { CodeBlock, DocIndex, DocsOptions, Fence } from "@ddtds/core";
+export type { CodeBlock, DocIndex, DocsOptions, Fence, LogLevel } from "@ddtds/core";
 export {
   DdtCompileError,
   defaultDocsInclude,
@@ -21,7 +24,8 @@ export {
   defaultOutDir,
 } from "@ddtds/core";
 export { moduleFiles } from "./codegen.ts";
-export type { LogLevel } from "@ddtds/core/log";
+
+const logger = getLogger(["ddtds", "vitest"]);
 
 export type DdtPluginOptions = DocsOptions & {
   /**
@@ -34,12 +38,12 @@ export type DdtPluginOptions = DocsOptions & {
 };
 
 export function ddtPlugin({ logLevel, ...docs }: DdtPluginOptions = {}): Plugin {
-  const logger = createLogger(parseLogLevel(process.env.DDT_LOG_LEVEL ?? logLevel));
+  const vite = createViteSink();
+  configureLogging(resolveLogLevel(logLevel), vite);
   const moduleDirName = `__ddtds__-${randomUUID().slice(0, 8)}`;
   const indexOptions = (root: string): IndexOptions => ({
     root,
     moduleDir: join(root, moduleDirName),
-    logger,
   });
   let index = DocIndex.fromSources(new Map(), indexOptions(process.cwd()));
 
@@ -53,10 +57,12 @@ export function ddtPlugin({ logLevel, ...docs }: DdtPluginOptions = {}): Plugin 
       });
       index = DocIndex.fromSources(readDocs(root, include, exclude), indexOptions(root));
       for (const { id, block } of index.fences()) {
-        logger.debug(`${block.details.file}:${block.line} -> ${relative(root, id)}`);
+        logger.debug("{file}:{line} -> {id}", () => ({
+          file: block.details.file,
+          line: block.line,
+          id: relative(root, id),
+        }));
       }
-      logger.info(`Total: ${index.size} tests`);
-
       const docFiles = index
         .docs()
         .map(([doc]) => doc)
@@ -68,6 +74,10 @@ export function ddtPlugin({ logLevel, ...docs }: DdtPluginOptions = {}): Plugin 
           exclude: [...(config.test?.exclude ? [] : defaultExclude), buildOutput],
         },
       };
+    },
+    configResolved(config) {
+      vite.attach(config.logger);
+      logger.info("Total: {size} tests", { size: index.size });
     },
     watchChange(id) {
       if (index.hasDoc(id)) index = index.withDoc(id, readFileSync(id, "utf8"));
