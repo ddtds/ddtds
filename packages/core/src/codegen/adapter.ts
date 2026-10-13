@@ -51,6 +51,22 @@ export const typedImports =
     (...names: (keyof Module)[]): string =>
       `import { ${names.join(", ")} } from '${module}';`;
 
+/**
+ * Typesafe `import { name as local } from 'module'`
+ *
+ * @example
+ * ```ts
+ * const importFromNodeAssert = typedImportAlias<typeof import("node:assert")>("node:assert");
+ * const statement = importFromNodeAssert("strict", "assert");
+ * expect(statement).toBe("import { strict as assert } from 'node:assert';");
+ * ```
+ */
+export const typedImportAlias =
+  // oxlint-disable-next-line typescript/no-unnecessary-type-parameters this is fine and needed to make the function type safe
+  <Module>(module: string) =>
+    (name: keyof Module, local: string): string =>
+      `import { ${String(name)} as ${local} } from '${module}';`;
+
 export function runtimeImport(adapter: TestAdapter): string {
   return `import { runtime } from '${adapter.runtime}';`;
 }

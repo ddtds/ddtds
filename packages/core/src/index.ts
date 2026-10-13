@@ -21,6 +21,7 @@ export { resolveLogLevel, type LogLevel } from "./log-level.ts";
 export {
   moduleFiles,
   moduleFor,
+  typedImportAlias,
   typedImports,
   type GeneratedModule,
   type TestAdapter,

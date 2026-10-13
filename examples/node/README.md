@@ -1,6 +1,6 @@
 # Node Example
 
-Fences run with `node --test`, asserting with the strict `assert` from `node:assert/strict`.
+Fences run with `node --test`, asserting with the strict `assert` from `node:assert`.
 
 ```ts run
 import { slugify } from "@ddtds/example-node";
