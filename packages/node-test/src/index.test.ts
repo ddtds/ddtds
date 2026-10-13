@@ -79,3 +79,16 @@ test("reruns a doc when it is edited in watch mode", async () => {
     ]
   `);
 });
+
+test("fences can use CommonJS", async () => {
+  const root = fixture({
+    "node_modules/calc/package.json": '{ "name": "calc", "main": "index.js" }',
+    "node_modules/calc/index.js": "exports.add = (a, b) => a + b;",
+    "guide.md": fence('const { add } = require("calc");\nassert.equal(add(1, 2), 3);'),
+  });
+  expect(await runDocs(root, ["guide.md"])).toMatchInlineSnapshot(`
+    {
+      "guide.md:1": "passed",
+    }
+  `);
+});

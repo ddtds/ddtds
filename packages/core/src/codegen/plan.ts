@@ -7,6 +7,17 @@ import type { SerializedCause } from "../runtime.ts";
 
 export type Fragment = string | MagicString;
 
+const commonJsNames = /\b(?:require|module|exports)\b/;
+
+function commonJs(doc: string): string[] {
+  return [
+    "import { createRequire as __ddtCreateRequire } from 'node:module';",
+    `const require = __ddtCreateRequire(${JSON.stringify(doc)});`,
+    "const module = { exports: {} };",
+    "const exports = module.exports;",
+  ];
+}
+
 export type FenceOutcome =
   | { tag: "run"; imports: Fragment[]; body: Fragment[]; shouldFail: boolean }
   | { tag: "missingCompileError"; fileName: string; position: Position }
@@ -43,9 +54,10 @@ export function planFence({ doc, block }: Fence): FenceOutcome {
   if (expectsCompileFailure) {
     return { tag: "missingCompileError", fileName: doc, position: block.details.range.start };
   }
+  const cjs = commonJsNames.test(block.code) ? commonJs(doc) : [];
   return {
     tag: "run",
-    imports: split.imports,
+    imports: [...split.imports, ...cjs],
     body: split.body,
     shouldFail: block.shouldFail(),
   };

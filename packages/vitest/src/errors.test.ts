@@ -114,3 +114,25 @@ test("invalid MDX fails the run with the parser's error", async () => {
     `[Error: 3:1: Unexpected character \`!\` (U+0021) before name, expected a character that can start a name, such as a letter, \`$\`, or \`_\` (note: to create a comment in MDX, use \`{/* text */}\`) (mdx-jsx:unexpected-character)]`,
   );
 });
+
+test("fences can use CommonJS", async () => {
+  const root = fixture({
+    "node_modules/calc/package.json": '{ "name": "calc", "main": "index.js" }',
+    "node_modules/calc/index.js": "exports.add = (a, b) => a + b;",
+    "docs/helper.cjs": "module.exports = { twice: (x) => x * 2 };",
+    "docs/guide.md": [
+      fence('const { add } = require("calc");\nexpect(add(1, 2)).toBe(3);'),
+      fence('const { twice } = require("./helper.cjs");\nexpect(twice(2)).toBe(4);'),
+      fence("exports.answer = 42;\nexpect(module.exports).toEqual({ answer: 42 });"),
+      fence("const exports = 1;\nexpect(exports).toBe(1);"),
+    ].join(""),
+  });
+  expect(await run(root)).toMatchInlineSnapshot(`
+    {
+      "docs/guide.md:1": "passed",
+      "docs/guide.md:11": "passed",
+      "docs/guide.md:16": "passed",
+      "docs/guide.md:6": "passed",
+    }
+  `);
+});
