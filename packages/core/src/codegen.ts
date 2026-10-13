@@ -16,26 +16,19 @@ export type Runner = Readonly<{
 }>;
 
 /**
- * Typed `import { names } from 'module'`, with names checked against the module's exports.
+ * Typesafe `import { names } from 'module'`
  *
  * @example
  * ```ts
- * const importFrom = typedImports<{ vitest: typeof import("vitest") }>();
- * const statement: string = importFrom("vitest")("test"); // "import { test } from 'vitest';"
+ * const importFromVitest = typedImports<typeof import("vitest")>("vitest");
+ * const statement = importFromVitest("afterAll");
+ * expect(statement).toBe("import { test } from 'vitest';");
  * ```
  */
-export function typedImports<Modules>() {
-  return <Module extends keyof Modules & string>(module: Module) =>
-    (...names: readonly (keyof Modules[Module] & string)[]): string =>
-      `import { ${names.join(", ")} } from '${module}';`;
-}
-
-function indent(code: string): string {
-  return code
-    .split("\n")
-    .map((line) => `  ${line}`)
-    .join("\n");
-}
+export const typedImports =
+  <Module>(module: string) =>
+  (...names: (keyof Module)[]) =>
+    `import { ${names.join(", ")} } from '${module}';`;
 
 type FenceCode = { imports: string[]; body: string };
 
@@ -86,6 +79,12 @@ function fenceCode(runner: Runner, { doc, block }: Fence): FenceCode {
   }
 }
 
+function indent(code: string): string {
+  return code
+    .split("\n")
+    .map((line) => `  ${line}`)
+    .join("\n");
+}
 function asyncFunction(body: string): string {
   if (body.length === 0) return "async () => {}";
   return `async () => {\n${indent(body)}\n}`;
