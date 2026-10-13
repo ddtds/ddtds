@@ -33,6 +33,8 @@
   },
   "devDependencies": {
     "@logtape/testing": "catalog:dev",
+    "@vitest/coverage-v8": "catalog:dev",
+    "fast-check": "catalog:dev",
     "vitest": "catalog:dev"
   },
   "peerDependencies": {

@@ -37,27 +37,34 @@ export function fenceModule(adapter: TestAdapter, fence: Fence): GeneratedModule
   return { code: bundle.toString(), map };
 }
 
-export function docModule(adapter: TestAdapter, fences: readonly Fence[]): string {
-  const loads = fences.map(({ id }) => `  () => import(${JSON.stringify(id)}),`);
-  const tests = fences.map((fence, i) => {
-    const name = JSON.stringify(`${fence.block.details.file}:${fence.block.line}`);
-    return `test(${name}, fences[${i}]);`;
-  });
-  return [
+export function docModule(
+  adapter: TestAdapter,
+  doc: string,
+  fences: readonly Fence[],
+): GeneratedModule {
+  const lines = [
     adapter.testImport,
     runtimeImport(adapter),
     "const fences = await runtime.loadFences([",
-    ...loads,
+    ...fences.map(({ id }) => `  () => import(${JSON.stringify(id)}),`),
     "]);",
-    ...tests,
-  ].join("\n");
+  ];
+  const mappings: SourceMapSegment[][] = lines.map(() => []);
+  for (const [i, { block }] of fences.entries()) {
+    const name = JSON.stringify(`${block.details.file}:${block.line}`);
+    lines.push(`test(${name}, fences[${i}]);`);
+    // Runners locate a test where test() is called, so point the call at its fence
+    mappings.push([[0, 0, block.line - 1, block.details.indent]]);
+  }
+  const map = new SourceMap({ sources: [doc], names: [], mappings });
+  return { code: lines.join("\n"), map };
 }
 
 export function moduleFiles(adapter: TestAdapter, index: DocIndex): Map<string, string> {
   const files = new Map<string, string>();
   for (const [doc, fences] of index.docs()) {
     for (const fence of fences) files.set(fence.id, fenceModule(adapter, fence).code);
-    files.set(index.docModuleId(doc), docModule(adapter, fences));
+    files.set(index.docModuleId(doc), docModule(adapter, doc, fences).code);
   }
   return files;
 }

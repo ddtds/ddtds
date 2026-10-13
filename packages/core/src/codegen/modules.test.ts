@@ -49,7 +49,7 @@ test("a fence module maps its code back to the markdown", () => {
 test("a doc module loads each fence and registers one test per fence", () => {
   const first = fence("1;", null, { line: 3 });
   const second = { ...fence("2;", null, { line: 9 }), id: "/repo/__doctests__/t_md_9.ts" };
-  expect(docModule(adapter, [first, second])).toBe(
+  expect(docModule(adapter, "/repo/docs/t.md", [first, second]).code).toBe(
     [
       "import { test } from 'test';",
       "import { runtime } from '@ddtds/test/runtime';",
@@ -61,4 +61,22 @@ test("a doc module loads each fence and registers one test per fence", () => {
       'test("t.md:9", fences[1]);',
     ].join("\n"),
   );
+});
+
+test("a doc module maps each test call to its fence in the markdown", () => {
+  const { code, map } = docModule(adapter, "/repo/docs/t.md", [fence("1;", null, { line: 3 })]);
+  expect(map.sources).toEqual(["/repo/docs/t.md"]);
+  const traces = new TraceMap(JSON.parse(map.toString()));
+  const { line } = generatedLine(code, (source) => source.startsWith("test("));
+
+  // the generated test() call resolves to the fence's markdown line...
+  expect(originalPositionFor(traces, { line, column: 0 })).toMatchObject({
+    source: "/repo/docs/t.md",
+    line: 3,
+    column: 0,
+  });
+  // ...and a breakpoint on that markdown line resolves to the generated call
+  expect(
+    generatedPositionFor(traces, { source: "/repo/docs/t.md", line: 3, column: 0 }),
+  ).toMatchObject({ line, column: 0 });
 });

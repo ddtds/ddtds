@@ -1,9 +1,15 @@
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { dirname, join, relative } from "node:path";
 import { Writable } from "node:stream";
 import { onTestFinished, type ParsedStack } from "vitest";
 import type { ViteUserConfig } from "vitest/config";
-import { createVitest, type Reporter, type TestModule, type Vitest } from "vitest/node";
+import {
+  createVitest,
+  type Reporter,
+  type TestModule,
+  type TestUserConfig,
+  type Vitest,
+} from "vitest/node";
 import { ddtPlugin, type DdtPluginOptions } from "@ddtds/vitest";
 
 type Outcomes = Record<string, string>;
@@ -30,6 +36,7 @@ async function vitest(
     watch = false,
     reporter = {},
     output = {},
+    coverage,
     logLevel,
   }: {
     plugin?: DdtPluginOptions;
@@ -37,12 +44,13 @@ async function vitest(
     watch?: boolean;
     reporter?: Reporter;
     output?: { stdout?: Writable; stderr?: Writable };
+    coverage?: TestUserConfig["coverage"];
     logLevel?: ViteUserConfig["logLevel"];
   } = {},
 ): Promise<Vitest & AsyncDisposable> {
   const instance = await createVitest(
     "test",
-    { root, config: false, watch, reporters: [reporter] },
+    { root, config: false, watch, reporters: [reporter], ...(coverage && { coverage }) },
     {
       plugins: [ddtPlugin({ logLevel: "fatal", ...plugin })],
       // for nicer dev experience since it will pull in real source instead of
@@ -138,6 +146,57 @@ export async function failures(root: string): Promise<Record<string, Failure>> {
     }
   }
   return results;
+}
+
+/** Where each test is declared, as Vitest reports it to editors */
+export async function locations(root: string): Promise<Record<string, string>> {
+  await using instance = await vitest(root, { test: { includeTaskLocation: true } });
+  await instance.start();
+  const results: Record<string, string> = {};
+  for (const module of instance.state.getTestModules()) {
+    for (const testCase of module.children.allTests()) {
+      const { line, column } = testCase.location ?? {};
+      results[testCase.name] = `${line}:${column}`;
+    }
+  }
+  return results;
+}
+
+type Coverage = { covered: number[]; uncovered: number[] };
+type Location = { start: { line: number } };
+type FileCoverage = { s: Record<string, number>; statementMap: Record<string, Location> };
+
+/** Lines with statements that ran and that did not, per file, from v8 coverage */
+export async function coverage(root: string): Promise<Record<string, Coverage>> {
+  const reportsDirectory = join(root, "coverage");
+  // Vitest writes the report when it closes, at the end of this block
+  {
+    await using instance = await vitest(root, {
+      coverage: { enabled: true, provider: "v8", reporter: ["json"], reportsDirectory },
+    });
+    await instance.start();
+  }
+  const report: Record<string, FileCoverage> = JSON.parse(
+    readFileSync(join(reportsDirectory, "coverage-final.json"), "utf8"),
+  );
+  const files = Object.entries(report);
+  return Object.fromEntries(
+    files.map(([file, data]) => [relative(root, file), coverageLines(data)]),
+  );
+}
+
+function sorted(lines: Set<number>): number[] {
+  return [...lines].toSorted((a, b) => a - b);
+}
+
+function coverageLines({ s, statementMap }: FileCoverage): Coverage {
+  const covered = new Set<number>();
+  const uncovered = new Set<number>();
+  for (const [id, hits] of Object.entries(s)) {
+    const line = statementMap[id]?.start.line;
+    if (line !== undefined) (hits > 0 ? covered : uncovered).add(line);
+  }
+  return { covered: sorted(covered), uncovered: sorted(uncovered) };
 }
 
 export async function watch(root: string, edit: () => void): Promise<Outcomes[]> {
