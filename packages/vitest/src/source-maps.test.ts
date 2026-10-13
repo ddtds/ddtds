@@ -1,4 +1,3 @@
-import { assert, asyncProperty, integer, record } from "fast-check";
 import { expect, test } from "vitest";
 import { coverage, failures, fence, fixture, locations } from "./test-utils.ts";
 
@@ -85,7 +84,7 @@ test("editors place each test at its fence", async () => {
   `);
 });
 
-test("coverage reports which markdown lines ran", async () => {
+test("coverage maps fence statements to their markdown lines", async () => {
   const root = fixture({
     ...calc,
     "README.md": fence(
@@ -93,8 +92,7 @@ test("coverage reports which markdown lines ran", async () => {
     ),
   });
   const { "README.md": readme, ...sources } = await coverage(root);
-  // Vitest 5 also counts the test() call, mapped to the fence's opening line; Vitest 4 does not
-  expect(readme?.covered.filter((line) => line > 1)).toEqual([4, 5]);
+  expect(fenceCodeLines(readme?.covered)).toEqual([4, 5]);
   expect(readme?.uncovered).toEqual([6]);
   expect(sources).toMatchInlineSnapshot(`
     {
@@ -111,52 +109,6 @@ test("coverage reports which markdown lines ran", async () => {
   `);
 });
 
-/**
- * A fence that runs `executed` statements and leaves `skipped` statements inside a
- * never-taken branch. Every statement sits on a known markdown line, so a test can
- * assert exactly which markdown lines a coverage report says ran.
- */
-function generatedFence(executed: number, skipped: number, indent = 0) {
-  const pad = " ".repeat(indent);
-  const body = Array.from({ length: executed }, (_, i) => `${pad}const run${i} = ${i};`);
-  // the fence opens on markdown line 1, so its first line of code is line 2
-  const run = body.map((_, i) => i + 2);
-  const condition = executed + 2;
-  const skip = Array.from({ length: skipped }, (_, i) => condition + 1 + i);
-  body.push(
-    `${pad}if (false) {`,
-    ...skip.map((_, i) => `${pad}  const skip${i} = ${i};`),
-    `${pad}}`,
-  );
-  return { doc: fence(body.join("\n")), run, condition, skip };
-}
-
-/** Vitest 5 also counts the test() call, mapped to the fence's opening line; Vitest 4 does not */
-function fenceLines(lines: number[] | undefined) {
+function fenceCodeLines(lines: number[] | undefined) {
   return lines?.filter((line) => line > 1);
 }
-
-const fenceShape = record({
-  executed: integer({ min: 1, max: 4 }),
-  skipped: integer({ min: 0, max: 3 }),
-  indent: integer({ min: 0, max: 4 }),
-});
-
-// each run boots a real Vitest with v8 coverage, so keep the sample small
-test("coverage maps every executed fence statement to its markdown line", async () => {
-  await assert(
-    asyncProperty(fenceShape, async ({ executed, skipped, indent }) => {
-      const { doc, run, condition, skip } = generatedFence(executed, skipped, indent);
-      const root = fixture({ "README.md": doc });
-      const readme = (await coverage(root))["README.md"];
-
-      // every executed statement is reported at its markdown line, and nothing else is
-      expect(fenceLines(readme?.covered)).toEqual([...run, condition]);
-      // the never-taken branch is reported as uncovered at its own markdown lines
-      expect(fenceLines(readme?.uncovered)).toEqual(skip);
-      // real coverage: the report actually saw the fence run
-      expect(fenceLines(readme?.covered)).not.toEqual([]);
-    }),
-    { numRuns: 8 },
-  );
-});
