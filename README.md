@@ -4,12 +4,16 @@
 
 ddtds doctests that don't suck
 
-runs your code blocks as tests with your framework of choice. Documentation should stay up to date and show your package the same way your consumers will
+runs your code blocks as tests with your framework of choice
 
-Imagine a world where you can just `vitest run README.md`!!!
+Imagine a world where you can just `vitest run README.md`!!! Well imagine no more, that just works
+
+Documentation is much better when you and your users can be sure it's up to date
 
 ```ts run
-expect(1 + 1).toBe(2);
+const numbers = [1, 2, 3, 4];
+// map creates a new array by calling the provided function on each item of the original array
+expect(numbers.map((x) => x + 1)).toStrictEqual([2, 3, 4, 5]);
 ```
 
 ```tsx run
