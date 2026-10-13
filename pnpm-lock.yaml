@@ -437,9 +437,6 @@ importers:
       '@ddtds/vitest':
         specifier: workspace:*
         version: link:../../../../packages/vitest
-      '@tsrx/oxc':
-        specifier: catalog:dev
-        version: 0.20.0(svelte@5.57.2)
       happy-dom:
         specifier: catalog:examples
         version: 20.14.6
