@@ -8,10 +8,11 @@ import {
   type Fence,
   type Lang,
 } from "@ddtds/core";
-import { vitestRunner } from "./runner.ts";
+import { vitestTestAdapter } from "./runner.ts";
 
-const fenceModule = (fence: Fence): string => generateFenceModule(vitestRunner, fence);
-const docModule = (fences: readonly Fence[]): string => generateDocModule(vitestRunner, fences);
+const fenceModule = (fence: Fence): string => generateFenceModule(vitestTestAdapter, fence);
+const docModule = (fences: readonly Fence[]): string =>
+  generateDocModule(vitestTestAdapter, fences);
 
 function block(
   code: string,

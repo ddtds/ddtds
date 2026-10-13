@@ -50,6 +50,6 @@ export const typedImports =
   (...names: (keyof Module)[]): string =>
     `import { ${names.join(", ")} } from '${module}';`;
 
-export function runtimeImport(runner: TestAdapter): string {
-  return `import { runtime } from '${runner.runtime}';`;
+export function runtimeImport(testAdapter: TestAdapter): string {
+  return `import { runtime } from '${testAdapter.runtime}';`;
 }

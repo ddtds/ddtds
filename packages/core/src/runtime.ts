@@ -10,6 +10,8 @@ import { DdtCompileError, type CompileErrorDetails, type Position } from "./comp
 type FenceRun = () => Promise<void>;
 type FenceModule = { default: FenceRun };
 
+export type SerializedCause = { name: string; message: string; code?: string };
+
 /** Points the error's stack at the markdown. */
 function thrownAt(error: Error, fileName: string, { line, column }: Position): Error {
   error.stack = `${error.name}: ${error.message}\n    at ${fileName}:${line}:${column}`;
@@ -36,9 +38,9 @@ export const runtime = {
   }: {
     fileName: string;
     details: CompileErrorDetails;
-    cause?: unknown;
+    cause?: SerializedCause;
   }): FenceRun => {
-    const error = new DdtCompileError(details, cause === undefined ? undefined : { cause });
+    const error = new DdtCompileError(details, { cause });
     const position = details.diagnostics[0]?.labels[0]?.start ?? details.block.range.start;
 
     return async () => {

@@ -36,7 +36,7 @@ describe("compileError", () => {
       .compileError({ fileName: "/docs/t.md", details })()
       .catch((caught: unknown) => caught);
     expect(error).toBeInstanceOf(DdtCompileError);
-    expect(error).not.toHaveProperty("cause");
+    expect(error).toHaveProperty("cause", undefined);
   });
 
   test("keeps the cause when given", async () => {
