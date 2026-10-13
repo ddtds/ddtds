@@ -53,11 +53,13 @@ await userEvent.type(screen.getByLabelText("Cutest animal"), "otter");
 expect(screen.getByRole("status").textContent).toBe("The cutest animal is otter");
 ```
 
-Can extract code from these files 
+Can extract code from these files
+
 - md
 - mdx
 
 Can extract and run these languages
+
 - js
 - ts
 - jsx
@@ -79,5 +81,3 @@ TODO verify these claims and also find more alternatives
 typescript-docs-verifier typechecks with a custom config, I don't believe it allows for custom compilers so react is off the table
 
 markdown-doctest seems pretty old looking and only works with js
-
-
