@@ -6,7 +6,7 @@ export default defineConfig({
     // Snapshots of nested Vitest runs and CLI output must not depend on color support
     env: { NO_COLOR: "1" },
     projects: [
-      "packages/*",
+      "packages/*/vitest.config.ts",
       "examples/{js,ts,react}",
       "examples/monorepo/packages/*",
       "examples/monorepo/packages/*/vitest.server.config.ts",
