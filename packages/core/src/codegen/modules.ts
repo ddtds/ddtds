@@ -17,7 +17,7 @@ function shiftToFence(mappings: SourceMapSegment[][], { block }: Fence): SourceM
   );
 }
 
-export function fenceModule(adapter: TestAdapter, fence: Fence): GeneratedModule {
+export function fenceModule(adapter: TestAdapter, fence: Fence, source?: string): GeneratedModule {
   const { imports, ...expression } = emitFence(adapter, planFence(fence));
   const { open, body, close } = wrap(expression, "export default ", ";");
   const pieces = [...imports, open, ...body, ...(close === "" ? [] : [close])];
@@ -30,34 +30,50 @@ export function fenceModule(adapter: TestAdapter, fence: Fence): GeneratedModule
 
   const { mappings } = bundle.generateDecodedMap({ hires: "boundary" });
   const map = new SourceMap({
+    file: fence.doc,
     sources: [fence.doc],
+    ...(source === undefined ? {} : { sourcesContent: [source] }),
     names: [],
     mappings: shiftToFence(mappings, fence),
   });
   return { code: bundle.toString(), map };
 }
 
-export function docModule(adapter: TestAdapter, fences: readonly Fence[]): string {
-  const loads = fences.map(({ id }) => `  () => import(${JSON.stringify(id)}),`);
-  const tests = fences.map((fence, i) => {
-    const name = JSON.stringify(`${fence.block.details.file}:${fence.block.line}`);
-    return `test(${name}, fences[${i}]);`;
-  });
-  return [
+export function docModule(
+  adapter: TestAdapter,
+  doc: string,
+  fences: readonly Fence[],
+  { source }: { source?: string } = {},
+): GeneratedModule {
+  const lines = [
     adapter.testImport,
     runtimeImport(adapter),
     "const fences = await runtime.loadFences([",
-    ...loads,
+    ...fences.map(({ id }) => `  () => import(${JSON.stringify(id)}),`),
     "]);",
-    ...tests,
-  ].join("\n");
+  ];
+  const mappings: SourceMapSegment[][] = lines.map(() => []);
+  for (const [i, { block }] of fences.entries()) {
+    const name = JSON.stringify(`${block.details.file}:${block.line}`);
+    lines.push(`test(${name}, fences[${i}]);`);
+    mappings.push([[0, 0, block.line - 1, block.details.indent]]);
+  }
+  const map = new SourceMap({
+    file: doc,
+    sources: [doc],
+    ...(source === undefined ? {} : { sourcesContent: [source] }),
+    names: [],
+    mappings,
+  });
+  return { code: lines.join("\n"), map };
 }
 
 export function moduleFiles(adapter: TestAdapter, index: DocIndex): Map<string, string> {
   const files = new Map<string, string>();
   for (const [doc, fences] of index.docs()) {
-    for (const fence of fences) files.set(fence.id, fenceModule(adapter, fence).code);
-    files.set(index.docModuleId(doc), docModule(adapter, fences));
+    const source = index.sourceOf(doc);
+    for (const fence of fences) files.set(fence.id, fenceModule(adapter, fence, source).code);
+    files.set(index.docModuleId(doc), docModule(adapter, doc, fences, { source }).code);
   }
   return files;
 }

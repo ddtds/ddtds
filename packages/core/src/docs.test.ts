@@ -54,3 +54,10 @@ test("docModuleId flattens the doc path relative to the root", () => {
     "/repo/pkg/__doctests__/___docs_guide_md.test.ts",
   );
 });
+
+test("sourceOf returns the doc's original text", () => {
+  const source = run("1");
+  const docs = index({ "/repo/docs/guide.md": source });
+  expect(docs.sourceOf("/repo/docs/guide.md")).toBe(source);
+  expect(docs.sourceOf("/repo/docs/missing.md")).toBeUndefined();
+});

@@ -1,5 +1,5 @@
 import { expect, test } from "vitest";
-import { failures, fence, fixture } from "./test-utils.ts";
+import { coverage, failures, fence, fixture, locations } from "./test-utils.ts";
 
 const calc = {
   "package.json": '{ "name": "calc", "type": "module", "exports": "./src/index.ts" }',
@@ -68,4 +68,47 @@ test("fences indented in a list map to their columns", async () => {
       },
     }
   `);
+  expect(await locations(root)).toMatchInlineSnapshot(`
+    {
+      "guide.md:3": "3:4",
+    }
+  `);
 });
+
+test("editors place each test at its fence", async () => {
+  expect(await locations(fixture(calc))).toMatchInlineSnapshot(`
+    {
+      "README.md:13": "13:1",
+      "README.md:3": "3:1",
+    }
+  `);
+});
+
+test("coverage maps fence statements to their markdown lines", async () => {
+  const root = fixture({
+    ...calc,
+    "README.md": fence(
+      'import { add } from "calc";\n\nconst sum = add(1, 2);\nif (sum > 100) {\n  throw new Error("too big");\n}',
+    ),
+  });
+  const { "README.md": readme, ...sources } = await coverage(root);
+  expect(fenceCodeLines(readme?.covered)).toEqual([4, 5]);
+  expect(readme?.uncovered).toEqual([6]);
+  expect(sources).toMatchInlineSnapshot(`
+    {
+      "src/index.ts": {
+        "covered": [
+          2,
+        ],
+        "uncovered": [
+          6,
+          7,
+        ],
+      },
+    }
+  `);
+});
+
+function fenceCodeLines(lines: number[] | undefined) {
+  return lines?.filter((line) => line > 1);
+}

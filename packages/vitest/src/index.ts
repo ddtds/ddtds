@@ -37,11 +37,13 @@ export function moduleFiles(index: DocIndex): Map<string, string> {
  * The module the plugin serves for a doc or fence id, or `undefined` when the id is
  * neither. `load` delegates here so benchmarks exercise the same path.
  */
-export function loadModule(index: DocIndex, id: string): string | GeneratedModule | undefined {
-  if (index.hasDoc(id)) return docModule(vitestTestAdapter, index.fencesOf(id));
+export function loadModule(index: DocIndex, id: string): GeneratedModule | undefined {
+  if (index.hasDoc(id)) {
+    return docModule(vitestTestAdapter, id, index.fencesOf(id), { source: index.sourceOf(id) });
+  }
   const fence = index.fence(id);
   if (!fence) return undefined;
-  return fenceModule(vitestTestAdapter, fence);
+  return fenceModule(vitestTestAdapter, fence, index.sourceOf(fence.doc));
 }
 
 const logger = getLogger(["ddtds", "vitest"]);

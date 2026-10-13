@@ -13,10 +13,16 @@ export class DocIndex {
   readonly #options: IndexOptions;
   readonly #docs: ReadonlyMap<string, readonly Fence[]>;
   readonly #fences: ReadonlyMap<string, Fence>;
+  readonly #sources: ReadonlyMap<string, string>;
 
-  private constructor(options: IndexOptions, docs: ReadonlyMap<string, readonly Fence[]>) {
+  private constructor(
+    options: IndexOptions,
+    docs: ReadonlyMap<string, readonly Fence[]>,
+    sources: ReadonlyMap<string, string>,
+  ) {
     this.#options = options;
     this.#docs = docs;
+    this.#sources = sources;
     /** Transform docs map into a map of fence ids and code fences */
     this.#fences = new Map([...docs.values()].flat().map((fence) => [fence.id, fence]));
   }
@@ -27,13 +33,15 @@ export class DocIndex {
       const fences = parseFences(options, doc, source);
       if (fences.length > 0) docs.set(doc, fences);
     }
-    return new DocIndex(options, docs);
+    return new DocIndex(options, docs, sources);
   }
 
   public withDoc(doc: string, source: string): DocIndex {
     const docs = new Map(this.#docs);
     docs.set(doc, parseFences(this.#options, doc, source));
-    return new DocIndex(this.#options, docs);
+    const sources = new Map(this.#sources);
+    sources.set(doc, source);
+    return new DocIndex(this.#options, docs, sources);
   }
 
   public get root(): string {
@@ -62,6 +70,10 @@ export class DocIndex {
 
   public fence(id: string): Fence | undefined {
     return this.#fences.get(id);
+  }
+
+  public sourceOf(doc: string): string | undefined {
+    return this.#sources.get(doc);
   }
 
   public docModuleId(doc: string): string {
