@@ -46,6 +46,12 @@ test("a fence module maps its code back to the markdown", () => {
   ).toMatchObject({ line, column });
 });
 
+test("a fence module embeds the doc for debuggers that cannot resolve the path", () => {
+  const { map } = fenceModule(adapter, fence("a();", null, { line: 3 }), "# Title\n");
+  expect(map.file).toBe("/repo/docs/t.md");
+  expect(map.sourcesContent).toEqual(["# Title\n"]);
+});
+
 test("a doc module loads each fence and registers one test per fence", () => {
   const first = fence("1;", null, { line: 3 });
   const second = { ...fence("2;", null, { line: 9 }), id: "/repo/__doctests__/t_md_9.ts" };
@@ -79,4 +85,12 @@ test("a doc module maps each test call to its fence in the markdown", () => {
   expect(
     generatedPositionFor(traces, { source: "/repo/docs/t.md", line: 3, column: 0 }),
   ).toMatchObject({ line, column: 0 });
+});
+
+test("a doc module embeds the doc for debuggers that cannot resolve the path", () => {
+  const { map } = docModule(adapter, "/repo/docs/t.md", [fence("1;", null, { line: 3 })], {
+    source: "# Title\n",
+  });
+  expect(map.file).toBe("/repo/docs/t.md");
+  expect(map.sourcesContent).toEqual(["# Title\n"]);
 });

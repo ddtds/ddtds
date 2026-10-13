@@ -17,7 +17,7 @@ function shiftToFence(mappings: SourceMapSegment[][], { block }: Fence): SourceM
   );
 }
 
-export function fenceModule(adapter: TestAdapter, fence: Fence): GeneratedModule {
+export function fenceModule(adapter: TestAdapter, fence: Fence, source?: string): GeneratedModule {
   const { imports, ...expression } = emitFence(adapter, planFence(fence));
   const { open, body, close } = wrap(expression, "export default ", ";");
   const pieces = [...imports, open, ...body, ...(close === "" ? [] : [close])];
@@ -30,7 +30,9 @@ export function fenceModule(adapter: TestAdapter, fence: Fence): GeneratedModule
 
   const { mappings } = bundle.generateDecodedMap({ hires: "boundary" });
   const map = new SourceMap({
+    file: fence.doc,
     sources: [fence.doc],
+    ...(source === undefined ? {} : { sourcesContent: [source] }),
     names: [],
     mappings: shiftToFence(mappings, fence),
   });
@@ -41,6 +43,7 @@ export function docModule(
   adapter: TestAdapter,
   doc: string,
   fences: readonly Fence[],
+  { source }: { source?: string } = {},
 ): GeneratedModule {
   const lines = [
     adapter.testImport,
@@ -53,18 +56,24 @@ export function docModule(
   for (const [i, { block }] of fences.entries()) {
     const name = JSON.stringify(`${block.details.file}:${block.line}`);
     lines.push(`test(${name}, fences[${i}]);`);
-    // Runners locate a test where test() is called, so point the call at its fence
     mappings.push([[0, 0, block.line - 1, block.details.indent]]);
   }
-  const map = new SourceMap({ sources: [doc], names: [], mappings });
+  const map = new SourceMap({
+    file: doc,
+    sources: [doc],
+    ...(source === undefined ? {} : { sourcesContent: [source] }),
+    names: [],
+    mappings,
+  });
   return { code: lines.join("\n"), map };
 }
 
 export function moduleFiles(adapter: TestAdapter, index: DocIndex): Map<string, string> {
   const files = new Map<string, string>();
   for (const [doc, fences] of index.docs()) {
-    for (const fence of fences) files.set(fence.id, fenceModule(adapter, fence).code);
-    files.set(index.docModuleId(doc), docModule(adapter, doc, fences).code);
+    const source = index.sourceOf(doc);
+    for (const fence of fences) files.set(fence.id, fenceModule(adapter, fence, source).code);
+    files.set(index.docModuleId(doc), docModule(adapter, doc, fences, { source }).code);
   }
   return files;
 }

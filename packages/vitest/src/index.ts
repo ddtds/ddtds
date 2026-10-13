@@ -38,10 +38,12 @@ export function moduleFiles(index: DocIndex): Map<string, string> {
  * neither. `load` delegates here so benchmarks exercise the same path.
  */
 export function loadModule(index: DocIndex, id: string): GeneratedModule | undefined {
-  if (index.hasDoc(id)) return docModule(vitestTestAdapter, id, index.fencesOf(id));
+  if (index.hasDoc(id)) {
+    return docModule(vitestTestAdapter, id, index.fencesOf(id), { source: index.sourceOf(id) });
+  }
   const fence = index.fence(id);
   if (!fence) return undefined;
-  return fenceModule(vitestTestAdapter, fence);
+  return fenceModule(vitestTestAdapter, fence, index.sourceOf(fence.doc));
 }
 
 const logger = getLogger(["ddtds", "vitest"]);
