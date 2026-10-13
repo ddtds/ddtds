@@ -46,10 +46,11 @@ export type TestAdapter = Readonly<{
  * ```
  */
 export const typedImports =
+  // oxlint-disable-next-line typescript/no-unnecessary-type-parameters this is fine and needed to make the function type safe
   <Module>(module: string) =>
-  (...names: (keyof Module)[]): string =>
-    `import { ${names.join(", ")} } from '${module}';`;
+    (...names: (keyof Module)[]): string =>
+      `import { ${names.join(", ")} } from '${module}';`;
 
-export function runtimeImport(testAdapter: TestAdapter): string {
-  return `import { runtime } from '${testAdapter.runtime}';`;
+export function runtimeImport(adapter: TestAdapter): string {
+  return `import { runtime } from '${adapter.runtime}';`;
 }

@@ -65,7 +65,8 @@ async function vitest(
 function outcomes(modules: readonly TestModule[]): Outcomes {
   const results: Outcomes = {};
   for (const module of modules) {
-    for (const error of module.errors()) results[module.moduleId] = error.message;
+    const [moduleError] = module.errors();
+    if (moduleError) results[module.moduleId] = moduleError.message;
     for (const testCase of module.children.allTests()) {
       const { state, errors } = testCase.result();
       results[testCase.name] = errors?.[0]?.name ?? state;

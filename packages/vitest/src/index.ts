@@ -16,7 +16,7 @@ import {
   type LogLevel,
 } from "@ddtds/core";
 import { getLogger } from "@logtape/logtape";
-import { vitestTestAdapter } from "./runner.ts";
+import { vitestTestAdapter } from "./adapter.ts";
 import { configureLogging, createViteSink } from "./logging.ts";
 
 export type { CodeBlock, DocIndex, DocsOptions, Fence, LogLevel } from "@ddtds/core";
