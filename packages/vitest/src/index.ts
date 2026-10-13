@@ -32,6 +32,17 @@ export function moduleFiles(index: DocIndex): Map<string, string> {
   return generateModuleFiles(vitestTestAdapter, index);
 }
 
+/**
+ * The module the plugin serves for a doc or fence id, or `undefined` when the id is
+ * neither. `load` delegates here so benchmarks exercise the same path.
+ */
+export function loadModule(index: DocIndex, id: string): string | undefined {
+  if (index.hasDoc(id)) return docModule(vitestTestAdapter, index.fencesOf(id));
+  const fence = index.fence(id);
+  if (!fence) return undefined;
+  return fenceModule(vitestTestAdapter, fence);
+}
+
 const logger = getLogger(["ddtds", "vitest"]);
 
 export type DdtPluginOptions = DocsOptions & {
@@ -96,11 +107,9 @@ export function ddtPlugin({ logLevel, ...docs }: DdtPluginOptions = {}): Plugin 
       return this.resolve(source, fromRoot, { ...resolveOptions, skipSelf: true });
     },
     load(id) {
-      if (index.hasDoc(id)) return docModule(vitestTestAdapter, index.fencesOf(id));
       const fence = index.fence(id);
-      if (!fence) return undefined;
-      this.addWatchFile(fence.doc);
-      return fenceModule(vitestTestAdapter, fence);
+      if (fence) this.addWatchFile(fence.doc);
+      return loadModule(index, id);
     },
   };
 }

@@ -1,6 +1,6 @@
 import { bench, describe } from "vitest";
 import { DocIndex } from "@ddtds/core";
-import { moduleFiles } from "@ddtds/vitest";
+import { loadModule } from "@ddtds/vitest";
 
 function fence(i: number): string {
   return [
@@ -25,8 +25,19 @@ const index = DocIndex.fromSources(sources, {
   moduleDir: `${root}/__ddtds__`,
 });
 
-describe("moduleFiles", () => {
-  bench("generate test modules for 10 docs of 20 fences", () => {
-    moduleFiles(index);
+const fenceIds = [...index.fences()].map((fence) => fence.id);
+const docIds = index
+  .docs()
+  .map(([doc]) => doc)
+  .toArray();
+
+/** What `ddtPlugin`'s `load` serves during a test run: one module per doc and fence. */
+describe("vitest plugin load", () => {
+  bench("serve every fence module", () => {
+    for (const id of fenceIds) loadModule(index, id);
+  });
+
+  bench("serve every doc module", () => {
+    for (const id of docIds) loadModule(index, id);
   });
 });
