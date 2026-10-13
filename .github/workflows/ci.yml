@@ -27,7 +27,7 @@ jobs:
       - run: pnpm run format:check
       - run: pnpm run typecheck
       - run: pnpm run publint
-      - run: pnpm --filter @ddtds/core --filter ddtds --filter @ddtds/vitest publish --dry-run --no-git-checks
+      - run: pnpm --filter @ddtds/core --filter ddtds --filter @ddtds/vitest --filter @ddtds/node-test publish --dry-run --no-git-checks
 
   tests:
     runs-on: ubuntu-latest
@@ -46,3 +46,13 @@ jobs:
           VITEST_VERSION: ${{ matrix.vitest-version }}
       - run: pnpm install --no-frozen-lockfile
       - run: pnpm run test:coverage
+
+  node:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: $/.github/actions/setup
+      - run: pnpm run build
+      - run: pnpm --filter @ddtds/example-node test
