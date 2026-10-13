@@ -12,7 +12,7 @@ export default defineConfig({
       "examples/monorepo/packages/*/vitest.server.config.ts",
       {
         plugins: [ddtPlugin({ include: ["README.md"] })],
-        test: { name: "readme", include: ["README.md"] },
+        test: { name: "readme", include: ["README.md"], environment: "happy-dom" },
       },
     ],
     coverage: {
