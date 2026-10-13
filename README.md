@@ -4,9 +4,23 @@
 
 ddtds doctests that don't suck
 
-runs your code blocks as tests with your framework of choice
+Imagine a world where you can just `vitest run README.md`!!! Well imagine no more, I just did that. Pretty cool right?
 
-Imagine a world where you can just `vitest run README.md`!!! Well imagine no more, that just works
+```bash
+~/coding/ddtds pnpm exec vitest run README.md
+
+ RUN  v5.0.3 /home/jacob/coding/ddtds
+
+ ✓  readme  README.md (2 tests) 52ms
+   ✓ README.md:13 2ms
+   ✓ README.md:21 49ms
+
+ Test Files  1 passed (1)
+      Tests  2 passed (2)
+Type Errors  no errors
+   Start at  02:02:01
+   Duration  477ms (environment 51%, import 26%, tests 13%, transform 9%, worker 1%)
+```
 
 Documentation is much better when you and your users can be sure it's up to date
 
