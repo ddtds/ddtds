@@ -69,3 +69,17 @@ This block is intentionally broken but tagged `skip` so it won't run:
 ```js skip
 expect(1).toBe(999);
 ```
+
+## CommonJS
+
+Fences can use `require`, `module` and `exports`. Requires resolve from the doc, like a file beside it:
+
+```js run
+const { basename } = require("node:path");
+expect(basename("/docs/guide.md")).toBe("guide.md");
+```
+
+```js run
+exports.answer = 42;
+expect(module.exports).toEqual({ answer: 42 });
+```
