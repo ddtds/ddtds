@@ -45,6 +45,14 @@ async function vitest(
     { root, config: false, watch, reporters: [reporter] },
     {
       plugins: [ddtPlugin({ logLevel: "fatal", ...plugin })],
+      // for nicer dev experience since it will pull in real source instead of
+      // requiring dev server. source is tested in other example packages
+      resolve: {
+        alias: {
+          "@ddtds/vitest/runtime": join(import.meta.dirname, "runtime.ts"),
+          "@ddtds/vitest": join(import.meta.dirname, "index.ts"),
+        },
+      },
       test,
       logLevel,
     },
@@ -57,7 +65,8 @@ async function vitest(
 function outcomes(modules: readonly TestModule[]): Outcomes {
   const results: Outcomes = {};
   for (const module of modules) {
-    for (const error of module.errors()) results[module.moduleId] = error.message;
+    const [moduleError] = module.errors();
+    if (moduleError) results[module.moduleId] = moduleError.message;
     for (const testCase of module.children.allTests()) {
       const { state, errors } = testCase.result();
       results[testCase.name] = errors?.[0]?.name ?? state;

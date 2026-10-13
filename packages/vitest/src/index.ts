@@ -5,6 +5,9 @@ import { defaultExclude, defaultInclude, type Plugin } from "vitest/config";
 import {
   defaultOutDir,
   DocIndex,
+  docModule,
+  fenceModule,
+  moduleFiles as generateModuleFiles,
   readDocs,
   resolveDocsOptions,
   resolveLogLevel,
@@ -13,7 +16,7 @@ import {
   type LogLevel,
 } from "@ddtds/core";
 import { getLogger } from "@logtape/logtape";
-import { docModule, fenceModule } from "./codegen.ts";
+import { vitestTestAdapter } from "./adapter.ts";
 import { configureLogging, createViteSink } from "./logging.ts";
 
 export type { CodeBlock, DocIndex, DocsOptions, Fence, LogLevel } from "@ddtds/core";
@@ -23,7 +26,11 @@ export {
   defaultDocsExclude,
   defaultOutDir,
 } from "@ddtds/core";
-export { moduleFiles } from "./codegen.ts";
+
+/** Generated doc and fence modules for `ddt build`. */
+export function moduleFiles(index: DocIndex): Map<string, string> {
+  return generateModuleFiles(vitestTestAdapter, index);
+}
 
 const logger = getLogger(["ddtds", "vitest"]);
 
@@ -89,11 +96,11 @@ export function ddtPlugin({ logLevel, ...docs }: DdtPluginOptions = {}): Plugin 
       return this.resolve(source, fromRoot, { ...resolveOptions, skipSelf: true });
     },
     load(id) {
-      if (index.hasDoc(id)) return docModule(index.fencesOf(id));
+      if (index.hasDoc(id)) return docModule(vitestTestAdapter, index.fencesOf(id));
       const fence = index.fence(id);
       if (!fence) return undefined;
       this.addWatchFile(fence.doc);
-      return fenceModule(fence);
+      return fenceModule(vitestTestAdapter, fence);
     },
   };
 }
