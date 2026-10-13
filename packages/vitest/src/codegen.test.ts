@@ -84,17 +84,18 @@ describe("generateBlockFile: annotations", () => {
     expect(out).toMatchInlineSnapshot(`
       "import { expect } from 'vitest';
       import { runtime } from '@ddtds/vitest/runtime';
-      export default runtime.expectFailure(async () => {
+      export default runtime.expectFailure({ run: async () => {
         throw new Error("boom")
-      });"
+      } });"
     `);
   });
 
   test("parse errors fail even with the fail annotation", () => {
     const out = fenceModule(fence("const = 1;", ANNOTATIONS.FAIL));
-    expect(out.replace(/, \{.*\}\);/, ", details);")).toMatchInlineSnapshot(`
+    expect(out.replace(/details:\{.*\},cause:void 0\}\)\);/, "details,cause:void 0}));"))
+      .toMatchInlineSnapshot(`
       "import { runtime } from '@ddtds/vitest/runtime';
-      export default runtime.compileError("/repo/docs/t.md", details);"
+      export default runtime.compileError(({fileName:"/repo/docs/t.md",details,cause:void 0}));"
     `);
   });
 
@@ -109,7 +110,7 @@ describe("generateBlockFile: annotations", () => {
     expect(out).toContain("runtime.missingCompileError(");
     expect(out).toMatchInlineSnapshot(`
       "import { runtime } from '@ddtds/vitest/runtime';
-      export default runtime.missingCompileError("/repo/docs/t.md", {"line":1,"column":1});"
+      export default runtime.missingCompileError(({fileName:"/repo/docs/t.md",position:{line:1,column:1}}));"
     `);
   });
 });

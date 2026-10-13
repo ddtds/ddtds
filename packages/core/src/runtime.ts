@@ -29,7 +29,15 @@ export const runtime = {
       ),
     ),
   /** builds a function to throw a compile error */
-  compileError: (fileName: string, details: CompileErrorDetails, cause?: unknown): FenceRun => {
+  compileError: ({
+    fileName,
+    details,
+    cause,
+  }: {
+    fileName: string;
+    details: CompileErrorDetails;
+    cause?: unknown;
+  }): FenceRun => {
     const error = new DdtCompileError(details, cause === undefined ? undefined : { cause });
     const position = details.diagnostics[0]?.labels[0]?.start ?? details.block.range.start;
 
@@ -39,7 +47,7 @@ export const runtime = {
   },
   /** expected a compiler error but didn't find one */
   missingCompileError:
-    (fileName: string, position: Position): FenceRun =>
+    ({ fileName, position }: { fileName: string; position: Position }): FenceRun =>
     async () => {
       throw thrownAt(
         new Error("expected a compile_fail block to fail to compile"),
@@ -49,7 +57,7 @@ export const runtime = {
     },
   /** Passes only when the fence throws. */
   expectFailure:
-    (run: FenceRun): FenceRun =>
+    ({ run }: { run: FenceRun }): FenceRun =>
     async () => {
       try {
         await run();
