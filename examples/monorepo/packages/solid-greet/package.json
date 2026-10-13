@@ -7,7 +7,7 @@
     ".": "./src/index.tsx"
   },
   "scripts": {
-    "test": "vitest run"
+    "test": "vitest run && vitest run --config vitest.server.config.ts"
   },
   "dependencies": {
     "@ddtds/greet": "workspace:*",

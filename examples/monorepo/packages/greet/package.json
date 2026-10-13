@@ -4,7 +4,12 @@
   "private": true,
   "type": "module",
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./is-server": {
+      "development": "./src/is-server/development.ts",
+      "node": "./src/is-server/server.ts",
+      "default": "./src/is-server/client.ts"
+    }
   },
   "scripts": {
     "test": "vitest run"
