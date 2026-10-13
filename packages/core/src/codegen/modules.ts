@@ -77,3 +77,17 @@ export function moduleFiles(adapter: TestAdapter, index: DocIndex): Map<string, 
   }
   return files;
 }
+
+/** The module a host serves for a doc or fence id, or `undefined` when the id is neither. */
+export function moduleFor(
+  adapter: TestAdapter,
+  index: DocIndex,
+  id: string,
+): GeneratedModule | undefined {
+  if (index.hasDoc(id)) {
+    return docModule(adapter, id, index.fencesOf(id), { source: index.sourceOf(id) });
+  }
+  const fence = index.fence(id);
+  if (!fence) return undefined;
+  return fenceModule(adapter, fence, index.sourceOf(fence.doc));
+}
