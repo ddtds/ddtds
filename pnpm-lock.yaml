@@ -267,6 +267,9 @@ importers:
       '@arethetypeswrong/core':
         specifier: 0.18.5
         version: 0.18.5
+      '@ddtds/vitest':
+        specifier: workspace:*
+        version: link:packages/vitest
       '@logtape/lint':
         specifier: catalog:dev
         version: 2.4.0

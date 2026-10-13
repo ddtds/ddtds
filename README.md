@@ -6,6 +6,10 @@ ddtds doctests that don't suck
 
 runs your code blocks as tests with your framework of choice
 
+```ts run
+expect(1 + 1).toBe(2);
+```
+
 ## Architecture
 
 1. parse codeblocks + tags

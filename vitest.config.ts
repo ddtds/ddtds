@@ -1,4 +1,5 @@
 import { defineConfig } from "vitest/config";
+import { ddtPlugin } from "@ddtds/vitest";
 
 export default defineConfig({
   test: {
@@ -9,6 +10,10 @@ export default defineConfig({
       "examples/{js,ts,react}",
       "examples/monorepo/packages/*",
       "examples/monorepo/packages/*/vitest.server.config.ts",
+      {
+        plugins: [ddtPlugin({ include: ["README.md"] })],
+        test: { name: "readme", include: ["README.md"] },
+      },
     ],
     coverage: {
       provider: "v8",
