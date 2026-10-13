@@ -4,7 +4,9 @@
 
 ddtds doctests that don't suck
 
-runs your code blocks as tests with your framework of choice
+runs your code blocks as tests with your framework of choice. Documentation should stay up to date and show your package the same way your consumers will
+
+Imagine a world where you can just `vitest run README.md`!!!
 
 ```ts run
 expect(1 + 1).toBe(2);
@@ -13,7 +15,7 @@ expect(1 + 1).toBe(2);
 ## Architecture
 
 1. parse codeblocks + tags
-2. build testfiles
+2. build testfiles in memory
 3. run with repo config
 
 Takes advantage of existing test config instead of a separate compiler config or test config
@@ -21,10 +23,9 @@ Takes advantage of existing test config instead of a separate compiler config or
 ## Packages
 
 - `./packages` has ddtdts library and cli code
-  - core has agnostic logic for parsing codefences
+  - core has agnostic logic for finding and parsing codefences and test codegen
   - vitest is vitest specific logic and plugin
-  - cli is light glue to run it all
-  - e2e is tests
+  - cli is an experimental tool eventually meant to help with incremental converstion of your codebase
 - `./examples` has react, typescript, javascript examples
 
 ## Alternatives
@@ -39,40 +40,33 @@ markdown-doctest seems pretty old looking and only works with js
 
 Must haves
 
-1. support vitest
-2. CLI
-3. hide boilerplate (should it be # or other syntax)
-4. annotations (run, fail, skip)
-5. --max-failures to ratchet down build failures incrementally
-6. agent skill to aid with migration and fixing build failures (prefer adding hidden imports to compile, do not add assertions??)
-7. ignore config (maybe file?)
-8. Hoisting imports (what if conflicting? should we just rewrite to dynamic imports??? one file per test?)
-9. dynamic imports/relative paths
-10. test isolation (users ideally shouldn't be setting globals in tests, should we deal with this ourselves?)
-11. monorepo with multiple testing roots (I think doctest package would be best here to avoid polluting the dev deps in root)
-12. strip export/export default
-13. don't crash process on compile failure
+- [x] generic template string to add generic top level imports and test func
+- [x] support vitest
+- [ ] support node:test
+-  sourcemapping
+  - [x] stack traces
+  - [ ] coverage reports
+- [x] watch mode 
+
+- [ ] hide boilerplate (should it be # or other syntax)
+- [x] annotations (run, fail, skip)
+- [ ] agent skill to aid with migration and fixing build failures (prefer adding hidden imports to compile, do not add assertions??)
+- [x] ignore config
+- [x] Hoisting imports (what if conflicting? should we just rewrite to dynamic imports??? one file per test?). I ended up using modules for isolation and per file is slow when environments exist
+- [ ] dynamic imports
+- [ ] ban relative paths
+- [x] test isolation (users ideally shouldn't be setting globals in tests, should we deal with this ourselves?). Each test is its own module
+- [x] monorepo with multiple testing roots (I think doctest package would be best here to avoid polluting the dev deps in root)
+- [ ] strip export/export default
+- [x] don't crash process on compile failure
+- [ ] ESM + CJS support
+- [ ] type checking
 
 Nice to haves
 
-1. generic template string to add generic top level imports and test func
-2. other framework support like node builtin support or jest
-3. error handling (if fails to compile, how to point at source?)
-4. watch mode
-5. JSON output for ratcheting/LLM consumption/MCP
-6. JSDOC stuff
+- [ ] CLI
+- [ ] other framework support like rstest or jest
+- [ ] JSON output for ratcheting/LLM consumption/MCP
+- [ ] JSDOC stuff
 
-### features that may come up
 
-- ESM vs Commonjs?
-- max warnings to allow projects with build failures to crank them down
-- maybe force assertions?
-- pass through flags
-
-### testing to do
-
-- MDX
-- md
-- general larger repos
-- vitest/jest
-- various frameworks (react, solid, vue)
