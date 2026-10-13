@@ -18,6 +18,20 @@
       "automerge": false
     },
     {
+      "matchManagers": ["npm"],
+      "matchDepTypes": ["pnpm.catalog.examples"],
+      "groupName": "example deps (minor + patch)",
+      "matchUpdateTypes": ["patch", "minor"],
+      "automerge": false
+    },
+    {
+      "matchManagers": ["npm"],
+      "matchDepTypes": ["pnpm.catalog.examples"],
+      "groupName": "example deps (major)",
+      "matchUpdateTypes": ["major"],
+      "automerge": false
+    },
+    {
       "matchManagers": ["github-actions"],
       "groupName": "github actions",
       "matchUpdateTypes": ["patch", "minor", "digest"],

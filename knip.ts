@@ -4,8 +4,6 @@ const config: KnipConfig = {
   rules: {
     types: "off",
   },
-  // optional peer for tsrx parsing
-  ignoreDependencies: ["@tsrx/oxc"],
   workspaces: {
     ".": {
       // used in generated README tests
