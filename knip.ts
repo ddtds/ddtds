@@ -7,6 +7,15 @@ const config: KnipConfig = {
   // optional peer for tsrx parsing
   ignoreDependencies: ["@tsrx/oxc"],
   workspaces: {
+    ".": {
+      // used in generated README tests
+      ignoreDependencies: [
+        "react",
+        "react-dom",
+        "@testing-library/react",
+        "@testing-library/user-event",
+      ],
+    },
     "examples/react": {
       // used in generated tests
       ignoreDependencies: ["react", "react-dom", "@testing-library/react"],
