@@ -16,24 +16,29 @@ const numbers = [1, 2, 3, 4];
 expect(numbers.map((x) => x + 1)).toStrictEqual([2, 3, 4, 5]);
 ```
 
+run whatever frameworks or tests your test framework already supports. Here's some react
+
 ```tsx run
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { useState } from "react";
 
-function NameForm() {
-  const [name, setName] = useState("");
+function CutestAnimal() {
+  const [animal, setAnimal] = useState("");
   return (
     <form>
-      <input aria-label="name" value={name} onChange={(e) => setName(e.target.value)} />
-      <button>Hello {name || "stranger"}</button>
+      <label>
+        Cutest animal
+        <input value={animal} onChange={(event) => setAnimal(event.target.value)} />
+      </label>
+      <output>The cutest animal is {animal || "..."}</output>
     </form>
   );
 }
 
-render(<NameForm />);
-await userEvent.type(screen.getByLabelText("name"), "Ada");
-expect(screen.getByRole("button").textContent).toBe("Hello Ada");
+render(<CutestAnimal />);
+await userEvent.type(screen.getByLabelText("Cutest animal"), "otter");
+expect(screen.getByRole("status").textContent).toBe("The cutest animal is otter");
 ```
 
 ## Architecture
