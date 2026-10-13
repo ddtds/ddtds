@@ -25,6 +25,7 @@ export {
   fenceModule,
   moduleFiles,
   typedImports,
+  type GeneratedModule,
   type TestAdapter,
 } from "./codegen/index.ts";
 

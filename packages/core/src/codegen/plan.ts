@@ -1,12 +1,14 @@
 import { inspect } from "node:util";
+import type { MagicString } from "magic-string";
 import { DdtCompileError, type CompileErrorDetails, type Position } from "../compile-error.ts";
 import type { PreparedBlock } from "../parse.ts";
 import type { Fence } from "../docs.ts";
 import type { SerializedCause } from "../runtime.ts";
 
-/** Intermediate representation for code fences. Splits out category and rendering logic */
+export type Fragment = string | MagicString;
+
 export type FenceOutcome =
-  | { tag: "run"; imports: string[]; body: string; shouldFail: boolean }
+  | { tag: "run"; imports: Fragment[]; body: Fragment[]; shouldFail: boolean }
   | { tag: "missingCompileError"; fileName: string; position: Position }
   | {
       tag: "compileError";
@@ -30,7 +32,6 @@ export function planFence({ doc, block }: Fence): FenceOutcome {
     split = block.splitImports();
   } catch (error) {
     if (!(error instanceof DdtCompileError)) throw error;
-    // a parse error is the failure a compile_fail block expects
     if (expectsCompileFailure && error.details.phase === "parse") return { tag: "emptyPass" };
     return {
       tag: "compileError",
@@ -44,8 +45,8 @@ export function planFence({ doc, block }: Fence): FenceOutcome {
   }
   return {
     tag: "run",
-    imports: split.imports.map(String),
-    body: split.body.join("\n"),
+    imports: split.imports,
+    body: split.body,
     shouldFail: block.shouldFail(),
   };
 }

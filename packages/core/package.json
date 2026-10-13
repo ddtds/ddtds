@@ -38,6 +38,7 @@
     "unist-util-visit": "^5.1.0"
   },
   "devDependencies": {
+    "@jridgewell/trace-mapping": "catalog:dev",
     "@tsrx/oxc": "catalog:dev",
     "@types/node": "catalog:dev",
     "vitest": "catalog:dev"

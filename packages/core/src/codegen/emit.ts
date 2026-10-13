@@ -1,11 +1,12 @@
+import { MagicString } from "magic-string";
 import type { FenceRuntime } from "../runtime.ts";
 import { serialize } from "seroval";
 import { runtimeImport, type TestAdapter } from "./adapter.ts";
-import type { FenceOutcome } from "./plan.ts";
+import type { FenceOutcome, Fragment } from "./plan.ts";
 
-export type FenceCode = { imports: string[]; body: string };
+export type Expression = { open: string; body: Fragment[]; close: string };
+export type FenceCode = Expression & { imports: Fragment[] };
 
-/** Helpers called as `runtime.helper({ ... })`. `loadFences` is emitted as text in `docModule`. */
 type InlineHelper = Exclude<keyof FenceRuntime, "loadFences">;
 type HelperInput<Helper extends InlineHelper> = Parameters<FenceRuntime[Helper]>[0];
 
@@ -16,36 +17,43 @@ function runtimeCall<Helper extends InlineHelper>(
 ): FenceCode {
   return {
     imports: [runtimeImport(adapter)],
-    body: `runtime.${helper}(${serialize(input)})`,
+    open: `runtime.${helper}(${serialize(input)})`,
+    body: [],
+    close: "",
   };
 }
 
-function indent(source: string): string {
-  return source
+function indent(fragment: Fragment): Fragment {
+  if (fragment instanceof MagicString) return fragment.indent("  ");
+  return fragment
     .split("\n")
     .map((line) => `  ${line}`)
     .join("\n");
 }
 
-function asyncFunction(body: string): string {
-  if (body.length === 0) return "async () => {}";
-  return `async () => {\n${indent(body)}\n}`;
+export function wrap(expression: Expression, before: string, after: string): Expression {
+  const { open, body, close } = expression;
+  if (body.length === 0 && close === "") return { open: `${before}${open}${after}`, body, close };
+  return { open: `${before}${open}`, body, close: `${close}${after}` };
+}
+
+function asyncFunction(body: readonly Fragment[]): Expression {
+  if (body.length === 0) return { open: "async () => {}", body: [], close: "" };
+  return { open: "async () => {", body: body.map(indent), close: "}" };
 }
 
 function emitRun(adapter: TestAdapter, outcome: Extract<FenceOutcome, { tag: "run" }>): FenceCode {
   const imports = [...adapter.fenceImports, ...outcome.imports];
-  const body = asyncFunction(outcome.body);
-  if (!outcome.shouldFail) return { imports, body };
+  const run = asyncFunction(outcome.body);
+  if (!outcome.shouldFail) return { imports, ...run };
   return {
     imports: [...imports, runtimeImport(adapter)],
-    // leave body raw and accept stringly typed to avoid needing to figure out
-    // how to pass through serialize this
-    body: `runtime.expectFailure({ run: ${body} })`,
+    ...wrap(run, "runtime.expectFailure({ run: ", " })"),
   };
 }
 
 export function emitFence(adapter: TestAdapter, outcome: FenceOutcome): FenceCode {
-  if (outcome.tag === "emptyPass") return { imports: [], body: asyncFunction("") };
+  if (outcome.tag === "emptyPass") return { imports: [], ...asyncFunction([]) };
   if (outcome.tag === "missingCompileError") {
     return runtimeCall(adapter, "missingCompileError", {
       fileName: outcome.fileName,

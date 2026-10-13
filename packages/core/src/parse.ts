@@ -20,7 +20,6 @@ type SyntheticDefaultNode = {
 };
 type BodyNode = ParsedBodyNode | SyntheticDefaultNode;
 
-/** Pieces of the block's code that keep their positions, so generated code can be source mapped */
 export type PreparedBlock = {
   imports: MagicString[];
   body: MagicString[];
