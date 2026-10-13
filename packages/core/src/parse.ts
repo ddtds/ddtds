@@ -1,4 +1,5 @@
 import { createRequire } from "node:module";
+import { MagicString } from "magic-string";
 import { parseSync } from "oxc-parser";
 import type * as TsrxParser from "@tsrx/oxc/parser";
 import type { ExportDefaultDeclarationKind, Program } from "@oxc-project/types";
@@ -19,18 +20,18 @@ type SyntheticDefaultNode = {
 };
 type BodyNode = ParsedBodyNode | SyntheticDefaultNode;
 
+/** Pieces of the block's code that keep their positions, so generated code can be source mapped */
 export type PreparedBlock = {
-  imports: string[];
-  body: string;
+  imports: MagicString[];
+  body: MagicString[];
 };
 
 export function splitImportsAndBlock(block: CodeBlock): PreparedBlock {
   const { program, staticImports } = parse(block);
+  const source = new MagicString(block.code);
 
-  const imports = staticImports.map((staticImport) => sliceSource(block.code, staticImport));
-
-  const transformed = sanitizeProgram(program);
-  const body = transformed.map((node) => printBodyNode(block.code, node)).join("\n");
+  const imports = staticImports.map((staticImport) => sliceSource(source, staticImport));
+  const body = sanitizeProgram(program).map((node) => printBodyNode(source, node));
 
   return { imports, body };
 }
@@ -148,15 +149,18 @@ function sanitizeStatement(node: ParsedBodyNode): BodyNode[] {
   return [node];
 }
 
-function printBodyNode(source: string, node: BodyNode): string {
+function printBodyNode(source: MagicString, node: BodyNode): MagicString {
   if ("kind" in node && node.kind === "synthetic-default") {
-    return `const ______default_that_does_not_conflict = ${sliceSource(source, node.declaration)};`;
+    return sliceSource(source, node.declaration)
+      .prepend("const ______default_that_does_not_conflict = ")
+      .append(";");
   }
 
   return sliceSource(source, node);
 }
 
 type Range = { start: number; end: number };
-function sliceSource(source: string, { start, end }: Range): string {
-  return source.slice(start, end).trimEnd();
+function sliceSource(source: MagicString, { start, end }: Range): MagicString {
+  const trimmed = source.original.slice(start, end).trimEnd();
+  return source.snip(start, start + trimmed.length);
 }
