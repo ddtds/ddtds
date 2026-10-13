@@ -1,7 +1,7 @@
-import { typedImportAlias, typedImports, type TestAdapter } from "@ddtds/core";
+import { typedImports, type TestAdapter } from "@ddtds/core";
 
 const importFromNodeTest = typedImports<typeof import("node:test")>("node:test");
-const importFromNodeAssert = typedImportAlias<typeof import("node:assert")>("node:assert");
+const importFromNodeAssert = typedImports<typeof import("node:assert")>("node:assert");
 
 export const nodeTestAdapter: TestAdapter = {
   runtime: "@ddtds/node-test/runtime",
