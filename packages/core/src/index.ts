@@ -20,6 +20,7 @@ export {
   type Position,
 } from "./compile-error.ts";
 export { resolveLogLevel, type LogLevel } from "./log-level.ts";
+export { docModule, fenceModule, moduleFiles, typedImports, type Runner } from "./codegen.ts";
 
 export type DocsOptions = {
   /** Globs of docs to test, relative to the root. Defaults to `defaultDocsInclude` when unset or empty. */

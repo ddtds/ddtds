@@ -1,6 +1,17 @@
 import { describe, expect, test } from "vitest";
-import { ANNOTATIONS, CodeBlock, type Annotation, type Fence, type Lang } from "@ddtds/core";
-import { docModule, fenceModule } from "./codegen";
+import {
+  ANNOTATIONS,
+  CodeBlock,
+  docModule as generateDocModule,
+  fenceModule as generateFenceModule,
+  type Annotation,
+  type Fence,
+  type Lang,
+} from "@ddtds/core";
+import { vitestRunner } from "./runner.ts";
+
+const fenceModule = (fence: Fence): string => generateFenceModule(vitestRunner, fence);
+const docModule = (fences: readonly Fence[]): string => generateDocModule(vitestRunner, fences);
 
 function block(
   code: string,
@@ -26,31 +37,18 @@ function fence(code: string, annotation: Annotation | null = null): Fence {
   };
 }
 
-function assertTestRun(x: string) {
-  expect(x).toContain("test");
-  expect(x).not.toContain("skip");
-  expect(x).not.toContain("reject");
-}
-
-function assertTestReject(x: string) {
-  expect(x).toContain("test");
-  expect(x).not.toContain("skip");
-  expect(x).toContain("reject");
-}
-
 describe("generateBlockFile: basic", () => {
   test("emits body directly into the generated test", () => {
     const output = fenceModule(fence("const hi = '10';\nexpect(hi).toBe('10');"));
 
-    assertTestRun(output);
     expect(output).toContain("expect(hi).toBe('10');");
 
     expect(output).toMatchInlineSnapshot(`
       "import { expect } from 'vitest';
-      export default async function () {
+      export default async () => {
         const hi = '10';
         expect(hi).toBe('10');
-      }"
+      };"
     `);
   });
 });
@@ -60,7 +58,6 @@ describe("generateBlockFile: imports", () => {
     const code = "import {\n  foo,\n  bar,\n  baz,\n} from './utils'\nfoo()";
     const out = fenceModule(fence(code));
 
-    assertTestRun(out);
     expect(out).toMatchInlineSnapshot(`
       "import { expect } from 'vitest';
       import {
@@ -68,9 +65,9 @@ describe("generateBlockFile: imports", () => {
         bar,
         baz,
       } from './utils'
-      export default async function () {
+      export default async () => {
         foo()
-      }"
+      };"
     `);
   });
 });
@@ -78,54 +75,41 @@ describe("generateBlockFile: imports", () => {
 describe("generateBlockFile: annotations", () => {
   test("run annotation generates plain test", () => {
     const out = fenceModule(fence("expect(1).toBe(1)", ANNOTATIONS.RUN));
-    assertTestRun(out);
-    expect(out).not.toContain("rejects");
+    expect(out).not.toContain("expectFailure");
   });
 
-  test("fail annotation wraps in rejects.toThrow", () => {
+  test("fail annotation wraps in expectFailure", () => {
     const out = fenceModule(fence('throw new Error("boom")', ANNOTATIONS.FAIL));
 
-    assertTestReject(out);
-    expect(out).toContain(".rejects.toThrow();");
     expect(out).toMatchInlineSnapshot(`
       "import { expect } from 'vitest';
-      export default async function () {
-        await expect(async () => {
-          throw new Error("boom")
-        }).rejects.toThrow();
-      }"
+      import { runtime } from '@ddtds/vitest/runtime';
+      export default runtime.expectFailure(async () => {
+        throw new Error("boom")
+      });"
     `);
   });
 
   test("parse errors fail even with the fail annotation", () => {
     const out = fenceModule(fence("const = 1;", ANNOTATIONS.FAIL));
-    expect(out.replace(/DdtCompileError\(\{.*\}\);/, "DdtCompileError(details);"))
-      .toMatchInlineSnapshot(`
-        "import { expect } from 'vitest';
-        import { DdtCompileError } from '@ddtds/vitest';
-        export default async function () {
-          throw new DdtCompileError(details);
-        }"
-      `);
+    expect(out.replace(/, \{.*\}\);/, ", details);")).toMatchInlineSnapshot(`
+      "import { runtime } from '@ddtds/vitest/runtime';
+      export default runtime.compileError("/repo/docs/t.md", details);"
+    `);
   });
 
   test("compile_fail passes when the block does not parse", () => {
     const out = fenceModule(fence("const = 1;", ANNOTATIONS.COMPILE_FAIL));
     expect(out).not.toContain("throw");
-    expect(out).toMatchInlineSnapshot(`
-      "import { expect } from 'vitest';
-      export default async function () {}"
-    `);
+    expect(out).toMatchInlineSnapshot(`"export default async () => {};"`);
   });
 
   test("compile_fail fails when the block parses", () => {
     const out = fenceModule(fence("const ok = 1;", ANNOTATIONS.COMPILE_FAIL));
-    expect(out).toContain("expected a compile_fail block");
+    expect(out).toContain("runtime.missingCompileError(");
     expect(out).toMatchInlineSnapshot(`
-      "import { expect } from 'vitest';
-      export default async function () {
-        throw new Error("expected a compile_fail block to fail to compile");
-      }"
+      "import { runtime } from '@ddtds/vitest/runtime';
+      export default runtime.missingCompileError("/repo/docs/t.md", {"line":1,"column":1});"
     `);
   });
 });
@@ -133,13 +117,13 @@ describe("generateBlockFile: annotations", () => {
 describe("in-memory modules", () => {
   test("fence module exports the fence as a function", () => {
     const out = fenceModule(fence("import { foo } from './foo'\nfoo()"));
-    expect(out).toContain("export default async function");
+    expect(out).toContain("export default async () =>");
     expect(out).toMatchInlineSnapshot(`
       "import { expect } from 'vitest';
       import { foo } from './foo'
-      export default async function () {
+      export default async () => {
         foo()
-      }"
+      };"
     `);
   });
 
@@ -153,19 +137,10 @@ describe("in-memory modules", () => {
     expect(out).toContain('import("/root/f5.ts")');
     expect(out).toMatchInlineSnapshot(`
       "import { test } from 'vitest';
-      const fences = await Promise.all([
-        import("/root/f1.ts").then(
-          ({ default: run }) => run,
-          (error) => () => {
-            throw error;
-          },
-        ),
-        import("/root/f5.ts").then(
-          ({ default: run }) => run,
-          (error) => () => {
-            throw error;
-          },
-        ),
+      import { runtime } from '@ddtds/vitest/runtime';
+      const fences = await runtime.loadFences([
+        () => import("/root/f1.ts"),
+        () => import("/root/f5.ts"),
       ]);
       test("t.md:1", fences[0]);
       test("t.md:5", fences[1]);"

@@ -9,10 +9,14 @@ test("classifies how doc tests fail", async () => {
     "missing-static-import.md": fence('import { x } from "./missing.ts";\nx;'),
     "missing-dynamic-import.md": fence('await import("./missing.ts");'),
     "failed-assertion.md": fence("expect(1).toBe(2);"),
+    "fail-annotation-passes.md": fence("1;", "fail"),
+    "compile-fail-compiles.md": fence("1;", "compile_fail"),
     "passes.md": fence("expect(1).toBe(1);"),
   });
   expect(await run(root)).toMatchInlineSnapshot(`
     {
+      "compile-fail-compiles.md:1": "Error",
+      "fail-annotation-passes.md:1": "Error",
       "failed-assertion.md:1": "AssertionError",
       "missing-dynamic-import.md:1": "Error",
       "missing-static-import.md:1": "Error",
@@ -58,6 +62,30 @@ test("failures report the error the fence threw", async () => {
         "error": "TypeError: boom",
         "frames": [
           "__ddtds__/guide_md_8.ts:3",
+        ],
+      },
+    }
+  `);
+});
+
+test("compile failures point at the markdown", async () => {
+  const root = fixture({
+    "guide.md": `# Guide\n\n${fence("const ok = 1;\nconst = 1;")}${fence("1;", "compile_fail")}`,
+  });
+  expect(await failures(root)).toMatchInlineSnapshot(`
+    {
+      "guide.md:3": {
+        "diff": undefined,
+        "error": "DdtCompileError: guide.md:5:7 Unexpected token (ts block at line 3)",
+        "frames": [
+          "guide.md:5",
+        ],
+      },
+      "guide.md:8": {
+        "diff": undefined,
+        "error": "Error: expected a compile_fail block to fail to compile",
+        "frames": [
+          "guide.md:8",
         ],
       },
     }

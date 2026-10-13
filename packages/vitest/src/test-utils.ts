@@ -45,6 +45,12 @@ async function vitest(
     { root, config: false, watch, reporters: [reporter] },
     {
       plugins: [ddtPlugin({ logLevel: "fatal", ...plugin })],
+      resolve: {
+        alias: {
+          "@ddtds/vitest/runtime": join(import.meta.dirname, "runtime.ts"),
+          "@ddtds/vitest": join(import.meta.dirname, "index.ts"),
+        },
+      },
       test,
       logLevel,
     },
