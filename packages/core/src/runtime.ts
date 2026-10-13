@@ -1,62 +1,63 @@
+/**
+ * code imported at test runtime
+ *
+ * intentionally runtime agnostic to avoid runtime poisoning
+ * e.g. satteri attempts WASI imports if test runner uses DOM runtime
+ */
+
 import { DdtCompileError, type CompileErrorDetails, type Position } from "./compile-error.ts";
 
-/** Helpers generated doc and fence modules call. */
-export type FenceRun = () => Promise<void>;
+type FenceRun = () => Promise<void>;
 type FenceModule = { default: FenceRun };
 
-/** The helpers a runner's runtime module must export. */
-export type FenceRuntime = {
-  loadFences: typeof loadFences;
-  compileError: typeof compileError;
-  missingCompileError: typeof missingCompileError;
-  /** Passes only when the fence throws. */
-  expectFailure: (run: FenceRun) => FenceRun;
-};
-
-/** Loads every fence before the doc's tests run. */
-async function loadFences(loads: readonly (() => Promise<FenceModule>)[]): Promise<FenceRun[]> {
-  return Promise.all(
-    loads.map((load) =>
-      load().then(
-        ({ default: run }) => run,
-        (error: unknown) => () => Promise.reject(error),
-      ),
-    ),
-  );
-}
-
 /** Points the error's stack at the markdown. */
-function thrownAt(error: Error, doc: string, { line, column }: Position): Error {
-  error.stack = `${error.name}: ${error.message}\n    at ${doc}:${line}:${column}`;
+function thrownAt(error: Error, fileName: string, { line, column }: Position): Error {
+  error.stack = `${error.name}: ${error.message}\n    at ${fileName}:${line}:${column}`;
   return error;
 }
 
-function compileError(doc: string, details: CompileErrorDetails, cause?: unknown): FenceRun {
-  const options = cause === undefined ? undefined : { cause };
-  const position = details.diagnostics[0]?.labels[0]?.start ?? details.block.range.start;
-  return async () => {
-    throw thrownAt(new DdtCompileError(details, options), doc, position);
-  };
-}
+export const runtime = {
+  /** load imports before test execution. avoids overrunning test execution time
+   * for expensive imports */
+  loadFences: (loads: (() => Promise<FenceModule>)[]): Promise<FenceRun[]> =>
+    Promise.all(
+      loads.map((load) =>
+        load().then(
+          ({ default: run }) => run,
+          (error: unknown) => () => Promise.reject(error),
+        ),
+      ),
+    ),
+  /** builds a function to throw a compile error */
+  compileError: (fileName: string, details: CompileErrorDetails, cause?: unknown): FenceRun => {
+    const error = new DdtCompileError(details, cause === undefined ? undefined : { cause });
+    const position = details.diagnostics[0]?.labels[0]?.start ?? details.block.range.start;
 
-function missingCompileError(doc: string, position: Position): FenceRun {
-  return async () => {
-    const error = new Error("expected a compile_fail block to fail to compile");
-    throw thrownAt(error, doc, position);
-  };
-}
+    return async () => {
+      throw thrownAt(error, fileName, position);
+    };
+  },
+  /** expected a compiler error but didn't find one */
+  missingCompileError:
+    (fileName: string, position: Position): FenceRun =>
+    async () => {
+      throw thrownAt(
+        new Error("expected a compile_fail block to fail to compile"),
+        fileName,
+        position,
+      );
+    },
+  /** Passes only when the fence throws. */
+  expectFailure:
+    (run: FenceRun): FenceRun =>
+    async () => {
+      try {
+        await run();
+      } catch {
+        return;
+      }
+      throw new Error("expected a fail block to throw");
+    },
+} as const;
 
-/** Assembles the runtime from the one framework-specific helper. */
-export function buildRuntime(expectFailure: (run: FenceRun) => FenceRun): FenceRuntime {
-  return { loadFences, compileError, missingCompileError, expectFailure };
-}
-
-/** The runtime generated modules import. */
-export const runtime: FenceRuntime = buildRuntime((run) => async () => {
-  try {
-    await run();
-  } catch {
-    return;
-  }
-  throw new Error("expected a fail block to throw");
-});
+export type FenceRuntime = typeof runtime;

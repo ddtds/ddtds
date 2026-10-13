@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest";
 import { DdtCompileError, type CompileErrorDetails } from "./compile-error.ts";
-import { buildRuntime, runtime } from "./runtime.ts";
+import { runtime } from "./runtime.ts";
 
 const details: CompileErrorDetails = {
   block: {
@@ -17,8 +17,6 @@ const details: CompileErrorDetails = {
 };
 
 async function noop(): Promise<void> {}
-
-const mark = (run: () => Promise<void>) => run;
 
 describe("loadFences", () => {
   test("a fence that fails to load fails only its own run", async () => {
@@ -67,12 +65,4 @@ describe("runtime.expectFailure", () => {
   test("fails when the fence does not throw", async () => {
     await expect(runtime.expectFailure(noop)()).rejects.toThrow("expected a fail block to throw");
   });
-});
-
-test("buildRuntime bundles the defaults with the given expectFailure", () => {
-  const custom = buildRuntime(mark);
-  expect(custom.loadFences).toBe(runtime.loadFences);
-  expect(custom.compileError).toBe(runtime.compileError);
-  expect(custom.missingCompileError).toBe(runtime.missingCompileError);
-  expect(custom.expectFailure).toBe(mark);
 });

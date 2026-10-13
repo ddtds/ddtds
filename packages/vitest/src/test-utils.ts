@@ -45,6 +45,8 @@ async function vitest(
     { root, config: false, watch, reporters: [reporter] },
     {
       plugins: [ddtPlugin({ logLevel: "fatal", ...plugin })],
+      // for nicer dev experience since it will pull in real source instead of
+      // requiring dev server. source is tested in other example packages
       resolve: {
         alias: {
           "@ddtds/vitest/runtime": join(import.meta.dirname, "runtime.ts"),
