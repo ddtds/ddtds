@@ -1,5 +1,6 @@
 import { inspect } from "node:util";
 import { DdtCompileError, type CompileErrorDetails, type Position } from "../compile-error.ts";
+import type { PreparedBlock } from "../parse.ts";
 import type { Fence } from "../docs.ts";
 import type { SerializedCause } from "../runtime.ts";
 
@@ -24,7 +25,7 @@ function serializeCause(cause: unknown): SerializedCause | undefined {
 
 export function planFence({ doc, block }: Fence): FenceOutcome {
   const expectsCompileFailure = block.shouldFailToCompile();
-  let split: { imports: string[]; body: string };
+  let split: PreparedBlock;
   try {
     split = block.splitImports();
   } catch (error) {
@@ -41,5 +42,10 @@ export function planFence({ doc, block }: Fence): FenceOutcome {
   if (expectsCompileFailure) {
     return { tag: "missingCompileError", fileName: doc, position: block.details.range.start };
   }
-  return { tag: "run", ...split, shouldFail: block.shouldFail() };
+  return {
+    tag: "run",
+    imports: split.imports.map(String),
+    body: split.body.join("\n"),
+    shouldFail: block.shouldFail(),
+  };
 }
