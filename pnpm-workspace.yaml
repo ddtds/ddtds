@@ -17,6 +17,7 @@ allowBuilds:
 
 catalogs:
   dev:
+    "@jridgewell/trace-mapping": ^0.3.31
     "@logtape/lint": 2.4.0
     "@logtape/testing": 2.4.0
     "@tsrx/oxc": 0.20.0

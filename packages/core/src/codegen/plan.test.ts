@@ -5,12 +5,11 @@ import { failingWithCause, fence } from "./test-utils.ts";
 
 describe("planFence: run fences", () => {
   test("splits imports from the body", () => {
-    expect(planFence(fence("import { a } from './a';\na();"))).toEqual({
-      tag: "run",
-      imports: ["import { a } from './a';"],
-      body: "a();",
-      shouldFail: false,
-    });
+    const outcome = planFence(fence("import { a } from './a';\na();"));
+    expect(outcome).toMatchObject({ tag: "run", shouldFail: false });
+    if (outcome.tag !== "run") throw new Error("expected a run outcome");
+    expect(outcome.imports.map(String)).toEqual(["import { a } from './a';"]);
+    expect(outcome.body.map(String)).toEqual(["a();"]);
   });
 
   test("fail annotation marks the fence as expected to throw", () => {
