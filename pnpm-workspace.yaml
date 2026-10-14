@@ -55,3 +55,7 @@ catalogs:
   peer: {}
 
 minimumReleaseAge: 4320 # 3 days
+minimumReleaseAgeExclude:
+  # todo: remove 10/16/2026
+  - "@codspeed/vitest-plugin"
+  - "@codspeed/core"

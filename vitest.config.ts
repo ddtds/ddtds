@@ -17,6 +17,7 @@ export default defineConfig({
     ],
     coverage: {
       provider: "v8",
+      autoAttachSubprocess: true,
       include: ["packages/*/src/**/*.ts", "packages/*/dist/**/*.mjs"],
       exclude: ["**/*.test.ts", "**/*.bench.ts", "**/test-utils.ts"],
     },
