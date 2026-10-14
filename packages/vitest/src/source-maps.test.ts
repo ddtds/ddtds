@@ -1,5 +1,6 @@
 import { expect, test } from "vitest";
-import { coverage, failures, fence, fixture, locations } from "./test-utils.ts";
+import { fence, fixture } from "@ddtds/test-utils";
+import { coverage, failures, locations } from "./test-utils.ts";
 
 const calc = {
   "package.json": '{ "name": "calc", "type": "module", "exports": "./src/index.ts" }',
@@ -25,7 +26,8 @@ const calc = {
 };
 
 test("failures point at the markdown line that failed", async () => {
-  expect(await failures(fixture(calc))).toMatchInlineSnapshot(`
+  await using dir = fixture(calc);
+  expect(await failures(dir.root)).toMatchInlineSnapshot(`
     {
       "README.md:13": {
         "diff": undefined,
@@ -52,8 +54,8 @@ test("failures point at the markdown line that failed", async () => {
 
 test("fences indented in a list map to their columns", async () => {
   const guide = "1. Add:\n\n   ```ts run\n   const sum = 1 + 1;\n   expect(sum).toBe(3);\n   ```\n";
-  const root = fixture({ "guide.md": guide });
-  expect(await failures(root)).toMatchInlineSnapshot(`
+  await using dir = fixture({ "guide.md": guide });
+  expect(await failures(dir.root)).toMatchInlineSnapshot(`
     {
       "guide.md:3": {
         "diff": "- Expected
@@ -68,7 +70,7 @@ test("fences indented in a list map to their columns", async () => {
       },
     }
   `);
-  expect(await locations(root)).toMatchInlineSnapshot(`
+  expect(await locations(dir.root)).toMatchInlineSnapshot(`
     {
       "guide.md:3": "3:4",
     }
@@ -76,7 +78,8 @@ test("fences indented in a list map to their columns", async () => {
 });
 
 test("editors place each test at its fence", async () => {
-  expect(await locations(fixture(calc))).toMatchInlineSnapshot(`
+  await using dir = fixture(calc);
+  expect(await locations(dir.root)).toMatchInlineSnapshot(`
     {
       "README.md:13": "13:1",
       "README.md:3": "3:1",
@@ -85,13 +88,13 @@ test("editors place each test at its fence", async () => {
 });
 
 test("coverage maps fence statements to their markdown lines", async () => {
-  const root = fixture({
+  await using dir = fixture({
     ...calc,
     "README.md": fence(
       'import { add } from "calc";\n\nconst sum = add(1, 2);\nif (sum > 100) {\n  throw new Error("too big");\n}',
     ),
   });
-  const { "README.md": readme, ...sources } = await coverage(root);
+  const { "README.md": readme, ...sources } = await coverage(dir.root);
   expect(fenceCodeLines(readme?.covered)).toEqual([4, 5]);
   expect(readme?.uncovered).toEqual([6]);
   expect(sources).toMatchInlineSnapshot(`

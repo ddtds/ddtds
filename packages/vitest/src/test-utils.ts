@@ -1,34 +1,12 @@
-import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
-import { dirname, join, relative } from "node:path";
+import { readFileSync } from "node:fs";
+import { join, relative } from "node:path";
 import { Writable } from "node:stream";
-import { onTestFinished, type ParsedStack } from "vitest";
+import type { ParsedStack } from "vitest";
 import type { ViteUserConfig } from "vitest/config";
-import {
-  createVitest,
-  type Reporter,
-  type TestModule,
-  type TestUserConfig,
-  type Vitest,
-} from "vitest/node";
+import { createVitest, type Reporter, type TestUserConfig, type Vitest } from "vitest/node";
 import { ddtPlugin, type DdtPluginOptions } from "@ddtds/vitest";
 
-type Outcomes = Record<string, string>;
-
-export function fixture(files: Record<string, string>): string {
-  const root = mkdtempSync(join(import.meta.dirname, "../.fixture-"));
-  onTestFinished(() => rmSync(root, { recursive: true, force: true }));
-  for (const [file, content] of Object.entries(files)) {
-    mkdirSync(dirname(join(root, file)), { recursive: true });
-    writeFileSync(join(root, file), content);
-  }
-  return root;
-}
-
-export function fence(code: string, annotation = "run"): string {
-  return `\`\`\`ts ${annotation}\n${code}\n\`\`\`\n\n`;
-}
-
-async function vitest(
+export async function create(
   root: string,
   {
     plugin = {},
@@ -70,19 +48,6 @@ async function vitest(
   return Object.assign(instance, { [Symbol.asyncDispose]: () => instance.close() });
 }
 
-function outcomes(modules: readonly TestModule[]): Outcomes {
-  const results: Outcomes = {};
-  for (const module of modules) {
-    const [moduleError] = module.errors();
-    if (moduleError) results[module.moduleId] = moduleError.message;
-    for (const testCase of module.children.allTests()) {
-      const { state, errors } = testCase.result();
-      results[testCase.name] = errors?.[0]?.name ?? state;
-    }
-  }
-  return results;
-}
-
 export async function logs(
   root: string,
   plugin: DdtPluginOptions,
@@ -99,7 +64,7 @@ export async function logs(
       },
     });
   const output = { stdout: stream("stdout"), stderr: stream("stderr") };
-  await using instance = await vitest(root, { plugin, output, logLevel });
+  await using instance = await create(root, { plugin, output, logLevel });
   await instance.globTestSpecifications();
   return lines;
 }
@@ -109,15 +74,9 @@ export async function collect(
   plugin: DdtPluginOptions = {},
   test: ViteUserConfig["test"] = {},
 ): Promise<string[]> {
-  await using instance = await vitest(root, { plugin, test });
+  await using instance = await create(root, { plugin, test });
   const specs = await instance.globTestSpecifications();
   return specs.map((spec) => relative(root, spec.moduleId)).toSorted();
-}
-
-export async function run(root: string, plugin: DdtPluginOptions = {}): Promise<Outcomes> {
-  await using instance = await vitest(root, { plugin });
-  await instance.start();
-  return outcomes(instance.state.getTestModules());
 }
 
 type Failure = { error: string; diff?: string; frames: string[] };
@@ -128,7 +87,7 @@ function frame(root: string, { file, line, column }: ParsedStack): string {
 
 /** The first error of each failed test, with only the stack frames inside the fixture */
 export async function failures(root: string): Promise<Record<string, Failure>> {
-  await using instance = await vitest(root);
+  await using instance = await create(root);
   await instance.start();
   const results: Record<string, Failure> = {};
   for (const module of instance.state.getTestModules()) {
@@ -150,7 +109,7 @@ export async function failures(root: string): Promise<Record<string, Failure>> {
 
 /** Where each test is declared, as Vitest reports it to editors */
 export async function locations(root: string): Promise<Record<string, string>> {
-  await using instance = await vitest(root, { test: { includeTaskLocation: true } });
+  await using instance = await create(root, { test: { includeTaskLocation: true } });
   await instance.start();
   const results: Record<string, string> = {};
   for (const module of instance.state.getTestModules()) {
@@ -171,7 +130,7 @@ export async function coverage(root: string): Promise<Record<string, Coverage>> 
   const reportsDirectory = join(root, "coverage");
   // Vitest writes the report when it closes, at the end of this block
   {
-    await using instance = await vitest(root, {
+    await using instance = await create(root, {
       coverage: { enabled: true, provider: "v8", reporter: ["json"], reportsDirectory },
     });
     await instance.start();
@@ -197,21 +156,4 @@ function coverageLines({ s, statementMap }: FileCoverage): Coverage {
     if (line !== undefined) (hits > 0 ? covered : uncovered).add(line);
   }
   return { covered: sorted(covered), uncovered: sorted(uncovered) };
-}
-
-export async function watch(root: string, edit: () => void): Promise<Outcomes[]> {
-  const runs: Outcomes[] = [];
-  let rerunFinished: (() => void) | undefined;
-  const reporter: Reporter = {
-    onTestRunEnd(modules): void {
-      runs.push(outcomes(modules));
-      rerunFinished?.();
-    },
-  };
-  await using instance = await vitest(root, { watch: true, reporter });
-  await instance.start();
-  const rerun = new Promise<void>((resolve) => (rerunFinished = resolve));
-  edit();
-  await rerun;
-  return runs;
 }

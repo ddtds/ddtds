@@ -32,6 +32,7 @@
     "@logtape/logtape": "catalog:prod"
   },
   "devDependencies": {
+    "@ddtds/test-utils": "workspace:*",
     "@logtape/testing": "catalog:dev",
     "@vitest/coverage-v8": "catalog:dev",
     "vitest": "catalog:dev"
