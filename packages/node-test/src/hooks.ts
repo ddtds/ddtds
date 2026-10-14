@@ -4,6 +4,7 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 import { DdtSession } from "@ddtds/core";
 import { nodeTestAdapter } from "./adapter.ts";
 
+// works with both built and source
 const runtimeUrl = new URL(`./runtime${extname(import.meta.filename)}`, import.meta.url).href;
 
 export function ddtHooks(root: string): RegisterHooksOptions {
@@ -11,18 +12,25 @@ export function ddtHooks(root: string): RegisterHooksOptions {
 
   return {
     resolve(specifier, context, next) {
+      // load ddtds runtime
       if (specifier === nodeTestAdapter.runtime) return { url: runtimeUrl, shortCircuit: true };
+      // hand off to node if not a relevent fence
       if (!session.index.fence(specifier)) return next(specifier, context);
+      // if its a fence, map to markdown source instead of passing to node resolver
       return { url: pathToFileURL(specifier).href, shortCircuit: true };
     },
     load(url, context, next) {
       const path = filePath(url);
+      // ignore if not a file 
       if (path === undefined) return next(url, context);
+      
+      // load or reload doc
       session.refresh(path);
       const module = session.module(path);
       if (!module) return next(url, context);
+
       return {
-        format: session.index.hasDoc(path) ? "module" : "module-typescript",
+        format: "module-typescript",
         source: module.code,
         shortCircuit: true,
       };
