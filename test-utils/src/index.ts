@@ -50,14 +50,11 @@ function completedOf(runner: Runner, output: string): number {
   return runner.completed?.(output) ?? output.split("\n").filter(Boolean).length;
 }
 
-const result = v.pipe(v.string(), v.parseJson(), v.record(v.string(), v.string()));
+const result = v.fallback(v.pipe(v.string(), v.parseJson(), v.record(v.string(), v.string())), {});
 
 function outcomesOf(runner: Runner, run: Run): Outcomes {
   if (runner.outcomes) return runner.outcomes(run);
-  const line = run.stdout.split("\n").findLast(Boolean);
-  if (!line) return {};
-  const parsed = v.safeParse(result, line);
-  return parsed.success ? parsed.output : {};
+  return v.parse(result, run.stdout.split("\n").findLast(Boolean));
 }
 
 function environment(runner: Runner): NodeJS.ProcessEnv {
