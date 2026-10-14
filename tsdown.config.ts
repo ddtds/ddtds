@@ -7,7 +7,7 @@ export default defineConfig({
   platform: "node",
   unbundle: true,
   dts: true,
-  sourcemap: true,
+  sourcemap: false,
   clean: true,
   // editor uses ts files instead of built .d.ts
   exports: { devExports: "@ddtds/source" },
