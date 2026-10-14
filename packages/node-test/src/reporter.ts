@@ -1,4 +1,4 @@
-import type { Outcomes } from "@ddtds/test-utils";
+import { encode, type Outcomes } from "@ddtds/test-utils";
 
 type Failure = { name?: string; code?: string; cause?: { name?: string; code?: string } };
 type TestEvent = { type: string; data?: { name?: string; details?: { error?: Failure } } };
@@ -18,7 +18,7 @@ export default async function* reporter(source: AsyncIterable<TestEvent>): Async
     else if (name && event.type === "test:fail")
       outcomes[name] = status(event.data?.details?.error);
     else if (event.type === "test:plan") {
-      yield `${JSON.stringify(outcomes)}\n`;
+      yield encode(outcomes);
       outcomes = {};
     }
   }

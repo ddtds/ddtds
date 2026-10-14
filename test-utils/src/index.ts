@@ -22,7 +22,7 @@ export type Runner = {
   prepare?(root: string): void;
   command(docs: string[], mode: Mode): readonly [string, ...string[]];
   completed?(output: string): number;
-  outcomes(run: Run): Outcomes;
+  outcomes?(run: Run): Outcomes;
 };
 
 export type Session = AsyncDisposable & {
@@ -39,6 +39,31 @@ type Watcher = {
 
 export function fence(code: string, annotation = "run"): string {
   return `\`\`\`ts ${annotation}\n${code}\n\`\`\`\n\n`;
+}
+
+export function encode(outcomes: Outcomes): string {
+  return `${JSON.stringify(outcomes)}\n`;
+}
+
+function results(output: string): string[] {
+  return output.split("\n").filter((line) => line.startsWith("{"));
+}
+
+function completedOf(runner: Runner, output: string): number {
+  return runner.completed?.(output) ?? results(output).length;
+}
+
+function outcomesOf(runner: Runner, run: Run): Outcomes {
+  if (runner.outcomes) return runner.outcomes(run);
+  const outcomes: Outcomes = {};
+  const last = run.stdout.split("\n").findLast((line) => line.startsWith("{"));
+  if (!last) return outcomes;
+  const parsed: unknown = JSON.parse(last);
+  if (typeof parsed !== "object" || parsed === null) return outcomes;
+  for (const [name, status] of Object.entries(parsed)) {
+    if (typeof status === "string") outcomes[name] = status;
+  }
+  return outcomes;
 }
 
 function environment(runner: Runner): NodeJS.ProcessEnv {
@@ -63,7 +88,7 @@ function watcher(runner: Runner, root: string, docs: string[]): Watcher {
   child.stdout.on("data", (chunk: string) => (stdout += chunk));
   child.stderr.on("data", (chunk: string) => (stderr += chunk));
 
-  const completed = (): number => runner.completed?.(stdout) ?? 0;
+  const completed = (): number => completedOf(runner, stdout);
   const exited = (): boolean => child.exitCode !== null || child.signalCode !== null;
   let seen = 0;
 
@@ -93,7 +118,7 @@ function watcher(runner: Runner, root: string, docs: string[]): Watcher {
     async next(): Promise<Outcomes> {
       await until(() => completed() > seen);
       seen = completed();
-      return runner.outcomes({ root, docs, status: null, stdout, stderr });
+      return outcomesOf(runner, { root, docs, status: null, stdout, stderr });
     },
     async close(): Promise<void> {
       if (exited()) return;
@@ -117,7 +142,7 @@ export function spawn(runner: Runner, files: Record<string, string>): Session {
   async function execute(mode: Mode): Promise<Outcomes> {
     const [bin, ...args] = runner.command(docs, mode);
     const result = spawnSync(bin, args, { cwd: root, encoding: "utf8", env: environment(runner) });
-    return runner.outcomes({
+    return outcomesOf(runner, {
       root,
       docs,
       status: result.status,
