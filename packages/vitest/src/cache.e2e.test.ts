@@ -3,7 +3,8 @@ import { existsSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { dirname, join } from "node:path";
 import { pathToFileURL } from "node:url";
-import { expect, test } from "vitest";
+import { describe, expect, test } from "vitest";
+import { version } from "vitest/node";
 import { fence, fixture } from "./test-utils.ts";
 import type { DdtPluginOptions } from "./index.ts";
 
@@ -86,63 +87,66 @@ function cacheEntries(stderr: string): CacheEntry[] {
 /** Doc and fence modules have no real file and must never hit the fs cache. */
 const isGenerated = (id: string): boolean => id.endsWith("guide.md") || id.includes("__ddtds__");
 
-test("never serves a generated module from the fs cache across processes", () => {
-  const root = fixture({
-    "vitest.config.ts": configSource({ logLevel: "fatal" }),
-    "guide.md": fence("expect(1).toBe(1);"),
+// `fsModuleCache` is Vitest 5+, so the suite is skipped on 4.
+describe.skipIf(Number(version.split(".")[0]) < 5)("fs module cache", () => {
+  test("never serves a generated module from the fs cache across processes", () => {
+    const root = fixture({
+      "vitest.config.ts": configSource({ logLevel: "fatal" }),
+      "guide.md": fence("expect(1).toBe(1);"),
+    });
+    rmSync(cacheDir(root), { recursive: true, force: true });
+
+    const cold = run(root, { debug: true });
+    expect(cold.status).toBe(0);
+    expect(cold.tests).toEqual([{ name: "guide.md:1", status: "passed" }]);
+    expect(existsSync(cacheDir(root))).toBe(true);
+
+    // A second process shares the cache. The random fence ids change, so Vitest
+    // would otherwise read the doc's stale transform and re-resolve its imports.
+    const warm = run(root, { debug: true });
+    expect(warm.status).toBe(0);
+    expect(warm.tests).toEqual([{ name: "guide.md:1", status: "passed" }]);
+
+    const reads = cacheEntries(warm.stderr).filter((entry) => entry.action === "read");
+    expect(reads.some((entry) => isGenerated(entry.id))).toBe(false);
+    expect(warm.stderr).not.toContain("[stale]");
+    // Dependencies still cache across processes, which is the whole point.
+    expect(reads.some((entry) => entry.path.startsWith(cacheDir(root)))).toBe(true);
   });
-  rmSync(cacheDir(root), { recursive: true, force: true });
 
-  const cold = run(root, { debug: true });
-  expect(cold.status).toBe(0);
-  expect(cold.tests).toEqual([{ name: "guide.md:1", status: "passed" }]);
-  expect(existsSync(cacheDir(root))).toBe(true);
+  test("picks up a markdown edit with a warm cache from another process", () => {
+    const root = fixture({
+      "vitest.config.ts": configSource({ logLevel: "fatal" }),
+      "guide.md": fence("expect(1).toBe(1);"),
+    });
+    rmSync(cacheDir(root), { recursive: true, force: true });
+    expect(run(root, { debug: true }).tests).toEqual([{ name: "guide.md:1", status: "passed" }]);
 
-  // A second process shares the cache. The random fence ids change, so Vitest
-  // would otherwise read the doc's stale transform and re-resolve its imports.
-  const warm = run(root, { debug: true });
-  expect(warm.status).toBe(0);
-  expect(warm.tests).toEqual([{ name: "guide.md:1", status: "passed" }]);
-
-  const reads = cacheEntries(warm.stderr).filter((entry) => entry.action === "read");
-  expect(reads.some((entry) => isGenerated(entry.id))).toBe(false);
-  expect(warm.stderr).not.toContain("[stale]");
-  // Dependencies still cache across processes, which is the whole point.
-  expect(reads.some((entry) => entry.path.startsWith(cacheDir(root)))).toBe(true);
-});
-
-test("picks up a markdown edit with a warm cache from another process", () => {
-  const root = fixture({
-    "vitest.config.ts": configSource({ logLevel: "fatal" }),
-    "guide.md": fence("expect(1).toBe(1);"),
-  });
-  rmSync(cacheDir(root), { recursive: true, force: true });
-  expect(run(root, { debug: true }).tests).toEqual([{ name: "guide.md:1", status: "passed" }]);
-
-  writeFileSync(join(root, "guide.md"), fence("expect(1).toBe(2);"));
-  const warm = run(root, { debug: true });
-  expect(warm.tests).toEqual([{ name: "guide.md:1", status: "failed" }]);
-  expect(warm.status).toBe(1);
-});
-
-test("reruns a doc with fresh fence code in watch mode", async () => {
-  const root = fixture({
-    "vitest.config.ts": configSource({ logLevel: "fatal" }),
-    "guide.md": fence("expect(1).toBe(1);"),
-  });
-  rmSync(cacheDir(root), { recursive: true, force: true });
-
-  const watch = spawnWatch(root);
-  try {
-    await watch.waitFor(() => watch.summaries().length >= 1);
     writeFileSync(join(root, "guide.md"), fence("expect(1).toBe(2);"));
-    await watch.waitFor(() => watch.summaries().length >= 2);
-    expect(watch.summaries().at(-1)).toContain("failed");
-    expect(watch.output()).toContain("expected 1 to be 2");
-  } finally {
-    await watch.close();
-  }
-}, 30_000);
+    const warm = run(root, { debug: true });
+    expect(warm.tests).toEqual([{ name: "guide.md:1", status: "failed" }]);
+    expect(warm.status).toBe(1);
+  });
+
+  test("reruns a doc with fresh fence code in watch mode", async () => {
+    const root = fixture({
+      "vitest.config.ts": configSource({ logLevel: "fatal" }),
+      "guide.md": fence("expect(1).toBe(1);"),
+    });
+    rmSync(cacheDir(root), { recursive: true, force: true });
+
+    const watch = spawnWatch(root);
+    try {
+      await watch.waitFor(() => watch.summaries().length >= 1);
+      writeFileSync(join(root, "guide.md"), fence("expect(1).toBe(2);"));
+      await watch.waitFor(() => watch.summaries().length >= 2);
+      expect(watch.summaries().at(-1)).toContain("failed");
+      expect(watch.output()).toContain("expected 1 to be 2");
+    } finally {
+      await watch.close();
+    }
+  }, 30_000);
+});
 
 function spawnWatch(root: string): {
   waitFor: (condition: () => boolean) => Promise<void>;
