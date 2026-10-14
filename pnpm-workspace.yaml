@@ -23,8 +23,8 @@ catalogs:
     "@tsrx/oxc": 0.20.0
     "@types/node": 24.19.1
     typescript: ^7.0.2
-    vitest: ^5.0.3
-    "@vitest/coverage-v8": ^5.0.3
+    vitest: ^5.0.4
+    "@vitest/coverage-v8": ^5.0.4
   examples:
     "@angular/compiler": ^22.2.1
     "@angular/core": ^22.2.1
@@ -59,3 +59,5 @@ minimumReleaseAgeExclude:
   # todo: remove 10/16/2026
   - "@codspeed/vitest-plugin"
   - "@codspeed/core"
+  - "vitest"
+  - "@vitest/*"
