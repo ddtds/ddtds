@@ -119,6 +119,5 @@ test("tolerates Vitest 4, which calls configureVitest without a cache key genera
   const plugin = ddtPlugin({ logLevel: "fatal" });
   const hook = plugin.configureVitest;
   if (!hook) throw new Error("expected configureVitest to be defined");
-  // Vitest 4 calls the hook, but its context has no `defineCacheKeyGenerator`.
   expect(() => Reflect.apply(hook, plugin, [{}])).not.toThrow();
 });
