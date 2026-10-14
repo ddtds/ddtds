@@ -1,22 +1,16 @@
-import { existsSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, test } from "vitest";
-import { fence, fixture } from "./test-utils.ts";
-import { run, vitestVersion, watch, writeConfig } from "./e2e.ts";
+import { fence } from "./test-utils.ts";
+import { spawnFramework, vitest, vitestVersion, type RunnerOptions } from "./e2e.ts";
 
-const cacheDir = (root: string): string => join(root, ".ddt-cache");
-
-function cacheProject(root: string): void {
-  writeConfig(
-    root,
-    { logLevel: "fatal" },
-    {
-      server: { watch: { ignored: ["**/.ddt-cache/**"] } },
-      test: { fsModuleCache: true, fsModuleCachePath: ".ddt-cache" },
-    },
-  );
-  rmSync(cacheDir(root), { recursive: true, force: true });
-}
+const options: RunnerOptions = {
+  plugin: { logLevel: "fatal" },
+  debug: "vitest:cache:fs",
+  config: {
+    server: { watch: { ignored: ["**/.ddt-cache/**"] } },
+    test: { fsModuleCache: true, fsModuleCachePath: ".ddt-cache" },
+  },
+};
 
 function reads(stderr: string): { id: string; path: string }[] {
   return [...stderr.matchAll(/\[read\] (.+?) is cached in (.+?)\s*$/gm)].map((match) => ({
@@ -28,51 +22,47 @@ function reads(stderr: string): { id: string; path: string }[] {
 const generated = (id: string): boolean => id.endsWith("guide.md") || id.includes("__ddtds__");
 
 describe.skipIf(vitestVersion.major < 5)("fs module cache", () => {
-  test("never serves a generated module from the fs cache across processes", () => {
-    const root = fixture({ "guide.md": fence("expect(1).toBe(1);") });
-    cacheProject(root);
+  test("never serves a generated module from the fs cache across processes", async () => {
+    await using ddt = spawnFramework({
+      runner: vitest,
+      options,
+      files: { "guide.md": fence("expect(1).toBe(1);") },
+    });
 
-    const cold = run(root, { debug: "vitest:cache:fs" });
+    const cold = await ddt.run();
     expect(cold.status).toBe(0);
-    expect(cold.tests).toEqual([{ name: "guide.md:1", status: "passed" }]);
-    expect(existsSync(cacheDir(root))).toBe(true);
+    expect(cold.outcomes).toEqual({ "guide.md:1": "passed" });
 
-    const warm = run(root, { debug: "vitest:cache:fs" });
-    expect(warm.status).toBe(0);
-    expect(warm.tests).toEqual([{ name: "guide.md:1", status: "passed" }]);
+    const warm = await ddt.run();
+    expect(warm.outcomes).toEqual({ "guide.md:1": "passed" });
 
     const cached = reads(warm.stderr);
     expect(cached.some(({ id }) => generated(id))).toBe(false);
     expect(warm.stderr).not.toContain("[stale]");
-    expect(cached.some(({ path }) => path.startsWith(cacheDir(root)))).toBe(true);
+    expect(cached.some(({ path }) => path.startsWith(join(ddt.root, ".ddt-cache")))).toBe(true);
   });
 
-  test("picks up a markdown edit with a warm cache from another process", () => {
-    const root = fixture({ "guide.md": fence("expect(1).toBe(1);") });
-    cacheProject(root);
-    expect(run(root, { debug: "vitest:cache:fs" }).tests).toEqual([
-      { name: "guide.md:1", status: "passed" },
-    ]);
+  test("picks up a markdown edit with a warm cache from another process", async () => {
+    await using ddt = spawnFramework({
+      runner: vitest,
+      options,
+      files: { "guide.md": fence("expect(1).toBe(1);") },
+    });
+    expect((await ddt.run()).outcomes).toEqual({ "guide.md:1": "passed" });
 
-    writeFileSync(join(root, "guide.md"), fence("expect(1).toBe(2);"));
-    const warm = run(root, { debug: "vitest:cache:fs" });
-    expect(warm.tests).toEqual([{ name: "guide.md:1", status: "failed" }]);
+    const warm = await ddt.edit("guide.md", fence("expect(1).toBe(2);"));
+    expect(warm.outcomes).toEqual({ "guide.md:1": "failed" });
     expect(warm.status).toBe(1);
   });
 
   test("reruns a doc with fresh fence code in watch mode", async () => {
-    const root = fixture({ "guide.md": fence("expect(1).toBe(1);") });
-    cacheProject(root);
-
-    const watcher = watch(root);
-    try {
-      await watcher.waitFor(() => watcher.summaries().length >= 1);
-      writeFileSync(join(root, "guide.md"), fence("expect(1).toBe(2);"));
-      await watcher.waitFor(() => watcher.summaries().length >= 2);
-      expect(watcher.summaries().at(-1)).toContain("failed");
-      expect(watcher.output()).toContain("expected 1 to be 2");
-    } finally {
-      await watcher.close();
-    }
-  }, 30_000);
+    await using ddt = spawnFramework({
+      runner: vitest,
+      options,
+      files: { "guide.md": fence("expect(1).toBe(1);") },
+    });
+    expect((await ddt.watch()).outcomes).toEqual({ "guide.md:1": "passed" });
+    const rerun = await ddt.edit("guide.md", fence("expect(1).toBe(2);"));
+    expect(rerun.outcomes).toEqual({ "guide.md:1": "failed" });
+  });
 });

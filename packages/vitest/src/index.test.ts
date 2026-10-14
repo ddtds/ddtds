@@ -1,8 +1,8 @@
-import { writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { expect, test } from "vitest";
-import { collect, fence, fixture, logs, run, watch } from "./test-utils.ts";
+import { collect, fence, fixture, logs, run } from "./test-utils.ts";
 import { ddtPlugin } from "./index.ts";
+import { spawnFramework, vitest } from "./e2e.ts";
 
 const files = {
   "guide.md": fence("1;"),
@@ -68,18 +68,15 @@ test("resolves packages from the root for docs outside it", async () => {
 });
 
 test("reruns a doc when it is edited in watch mode", async () => {
-  const root = fixture({ "guide.md": fence("expect(1).toBe(1);") });
-  const edit = () => writeFileSync(join(root, "guide.md"), fence("expect(1).toBe(2);"));
-  expect(await watch(root, edit)).toMatchInlineSnapshot(`
-    [
-      {
-        "guide.md:1": "passed",
-      },
-      {
-        "guide.md:1": "AssertionError",
-      },
-    ]
-  `);
+  await using ddt = spawnFramework({
+    runner: vitest,
+    options: { plugin: { logLevel: "fatal" } },
+    files: { "guide.md": fence("expect(1).toBe(1);") },
+  });
+  expect((await ddt.watch()).outcomes).toEqual({ "guide.md:1": "passed" });
+  expect((await ddt.edit("guide.md", fence("expect(1).toBe(2);"))).outcomes).toEqual({
+    "guide.md:1": "failed",
+  });
 });
 
 test("keeps the user's test.exclude and still skips ddt build output", async () => {
