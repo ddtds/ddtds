@@ -36,7 +36,7 @@ export type TestAdapter = Readonly<{
 }>;
 
 /**
- * Typesafe `import { names } from 'module'`
+ * Typesafe `import { name } from 'module'`, or `import { name as local } from 'module'`
  *
  * @example
  * ```ts
@@ -48,8 +48,8 @@ export type TestAdapter = Readonly<{
 export const typedImports =
   // oxlint-disable-next-line typescript/no-unnecessary-type-parameters this is fine and needed to make the function type safe
   <Module>(module: string) =>
-    (...names: (keyof Module)[]): string =>
-      `import { ${names.join(", ")} } from '${module}';`;
+    (name: keyof Module, alias?: string): string =>
+      `import { ${String(name)}${alias ? ` as ${alias}` : ""} } from '${module}';`;
 
 export function runtimeImport(adapter: TestAdapter): string {
   return `import { runtime } from '${adapter.runtime}';`;

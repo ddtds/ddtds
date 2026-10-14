@@ -1,6 +1,10 @@
 name: Setup
 description: Install pnpm and Node, install dependencies
-
+inputs:
+  node-version:
+    description: Node version to use instead of the one in package.json
+    required: false
+    default: ""
 runs:
   using: composite
   steps:
@@ -8,9 +12,15 @@ runs:
       with:
         cache: true
 
-    - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+    - if: inputs.node-version == ''
+      uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
       with:
         node-version-file: "package.json"
+
+    - if: inputs.node-version != ''
+      uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+      with:
+        node-version: ${{ inputs.node-version }}
 
     - run: pnpm install --frozen-lockfile
       shell: bash
