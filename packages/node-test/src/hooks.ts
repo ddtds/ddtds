@@ -16,8 +16,8 @@ export function ddtHooks(root: string): RegisterHooksOptions {
       return { url: pathToFileURL(specifier).href, shortCircuit: true };
     },
     load(url, context, next) {
-      if (!url.startsWith("file:")) return next(url, context);
-      const path = fileURLToPath(url);
+      const path = filePath(url);
+      if (path === undefined) return next(url, context);
       session.refresh(path);
       const module = session.module(path);
       if (!module) return next(url, context);
@@ -28,4 +28,8 @@ export function ddtHooks(root: string): RegisterHooksOptions {
       };
     },
   };
+}
+
+function filePath(url: string): string | undefined {
+  return URL.parse(url)?.protocol === "file:" ? fileURLToPath(url) : undefined;
 }
