@@ -1,29 +1,56 @@
-import { spawn as launch, spawnSync } from "node:child_process";
-import { once } from "node:events";
+import { spawn as launch } from "node:child_process";
+import { EventEmitter, once } from "node:events";
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
+import { createInterface } from "node:readline";
+import type { Readable } from "node:stream";
 import { setTimeout as delay } from "node:timers/promises";
 import * as v from "valibot";
 
-export type Outcome = "passed" | "failed" | (string & {});
-export type Outcomes = Record<string, Outcome>;
 export type Mode = "run" | "watch";
 
-export type Run = {
-  root: string;
-  docs: string[];
-  status: number | null;
-  stdout: string;
-  stderr: string;
-};
+const message = v.object({
+  type: v.literal("outcomes"),
+  outcomes: v.record(v.string(), v.string()),
+});
+
+export type Outcomes = v.InferOutput<typeof message>["outcomes"];
+
+const decoded = v.fallback(v.pipe(v.string(), v.parseJson(), message), {
+  type: "outcomes",
+  outcomes: {},
+});
+
+export class Lines extends EventEmitter {
+  #completed = 0;
+  #last: string | undefined;
+
+  public constructor(stream: Readable) {
+    super();
+    createInterface({ input: stream }).on("line", (line: string) => {
+      if (!line) return;
+      this.#completed += 1;
+      this.#last = line;
+      this.emit("line");
+    });
+  }
+
+  public get completed(): number {
+    return this.#completed;
+  }
+
+  public get last(): string | undefined {
+    return this.#last;
+  }
+}
 
 export type Runner = {
   name: string;
   env?: NodeJS.ProcessEnv;
   prepare?(root: string): void;
   command(docs: string[], mode: Mode): readonly [string, ...string[]];
-  completed?(output: string): number;
-  outcomes?(run: Run): Outcomes;
+  completed?(stdout: Lines): number;
+  outcomes?(stdout: Lines): Outcomes;
 };
 
 export type Session = AsyncDisposable & {
@@ -43,18 +70,7 @@ export function fence(code: string, annotation = "run"): string {
 }
 
 export function encode(outcomes: Outcomes): string {
-  return `${JSON.stringify(outcomes)}\n`;
-}
-
-function completedOf(runner: Runner, output: string): number {
-  return runner.completed?.(output) ?? output.split("\n").filter(Boolean).length;
-}
-
-const result = v.fallback(v.pipe(v.string(), v.parseJson(), v.record(v.string(), v.string())), {});
-
-function outcomesOf(runner: Runner, run: Run): Outcomes {
-  if (runner.outcomes) return runner.outcomes(run);
-  return v.parse(result, run.stdout.split("\n").findLast(Boolean));
+  return `${JSON.stringify({ type: "outcomes", outcomes })}\n`;
 }
 
 function environment(runner: Runner): NodeJS.ProcessEnv {
@@ -65,6 +81,14 @@ function environment(runner: Runner): NodeJS.ProcessEnv {
   return env;
 }
 
+function completedOf(runner: Runner, stdout: Lines): number {
+  return runner.completed?.(stdout) ?? stdout.completed;
+}
+
+function outcomesOf(runner: Runner, stdout: Lines): Outcomes {
+  return runner.outcomes?.(stdout) ?? v.parse(decoded, stdout.last).outcomes;
+}
+
 function watcher(runner: Runner, root: string, docs: string[]): Watcher {
   const [bin, ...args] = runner.command(docs, "watch");
   const child = launch(bin, args, {
@@ -72,12 +96,8 @@ function watcher(runner: Runner, root: string, docs: string[]): Watcher {
     env: environment(runner),
     stdio: ["ignore", "pipe", "pipe"],
   });
-  child.stdout.setEncoding("utf8");
-  child.stderr.setEncoding("utf8");
-  let stdout = "";
-  let stderr = "";
-  child.stdout.on("data", (chunk: string) => (stdout += chunk));
-  child.stderr.on("data", (chunk: string) => (stderr += chunk));
+  const stdout = new Lines(child.stdout);
+  child.stderr.resume();
 
   const completed = (): number => completedOf(runner, stdout);
   const exited = (): boolean => child.exitCode !== null || child.signalCode !== null;
@@ -87,8 +107,7 @@ function watcher(runner: Runner, root: string, docs: string[]): Watcher {
     return new Promise((resolve, reject) => {
       const stop = (): void => {
         clearTimeout(timer);
-        child.stdout.off("data", check);
-        child.stderr.off("data", check);
+        stdout.off("line", check);
       };
       const check = (): void => {
         if (!condition()) return;
@@ -99,8 +118,7 @@ function watcher(runner: Runner, root: string, docs: string[]): Watcher {
         stop();
         reject(new Error(`${runner.name} did not rerun`));
       }, 20_000);
-      child.stdout.on("data", check);
-      child.stderr.on("data", check);
+      stdout.on("line", check);
       check();
     });
   }
@@ -109,7 +127,7 @@ function watcher(runner: Runner, root: string, docs: string[]): Watcher {
     async next(): Promise<Outcomes> {
       await until(() => completed() > seen);
       seen = completed();
-      return outcomesOf(runner, { root, docs, status: null, stdout, stderr });
+      return outcomesOf(runner, stdout);
     },
     async close(): Promise<void> {
       if (exited()) return;
@@ -118,6 +136,24 @@ function watcher(runner: Runner, root: string, docs: string[]): Watcher {
       if (!exited()) child.kill("SIGKILL");
     },
   };
+}
+
+async function execute(
+  runner: Runner,
+  root: string,
+  docs: string[],
+  mode: Mode,
+): Promise<Outcomes> {
+  const [bin, ...args] = runner.command(docs, mode);
+  const child = launch(bin, args, {
+    cwd: root,
+    env: environment(runner),
+    stdio: ["ignore", "pipe", "pipe"],
+  });
+  const stdout = new Lines(child.stdout);
+  child.stderr.resume();
+  await once(child, "close");
+  return outcomesOf(runner, stdout);
 }
 
 export function spawn(runner: Runner, files: Record<string, string>): Session {
@@ -130,28 +166,16 @@ export function spawn(runner: Runner, files: Record<string, string>): Session {
   const docs = Object.keys(files).filter((file) => /\.mdx?$/.test(file));
   let watching: Watcher | undefined;
 
-  async function execute(mode: Mode): Promise<Outcomes> {
-    const [bin, ...args] = runner.command(docs, mode);
-    const result = spawnSync(bin, args, { cwd: root, encoding: "utf8", env: environment(runner) });
-    return outcomesOf(runner, {
-      root,
-      docs,
-      status: result.status,
-      stdout: result.stdout,
-      stderr: result.stderr,
-    });
-  }
-
   return {
     root,
-    run: () => execute("run"),
+    run: () => execute(runner, root, docs, "run"),
     async watch(): Promise<Outcomes> {
       watching = watcher(runner, root, docs);
       return watching.next();
     },
     async edit(file: string, content: string): Promise<Outcomes> {
       writeFileSync(join(root, file), content);
-      return watching ? watching.next() : execute("run");
+      return watching ? watching.next() : execute(runner, root, docs, "run");
     },
     async [Symbol.asyncDispose](): Promise<void> {
       await watching?.close();
