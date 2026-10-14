@@ -689,6 +689,9 @@ importers:
         specifier: catalog:prod
         version: 2.4.0
     devDependencies:
+      '@ddtds/test-utils':
+        specifier: workspace:*
+        version: link:../../test-utils
       '@logtape/testing':
         specifier: catalog:dev
         version: 2.4.0(@logtape/logtape@2.4.0)

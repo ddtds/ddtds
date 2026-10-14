@@ -44,13 +44,16 @@ export class Lines extends EventEmitter {
   }
 }
 
+export type Watcher = {
+  next(): Promise<Outcomes>;
+  close(): Promise<void>;
+};
+
 export type Runner = {
   name: string;
-  env?: NodeJS.ProcessEnv;
   prepare?(root: string): void;
-  command(docs: string[], mode: Mode): readonly [string, ...string[]];
-  completed?(stdout: Lines): number;
-  outcomes?(stdout: Lines): Outcomes;
+  run(root: string, docs: string[]): Promise<Outcomes>;
+  watch?(root: string, docs: string[]): Promise<Watcher>;
 };
 
 export type Session = AsyncDisposable & {
@@ -60,10 +63,7 @@ export type Session = AsyncDisposable & {
   edit(file: string, content: string): Promise<Outcomes>;
 };
 
-type Watcher = {
-  next(): Promise<Outcomes>;
-  close(): Promise<void>;
-};
+type Command = (docs: string[], mode: Mode) => readonly [string, ...string[]];
 
 export function fence(code: string, annotation = "run"): string {
   return `\`\`\`ts ${annotation}\n${code}\n\`\`\`\n\n`;
@@ -73,33 +73,34 @@ export function encode(outcomes: Outcomes): string {
   return `${JSON.stringify({ type: "outcomes", outcomes })}\n`;
 }
 
-function environment(runner: Runner): NodeJS.ProcessEnv {
-  const env: NodeJS.ProcessEnv = { ...process.env, NO_COLOR: "1", FORCE_COLOR: "0", ...runner.env };
-  for (const [key, value] of Object.entries(env)) {
-    if (value === undefined) delete env[key];
+function environment(env?: NodeJS.ProcessEnv): NodeJS.ProcessEnv {
+  const result: NodeJS.ProcessEnv = { ...process.env, NO_COLOR: "1", FORCE_COLOR: "0", ...env };
+  for (const [key, value] of Object.entries(result)) {
+    if (value === undefined) delete result[key];
   }
-  return env;
+  return result;
 }
 
-function completedOf(runner: Runner, stdout: Lines): number {
-  return runner.completed?.(stdout) ?? stdout.completed;
+function outcomesOf(stdout: Lines): Outcomes {
+  return v.parse(decoded, stdout.last).outcomes;
 }
 
-function outcomesOf(runner: Runner, stdout: Lines): Outcomes {
-  return runner.outcomes?.(stdout) ?? v.parse(decoded, stdout.last).outcomes;
-}
-
-function watcher(runner: Runner, root: string, docs: string[]): Watcher {
-  const [bin, ...args] = runner.command(docs, "watch");
+function watcher(
+  name: string,
+  command: Command,
+  env: NodeJS.ProcessEnv | undefined,
+  root: string,
+  docs: string[],
+): Watcher {
+  const [bin, ...args] = command(docs, "watch");
   const child = launch(bin, args, {
     cwd: root,
-    env: environment(runner),
+    env: environment(env),
     stdio: ["ignore", "pipe", "pipe"],
   });
   const stdout = new Lines(child.stdout);
   child.stderr.resume();
 
-  const completed = (): number => completedOf(runner, stdout);
   const exited = (): boolean => child.exitCode !== null || child.signalCode !== null;
   let seen = 0;
 
@@ -116,7 +117,7 @@ function watcher(runner: Runner, root: string, docs: string[]): Watcher {
       };
       const timer = setTimeout(() => {
         stop();
-        reject(new Error(`${runner.name} did not rerun`));
+        reject(new Error(`${name} did not rerun`));
       }, 20_000);
       stdout.on("line", check);
       check();
@@ -125,9 +126,9 @@ function watcher(runner: Runner, root: string, docs: string[]): Watcher {
 
   return {
     async next(): Promise<Outcomes> {
-      await until(() => completed() > seen);
-      seen = completed();
-      return outcomesOf(runner, stdout);
+      await until(() => stdout.completed > seen);
+      seen = stdout.completed;
+      return outcomesOf(stdout);
     },
     async close(): Promise<void> {
       if (exited()) return;
@@ -139,43 +140,72 @@ function watcher(runner: Runner, root: string, docs: string[]): Watcher {
 }
 
 async function execute(
-  runner: Runner,
+  command: Command,
+  env: NodeJS.ProcessEnv | undefined,
   root: string,
   docs: string[],
-  mode: Mode,
 ): Promise<Outcomes> {
-  const [bin, ...args] = runner.command(docs, mode);
+  const [bin, ...args] = command(docs, "run");
   const child = launch(bin, args, {
     cwd: root,
-    env: environment(runner),
+    env: environment(env),
     stdio: ["ignore", "pipe", "pipe"],
   });
   const stdout = new Lines(child.stdout);
   child.stderr.resume();
   await once(child, "close");
-  return outcomesOf(runner, stdout);
+  return outcomesOf(stdout);
 }
 
-export function spawn(runner: Runner, files: Record<string, string>): Session {
+export function cli(spec: {
+  name: string;
+  env?: NodeJS.ProcessEnv;
+  prepare?(root: string): void;
+  command: Command;
+}): Runner {
+  return {
+    name: spec.name,
+    prepare: (root: string): void => spec.prepare?.(root),
+    run: (root, docs) => execute(spec.command, spec.env, root, docs),
+    watch: async (root, docs) => watcher(spec.name, spec.command, spec.env, root, docs),
+  };
+}
+
+function create(files: Record<string, string>): string {
   const root = mkdtempSync(join(import.meta.dirname, "../.fixture-"));
   for (const [file, content] of Object.entries(files)) {
     mkdirSync(dirname(join(root, file)), { recursive: true });
     writeFileSync(join(root, file), content);
   }
+  return root;
+}
+
+export function fixture(files: Record<string, string>): AsyncDisposable & { root: string } {
+  const root = create(files);
+  return {
+    root,
+    async [Symbol.asyncDispose](): Promise<void> {
+      rmSync(root, { recursive: true, force: true });
+    },
+  };
+}
+
+export function spawn(runner: Runner, files: Record<string, string>): Session {
+  const root = create(files);
   runner.prepare?.(root);
   const docs = Object.keys(files).filter((file) => /\.mdx?$/.test(file));
   let watching: Watcher | undefined;
 
   return {
     root,
-    run: () => execute(runner, root, docs, "run"),
+    run: () => runner.run(root, docs),
     async watch(): Promise<Outcomes> {
-      watching = watcher(runner, root, docs);
-      return watching.next();
+      watching = await runner.watch?.(root, docs);
+      return watching ? watching.next() : runner.run(root, docs);
     },
     async edit(file: string, content: string): Promise<Outcomes> {
       writeFileSync(join(root, file), content);
-      return watching ? watching.next() : execute(runner, root, docs, "run");
+      return watching ? watching.next() : runner.run(root, docs);
     },
     async [Symbol.asyncDispose](): Promise<void> {
       await watching?.close();

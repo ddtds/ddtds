@@ -1,8 +1,10 @@
 import { expect, test } from "vitest";
-import { failures, fence, fixture, run } from "./test-utils.ts";
+import { fence, fixture, spawn } from "@ddtds/test-utils";
+import { failures } from "./test-utils.ts";
+import { vitest } from "./e2e.ts";
 
 test("classifies how doc tests fail", async () => {
-  const root = fixture({
+  await using ddt = spawn(vitest, {
     "parse-error.md": fence("const = 1;"),
     "runtime-syntax-error.md": fence('JSON.parse("{");'),
     "undeclared-name.md": fence("missingFn();"),
@@ -13,7 +15,7 @@ test("classifies how doc tests fail", async () => {
     "compile-fail-compiles.md": fence("1;", "compile_fail"),
     "passes.md": fence("expect(1).toBe(1);"),
   });
-  expect(await run(root)).toMatchInlineSnapshot(`
+  expect(await ddt.run()).toMatchInlineSnapshot(`
     {
       "compile-fail-compiles.md:1": "Error",
       "fail-annotation-passes.md:1": "Error",
@@ -29,10 +31,10 @@ test("classifies how doc tests fail", async () => {
 });
 
 test("a broken fence does not stop the rest of its doc", async () => {
-  const root = fixture({
+  await using ddt = spawn(vitest, {
     "guide.md": fence('import { x } from "./missing.ts";\nx;') + fence("expect(1).toBe(1);"),
   });
-  expect(await run(root)).toMatchInlineSnapshot(`
+  expect(await ddt.run()).toMatchInlineSnapshot(`
     {
       "guide.md:1": "Error",
       "guide.md:6": "passed",
@@ -41,10 +43,10 @@ test("a broken fence does not stop the rest of its doc", async () => {
 });
 
 test("failures report the error the fence threw", async () => {
-  const root = fixture({
+  await using dir = fixture({
     "guide.md": `# Guide\n\n${fence("const a = 1;\nexpect(a).toBe(2);")}${fence('throw new TypeError("boom");')}`,
   });
-  expect(await failures(root)).toMatchInlineSnapshot(`
+  expect(await failures(dir.root)).toMatchInlineSnapshot(`
     {
       "guide.md:3": {
         "diff": "- Expected
@@ -69,10 +71,10 @@ test("failures report the error the fence threw", async () => {
 });
 
 test("compile failures point at the markdown", async () => {
-  const root = fixture({
+  await using dir = fixture({
     "guide.md": `# Guide\n\n${fence("const ok = 1;\nconst = 1;")}${fence("1;", "compile_fail")}`,
   });
-  expect(await failures(root)).toMatchInlineSnapshot(`
+  expect(await failures(dir.root)).toMatchInlineSnapshot(`
     {
       "guide.md:3": {
         "diff": undefined,
@@ -93,11 +95,11 @@ test("compile failures point at the markdown", async () => {
 });
 
 test("any text is valid markdown: an unclosed fence takes the rest of the doc as code", async () => {
-  const root = fixture({
+  await using ddt = spawn(vitest, {
     "unclosed.md": "```ts run\nexpect(1).toBe(1);\n\n## Next section\n",
     "unclosed-html.md": "<div\n\n```ts run\nexpect(1).toBe(1);\n```\n",
   });
-  expect(await run(root)).toMatchInlineSnapshot(`
+  expect(await ddt.run()).toMatchInlineSnapshot(`
     {
       "unclosed-html.md:3": "passed",
       "unclosed.md:1": "DdtCompileError",
@@ -106,11 +108,11 @@ test("any text is valid markdown: an unclosed fence takes the rest of the doc as
 });
 
 test("invalid MDX fails the run with the parser's error", async () => {
-  const root = fixture({
+  await using ddt = spawn(vitest, {
     "broken.mdx": "# Guide\n\n<!-- TODO: explain -->\n\n```ts run\nexpect(1).toBe(1);\n```\n",
     "fine.md": fence("expect(1).toBe(1);"),
   });
-  await expect(run(root)).rejects.toThrowErrorMatchingInlineSnapshot(
+  await expect(ddt.run()).rejects.toThrowErrorMatchingInlineSnapshot(
     `[Error: 3:1: Unexpected character \`!\` (U+0021) before name, expected a character that can start a name, such as a letter, \`$\`, or \`_\` (note: to create a comment in MDX, use \`{/* text */}\`) (mdx-jsx:unexpected-character)]`,
   );
 });
