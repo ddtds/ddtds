@@ -1,9 +1,8 @@
 import { existsSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, test } from "vitest";
-import { version } from "vitest/node";
 import { fence, fixture } from "./test-utils.ts";
-import { run, watch, writeConfig } from "./e2e.ts";
+import { run, vitestVersion, watch, writeConfig } from "./e2e.ts";
 
 const cacheDir = (root: string): string => join(root, ".ddt-cache");
 
@@ -28,7 +27,7 @@ function reads(stderr: string): { id: string; path: string }[] {
 
 const generated = (id: string): boolean => id.endsWith("guide.md") || id.includes("__ddtds__");
 
-describe.skipIf(Number(version.split(".")[0]) < 5)("fs module cache", () => {
+describe.skipIf(vitestVersion.major < 5)("fs module cache", () => {
   test("never serves a generated module from the fs cache across processes", () => {
     const root = fixture({ "guide.md": fence("expect(1).toBe(1);") });
     cacheProject(root);

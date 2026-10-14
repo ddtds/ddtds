@@ -23,7 +23,6 @@ export {
   defaultOutDir,
 } from "@ddtds/core";
 
-/** Generated doc and fence modules for `ddt build`. */
 export function moduleFiles(index: DocIndex): Map<string, string> {
   return generateModuleFiles(vitestTestAdapter, index);
 }
@@ -35,12 +34,6 @@ export function loadModule(index: DocIndex, id: string): GeneratedModule | undef
 const logger = getLogger(["ddtds", "vitest"]);
 
 export type DdtPluginOptions = DocsOptions & {
-  /**
-   * Precedence (highest to lowest):
-   *   1. `DDT_LOG_LEVEL` environment variable
-   *   2. `logLevel` option
-   *   3. `"info"` (default)
-   */
   logLevel?: LogLevel;
 };
 
@@ -76,20 +69,6 @@ export function ddtPlugin({ logLevel, ...docs }: DdtPluginOptions = {}): Plugin 
       logger.info("Total: {size} tests", { size: session.index.size });
     },
     configureVitest({ defineCacheKeyGenerator }) {
-      // Vitest hashes a module by its id and *file* content, but the generated
-      // doc and fence modules are not described by any file on disk:
-      //
-      // - A doc's id is the markdown file, yet its generated code embeds fence
-      //   ids under a per-session `__ddtds__-<uuid>` directory, so the markdown
-      //   content alone cannot invalidate it.
-      // - A fence module has no file at all, so `invalidateFile(doc)` never
-      //   reaches it and a watch rerun would reuse its stale transform.
-      //
-      // Opt both out of the fs cache. Their transforms are cheap; the modules
-      // they import are still cached, which is where the time is spent.
-      //
-      // Vitest 4 still calls this hook but has no fs cache and no
-      // `defineCacheKeyGenerator`, so the generator is 5-only.
       // oxlint-disable-next-line typescript/no-unnecessary-condition it is optional on Vitest 4
       defineCacheKeyGenerator?.(({ id }) =>
         session.index.hasDoc(id) || session.index.fence(id) ? false : undefined,

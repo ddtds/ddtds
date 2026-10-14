@@ -3,6 +3,7 @@ import { existsSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { dirname, join } from "node:path";
 import { pathToFileURL } from "node:url";
+import { version } from "vitest/node";
 import type { ViteUserConfig } from "vitest/config";
 import type { DdtPluginOptions } from "./index.ts";
 
@@ -32,6 +33,11 @@ export type Watcher = {
 const source = join(import.meta.dirname, "index.ts");
 const runtime = join(import.meta.dirname, "runtime.ts");
 const configFile = "vitest.config.ts";
+
+export const vitestVersion: { full: string; major: number } = {
+  full: version,
+  major: Number(version.split(".")[0]),
+};
 
 const bin = join(
   dirname(createRequire(import.meta.url).resolve("vitest/package.json")),

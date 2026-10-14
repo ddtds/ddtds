@@ -29,7 +29,6 @@ export function fence(code: string, annotation = "run"): string {
   return `\`\`\`ts ${annotation}\n${code}\n\`\`\`\n\n`;
 }
 
-/** A real config file, so Vitest runs the plugin's `configureVitest` hook */
 let configs = 0;
 
 function writeConfig(
@@ -91,8 +90,6 @@ async function vitest(
       ? undefined
       : {
           plugins: [ddtPlugin(options)],
-          // for nicer dev experience since it will pull in real source instead of
-          // requiring dev server. source is tested in other example packages
           resolve: {
             alias: {
               "@ddtds/vitest/runtime": join(import.meta.dirname, "runtime.ts"),
@@ -104,7 +101,6 @@ async function vitest(
         },
     output,
   );
-  // vitest v4 does not make vitest a Disposable
   return Object.assign(instance, { [Symbol.asyncDispose]: () => instance.close() });
 }
 
@@ -164,7 +160,6 @@ function frame(root: string, { file, line, column }: ParsedStack): string {
   return `${relative(root, file).replace(/__ddtds__-\w+/, "__ddtds__")}:${line}:${column}`;
 }
 
-/** The first error of each failed test, with only the stack frames inside the fixture */
 export async function failures(root: string): Promise<Record<string, Failure>> {
   await using instance = await vitest(root);
   await instance.start();
@@ -186,7 +181,6 @@ export async function failures(root: string): Promise<Record<string, Failure>> {
   return results;
 }
 
-/** Where each test is declared, as Vitest reports it to editors */
 export async function locations(root: string): Promise<Record<string, string>> {
   await using instance = await vitest(root, { test: { includeTaskLocation: true } });
   await instance.start();
@@ -204,10 +198,8 @@ type Coverage = { covered: number[]; uncovered: number[] };
 type Location = { start: { line: number } };
 type FileCoverage = { s: Record<string, number>; statementMap: Record<string, Location> };
 
-/** Lines with statements that ran and that did not, per file, from v8 coverage */
 export async function coverage(root: string): Promise<Record<string, Coverage>> {
   const reportsDirectory = join(root, "coverage");
-  // Vitest writes the report when it closes, at the end of this block
   {
     await using instance = await vitest(root, {
       coverage: { enabled: true, provider: "v8", reporter: ["json"], reportsDirectory },
