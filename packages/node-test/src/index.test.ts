@@ -1,10 +1,9 @@
-import { writeFileSync } from "node:fs";
-import { join } from "node:path";
 import { expect, test } from "vitest";
-import { fence, fixture, runDocs, watchDocs } from "./test-utils.ts";
+import { fence, spawn } from "@ddtds/test-utils";
+import { nodeTest } from "./e2e.ts";
 
 test("runs fences in markdown with node:test", async () => {
-  const root = fixture({
+  await using ddt = spawn(nodeTest, {
     "guide.md": [
       "# Guide",
       "",
@@ -12,7 +11,7 @@ test("runs fences in markdown with node:test", async () => {
       fence("assert.equal(1 + 1, 3);"),
     ].join("\n"),
   });
-  expect(await runDocs(root, ["guide.md"])).toMatchInlineSnapshot(`
+  expect(await ddt.run()).toMatchInlineSnapshot(`
     {
       "guide.md:3": "passed",
       "guide.md:9": "AssertionError ERR_ASSERTION",
@@ -21,7 +20,7 @@ test("runs fences in markdown with node:test", async () => {
 });
 
 test("classifies how doc tests fail", async () => {
-  const root = fixture({
+  await using ddt = spawn(nodeTest, {
     "parse-error.md": fence("const = 1;"),
     "missing-import.md": fence('import { x } from "missing-package";\nx;'),
     "undeclared-name.md": fence("missingFn();"),
@@ -30,16 +29,7 @@ test("classifies how doc tests fail", async () => {
     "compile-fail-compiles.md": fence("1;", "compile_fail"),
     "compile-fail-parse-error.md": fence("const = 1;", "compile_fail"),
   });
-  const docs = [
-    "parse-error.md",
-    "missing-import.md",
-    "undeclared-name.md",
-    "fail-annotation-throws.md",
-    "fail-annotation-passes.md",
-    "compile-fail-compiles.md",
-    "compile-fail-parse-error.md",
-  ];
-  expect(await runDocs(root, docs)).toMatchInlineSnapshot(`
+  expect(await ddt.run()).toMatchInlineSnapshot(`
     {
       "compile-fail-compiles.md:1": "Error",
       "compile-fail-parse-error.md:1": "passed",
@@ -53,12 +43,12 @@ test("classifies how doc tests fail", async () => {
 });
 
 test("imports packages from the project", async () => {
-  const root = fixture({
+  await using ddt = spawn(nodeTest, {
     "node_modules/calc/package.json": '{ "name": "calc", "type": "module", "main": "index.js" }',
     "node_modules/calc/index.js": "export const add = (a, b) => a + b;",
     "README.md": fence('import { add } from "calc";\n\nassert.equal(add(1, 2), 3);'),
   });
-  expect(await runDocs(root, ["README.md"])).toMatchInlineSnapshot(`
+  expect(await ddt.run()).toMatchInlineSnapshot(`
     {
       "README.md:1": "passed",
     }
@@ -66,16 +56,9 @@ test("imports packages from the project", async () => {
 });
 
 test("reruns a doc when it is edited in watch mode", async () => {
-  const root = fixture({ "guide.md": fence("assert.equal(1, 1);") });
-  const edit = () => writeFileSync(join(root, "guide.md"), fence("assert.equal(1, 2);"));
-  expect(await watchDocs(root, "guide.md", edit)).toMatchInlineSnapshot(`
-    [
-      {
-        "guide.md:1": "passed",
-      },
-      {
-        "guide.md:1": "failed",
-      },
-    ]
-  `);
+  await using ddt = spawn(nodeTest, { "guide.md": fence("assert.equal(1, 1);") });
+  expect(await ddt.watch()).toEqual({ "guide.md:1": "passed" });
+  expect(await ddt.edit("guide.md", fence("assert.equal(1, 2);"))).toEqual({
+    "guide.md:1": "AssertionError ERR_ASSERTION",
+  });
 });

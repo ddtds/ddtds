@@ -36,6 +36,7 @@
     "@ddtds/core": "workspace:*"
   },
   "devDependencies": {
+    "@ddtds/test-utils": "workspace:*",
     "@types/node": "catalog:dev",
     "vitest": "catalog:dev"
   },
