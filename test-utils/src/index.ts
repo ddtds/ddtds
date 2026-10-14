@@ -46,19 +46,15 @@ export function encode(outcomes: Outcomes): string {
   return `${JSON.stringify(outcomes)}\n`;
 }
 
-function results(output: string): string[] {
-  return output.split("\n").filter((line) => line.startsWith("{"));
-}
-
 function completedOf(runner: Runner, output: string): number {
-  return runner.completed?.(output) ?? results(output).length;
+  return runner.completed?.(output) ?? output.split("\n").filter(Boolean).length;
 }
 
 const result = v.pipe(v.string(), v.parseJson(), v.record(v.string(), v.string()));
 
 function outcomesOf(runner: Runner, run: Run): Outcomes {
   if (runner.outcomes) return runner.outcomes(run);
-  const line = run.stdout.split("\n").findLast((line) => line.startsWith("{"));
+  const line = run.stdout.split("\n").findLast(Boolean);
   if (!line) return {};
   const parsed = v.safeParse(result, line);
   return parsed.success ? parsed.output : {};
