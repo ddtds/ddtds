@@ -21,9 +21,9 @@ export function ddtHooks(root: string): RegisterHooksOptions {
     },
     load(url, context, next) {
       const path = filePath(url);
-      // ignore if not a file 
+      // ignore if not a file
       if (path === undefined) return next(url, context);
-      
+
       // load or reload doc
       session.refresh(path);
       const module = session.module(path);
