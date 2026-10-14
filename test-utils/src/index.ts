@@ -3,6 +3,7 @@ import { once } from "node:events";
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { setTimeout as delay } from "node:timers/promises";
+import * as v from "valibot";
 
 export type Outcome = "passed" | "failed" | (string & {});
 export type Outcomes = Record<string, Outcome>;
@@ -53,17 +54,14 @@ function completedOf(runner: Runner, output: string): number {
   return runner.completed?.(output) ?? results(output).length;
 }
 
+const result = v.pipe(v.string(), v.parseJson(), v.record(v.string(), v.string()));
+
 function outcomesOf(runner: Runner, run: Run): Outcomes {
   if (runner.outcomes) return runner.outcomes(run);
-  const outcomes: Outcomes = {};
-  const last = run.stdout.split("\n").findLast((line) => line.startsWith("{"));
-  if (!last) return outcomes;
-  const parsed: unknown = JSON.parse(last);
-  if (typeof parsed !== "object" || parsed === null) return outcomes;
-  for (const [name, status] of Object.entries(parsed)) {
-    if (typeof status === "string") outcomes[name] = status;
-  }
-  return outcomes;
+  const line = run.stdout.split("\n").findLast((line) => line.startsWith("{"));
+  if (!line) return {};
+  const parsed = v.safeParse(result, line);
+  return parsed.success ? parsed.output : {};
 }
 
 function environment(runner: Runner): NodeJS.ProcessEnv {
