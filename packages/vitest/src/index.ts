@@ -75,6 +75,11 @@ export function ddtPlugin({ logLevel, ...docs }: DdtPluginOptions = {}): Plugin 
       vite.attach(config.logger);
       logger.info("Total: {size} tests", { size: session.index.size });
     },
+    configureVitest({ defineCacheKeyGenerator }) {
+      defineCacheKeyGenerator(({ id }) =>
+        session.index.hasDoc(id) || session.index.fence(id) ? false : undefined,
+      );
+    },
     watchChange(id) {
       session.refresh(id);
     },
