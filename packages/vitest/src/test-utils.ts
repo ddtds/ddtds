@@ -3,15 +3,8 @@ import { join, relative } from "node:path";
 import { Writable } from "node:stream";
 import type { ParsedStack } from "vitest";
 import type { ViteUserConfig } from "vitest/config";
-import {
-  createVitest,
-  type Reporter,
-  type TestModule,
-  type TestUserConfig,
-  type Vitest,
-} from "vitest/node";
+import { createVitest, type Reporter, type TestUserConfig, type Vitest } from "vitest/node";
 import { ddtPlugin, type DdtPluginOptions } from "@ddtds/vitest";
-import type { Outcomes } from "@ddtds/test-utils";
 
 export async function create(
   root: string,
@@ -53,19 +46,6 @@ export async function create(
   );
   // vitest v4 does not make vitest a Disposable
   return Object.assign(instance, { [Symbol.asyncDispose]: () => instance.close() });
-}
-
-export function outcomes(modules: readonly TestModule[]): Outcomes {
-  const results: Outcomes = {};
-  for (const module of modules) {
-    const [moduleError] = module.errors();
-    if (moduleError) results[module.moduleId] = moduleError.message;
-    for (const testCase of module.children.allTests()) {
-      const { state, errors } = testCase.result();
-      results[testCase.name] = errors?.[0]?.name ?? state;
-    }
-  }
-  return results;
 }
 
 export async function logs(
