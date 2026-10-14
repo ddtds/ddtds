@@ -19,7 +19,7 @@ export default defineConfig({
       provider: "v8",
       autoAttachSubprocess: true,
       include: ["packages/*/src/**/*.ts", "packages/*/dist/**/*.mjs"],
-      exclude: ["**/*.test.ts", "**/*.bench.ts", "**/test-utils.ts", "**/e2e.ts"],
+      exclude: ["**/*.test.ts", "**/*.bench.ts", "**/test-utils.ts", "**/e2e.ts", "**/reporter.ts"],
     },
   },
 });

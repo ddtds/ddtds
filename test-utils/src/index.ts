@@ -4,7 +4,7 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { setTimeout as delay } from "node:timers/promises";
 
-export type Outcome = "passed" | "failed";
+export type Outcome = "passed" | "failed" | (string & {});
 export type Outcomes = Record<string, Outcome>;
 export type Mode = "run" | "watch";
 
@@ -18,6 +18,7 @@ export type Run = {
 
 export type Runner = {
   name: string;
+  env?: NodeJS.ProcessEnv;
   prepare?(root: string): void;
   command(docs: string[], mode: Mode): readonly [string, ...string[]];
   completed?(output: string): number;
@@ -40,13 +41,11 @@ export function fence(code: string, annotation = "run"): string {
   return `\`\`\`ts ${annotation}\n${code}\n\`\`\`\n\n`;
 }
 
-function environment(): NodeJS.ProcessEnv {
-  const env: NodeJS.ProcessEnv = {};
-  for (const [key, value] of Object.entries(process.env)) {
-    if (!key.startsWith("VITEST")) env[key] = value;
+function environment(runner: Runner): NodeJS.ProcessEnv {
+  const env: NodeJS.ProcessEnv = { ...process.env, NO_COLOR: "1", FORCE_COLOR: "0", ...runner.env };
+  for (const [key, value] of Object.entries(env)) {
+    if (value === undefined) delete env[key];
   }
-  env.NO_COLOR = "1";
-  env.FORCE_COLOR = "0";
   return env;
 }
 
@@ -54,13 +53,15 @@ function watcher(runner: Runner, root: string, docs: string[]): Watcher {
   const [bin, ...args] = runner.command(docs, "watch");
   const child = launch(bin, args, {
     cwd: root,
-    env: environment(),
+    env: environment(runner),
     stdio: ["ignore", "pipe", "pipe"],
   });
+  child.stdout.setEncoding("utf8");
+  child.stderr.setEncoding("utf8");
   let stdout = "";
   let stderr = "";
-  child.stdout.on("data", (chunk: Buffer) => (stdout += chunk));
-  child.stderr.on("data", (chunk: Buffer) => (stderr += chunk));
+  child.stdout.on("data", (chunk: string) => (stdout += chunk));
+  child.stderr.on("data", (chunk: string) => (stderr += chunk));
 
   const completed = (): number => runner.completed?.(stdout) ?? 0;
   const exited = (): boolean => child.exitCode !== null || child.signalCode !== null;
@@ -115,7 +116,7 @@ export function spawn(runner: Runner, files: Record<string, string>): Session {
 
   async function execute(mode: Mode): Promise<Outcomes> {
     const [bin, ...args] = runner.command(docs, mode);
-    const result = spawnSync(bin, args, { cwd: root, encoding: "utf8", env: environment() });
+    const result = spawnSync(bin, args, { cwd: root, encoding: "utf8", env: environment(runner) });
     return runner.outcomes({
       root,
       docs,

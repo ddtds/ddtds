@@ -1,6 +1,5 @@
 import { expect, test } from "vitest";
 import { fence, spawn } from "@ddtds/test-utils";
-import { fixture, runDocs } from "./test-utils.ts";
 import { nodeTest } from "./e2e.ts";
 
 test("runs fences in markdown with node:test", async () => {
@@ -15,13 +14,13 @@ test("runs fences in markdown with node:test", async () => {
   expect(await ddt.run()).toMatchInlineSnapshot(`
     {
       "guide.md:3": "passed",
-      "guide.md:9": "failed",
+      "guide.md:9": "AssertionError ERR_ASSERTION",
     }
   `);
 });
 
 test("classifies how doc tests fail", async () => {
-  const root = fixture({
+  await using ddt = spawn(nodeTest, {
     "parse-error.md": fence("const = 1;"),
     "missing-import.md": fence('import { x } from "missing-package";\nx;'),
     "undeclared-name.md": fence("missingFn();"),
@@ -30,16 +29,7 @@ test("classifies how doc tests fail", async () => {
     "compile-fail-compiles.md": fence("1;", "compile_fail"),
     "compile-fail-parse-error.md": fence("const = 1;", "compile_fail"),
   });
-  const docs = [
-    "parse-error.md",
-    "missing-import.md",
-    "undeclared-name.md",
-    "fail-annotation-throws.md",
-    "fail-annotation-passes.md",
-    "compile-fail-compiles.md",
-    "compile-fail-parse-error.md",
-  ];
-  expect(await runDocs(root, docs)).toMatchInlineSnapshot(`
+  expect(await ddt.run()).toMatchInlineSnapshot(`
     {
       "compile-fail-compiles.md:1": "Error",
       "compile-fail-parse-error.md:1": "passed",
@@ -69,6 +59,6 @@ test("reruns a doc when it is edited in watch mode", async () => {
   await using ddt = spawn(nodeTest, { "guide.md": fence("assert.equal(1, 1);") });
   expect(await ddt.watch()).toEqual({ "guide.md:1": "passed" });
   expect(await ddt.edit("guide.md", fence("assert.equal(1, 2);"))).toEqual({
-    "guide.md:1": "failed",
+    "guide.md:1": "AssertionError ERR_ASSERTION",
   });
 });

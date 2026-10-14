@@ -26,6 +26,10 @@ const config: KnipConfig = {
       // used in generated tests; runtime helpers injected by the decorator transform
       ignoreDependencies: ["@angular/platform-browser", "@oxc-project/runtime"],
     },
+    "packages/node-test": {
+      // loaded by `node --test --test-reporter`, not imported
+      entry: ["src/reporter.ts"],
+    },
   },
 };
 
