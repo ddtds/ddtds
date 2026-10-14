@@ -1,4 +1,4 @@
-import { bench, describe } from "vitest";
+import { test } from "vitest";
 import { DocIndex, parseCodeFences, type IndexOptions } from "@ddtds/core";
 
 /** A section of a guide: prose, a list with an indented fence, a top-level fence, a skipped one */
@@ -50,22 +50,22 @@ const sources = new Map(
 );
 const index = DocIndex.fromSources(sources, options);
 
-describe("parseCodeFences", () => {
-  bench("find fences in a 50 section markdown doc", () => {
+test("parseCodeFences", async ({ bench }) => {
+  await bench("find fences in a 50 section markdown doc", () => {
     parseCodeFences(doc, "guide.md");
-  });
+  }).run();
 
-  bench("find fences in a 50 section MDX doc", () => {
+  await bench("find fences in a 50 section MDX doc", () => {
     parseCodeFences(mdx, "guide.mdx");
-  });
+  }).run();
 });
 
-describe("DocIndex", () => {
-  bench("index 20 docs of 10 sections", () => {
+test("DocIndex", async ({ bench }) => {
+  await bench("index 20 docs of 10 sections", () => {
     DocIndex.fromSources(sources, options);
-  });
+  }).run();
 
-  bench("reindex one changed doc", () => {
+  await bench("reindex one changed doc", () => {
     index.withDoc(`${root}/docs/guide-0.md`, guide(11));
-  });
+  }).run();
 });

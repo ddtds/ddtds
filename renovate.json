@@ -56,12 +56,6 @@
       "groupName": "oxc (major)",
       "matchUpdateTypes": ["major"],
       "automerge": false
-    },
-    {
-      "matchFileNames": ["packages/core/package.json"],
-      "matchPackageNames": ["vitest"],
-      "allowedVersions": "<5",
-      "description": "@codspeed/vitest-plugin does not support Vitest 5 yet"
     }
   ],
   "lockFileMaintenance": {

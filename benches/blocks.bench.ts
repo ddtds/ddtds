@@ -1,4 +1,4 @@
-import { bench, describe } from "vitest";
+import { test } from "vitest";
 import { CodeBlock } from "@ddtds/core";
 
 const code = `import { join, dirname } from "node:path";
@@ -35,8 +35,8 @@ expect(join(dir, users.a.id)).toContain("a");
 expect(addOne(base)).toBe(3);
 expect(new Greeter("world").greet()).toBe("hello world");`;
 
-describe("CodeBlock.splitImports", () => {
-  bench("split imports and sanitize block", () => {
+test("CodeBlock.splitImports", async ({ bench }) => {
+  await bench("split imports and sanitize block", () => {
     new CodeBlock({
       code,
       lang: "ts",
@@ -45,5 +45,5 @@ describe("CodeBlock.splitImports", () => {
       range: { start: { line: 1, column: 1 }, end: { line: 1, column: 1 } },
       indent: 0,
     }).splitImports();
-  });
+  }).run();
 });

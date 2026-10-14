@@ -1,4 +1,4 @@
-import { bench, describe } from "vitest";
+import { test } from "vitest";
 import { DocIndex } from "@ddtds/core";
 import { loadModule } from "@ddtds/vitest";
 
@@ -32,12 +32,12 @@ const docIds = index
   .toArray();
 
 /** What `ddtPlugin`'s `load` serves during a test run: one module per doc and fence. */
-describe("vitest plugin load", () => {
-  bench("serve every fence module", () => {
+test("vitest plugin load", async ({ bench }) => {
+  await bench("serve every fence module", () => {
     for (const id of fenceIds) loadModule(index, id);
-  });
+  }).run();
 
-  bench("serve every doc module", () => {
+  await bench("serve every doc module", () => {
     for (const id of docIds) loadModule(index, id);
-  });
+  }).run();
 });

@@ -49,6 +49,12 @@
         "typescript/no-non-null-assertion": "off",
         "typescript/explicit-function-return-type": "off"
       }
+    },
+    {
+      "files": ["**/*.bench.ts"],
+      "rules": {
+        "vitest/expect-expect": "off"
+      }
     }
   ],
   "categories": {
