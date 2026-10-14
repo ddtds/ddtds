@@ -18,7 +18,7 @@ function outcomes(modules: readonly TestModule[]): Outcomes {
 export const vitest: Runner = {
   name: "vitest",
   async run(root, docs): Promise<Outcomes> {
-    await using instance = await create(root, { plugin: { include: docs } });
+    await using instance = await create(root, { plugin: { include: docs }, file: true });
     await instance.start();
     return outcomes(instance.state.getTestModules());
   },
@@ -35,6 +35,7 @@ export const vitest: Runner = {
       plugin: { include: docs },
       watch: true,
       reporter,
+      file: true,
     });
     await instance.start();
     return {

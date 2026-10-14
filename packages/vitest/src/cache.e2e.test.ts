@@ -5,7 +5,7 @@ import { dirname, join } from "node:path";
 import { pathToFileURL } from "node:url";
 import { describe, expect, test } from "vitest";
 import { version } from "vitest/node";
-import { fence, fixture } from "./test-utils.ts";
+import { fence, fixture } from "@ddtds/test-utils";
 import type { DdtPluginOptions } from "./index.ts";
 
 // A real `vitest` process, so the fs module cache lives and dies like it does
@@ -89,11 +89,12 @@ const isGenerated = (id: string): boolean => id.endsWith("guide.md") || id.inclu
 
 // `fsModuleCache` is Vitest 5+, so the suite is skipped on 4.
 describe.skipIf(Number(version.split(".")[0]) < 5)("fs module cache", () => {
-  test("never serves a generated module from the fs cache across processes", () => {
-    const root = fixture({
+  test("never serves a generated module from the fs cache across processes", async () => {
+    await using dir = fixture({
       "vitest.config.ts": configSource({ logLevel: "fatal" }),
       "guide.md": fence("expect(1).toBe(1);"),
     });
+    const root = dir.root;
     rmSync(cacheDir(root), { recursive: true, force: true });
 
     const cold = run(root, { debug: true });
@@ -114,11 +115,12 @@ describe.skipIf(Number(version.split(".")[0]) < 5)("fs module cache", () => {
     expect(reads.some((entry) => entry.path.startsWith(cacheDir(root)))).toBe(true);
   });
 
-  test("picks up a markdown edit with a warm cache from another process", () => {
-    const root = fixture({
+  test("picks up a markdown edit with a warm cache from another process", async () => {
+    await using dir = fixture({
       "vitest.config.ts": configSource({ logLevel: "fatal" }),
       "guide.md": fence("expect(1).toBe(1);"),
     });
+    const root = dir.root;
     rmSync(cacheDir(root), { recursive: true, force: true });
     expect(run(root, { debug: true }).tests).toEqual([{ name: "guide.md:1", status: "passed" }]);
 
@@ -129,10 +131,11 @@ describe.skipIf(Number(version.split(".")[0]) < 5)("fs module cache", () => {
   });
 
   test("reruns a doc with fresh fence code in watch mode", async () => {
-    const root = fixture({
+    await using dir = fixture({
       "vitest.config.ts": configSource({ logLevel: "fatal" }),
       "guide.md": fence("expect(1).toBe(1);"),
     });
+    const root = dir.root;
     rmSync(cacheDir(root), { recursive: true, force: true });
 
     const watch = spawnWatch(root);

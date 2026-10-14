@@ -1,10 +1,46 @@
-import { readFileSync } from "node:fs";
+import { readFileSync, writeFileSync } from "node:fs";
 import { join, relative } from "node:path";
 import { Writable } from "node:stream";
+import { pathToFileURL } from "node:url";
 import type { ParsedStack } from "vitest";
 import type { ViteUserConfig } from "vitest/config";
 import { createVitest, type Reporter, type TestUserConfig, type Vitest } from "vitest/node";
 import { ddtPlugin, type DdtPluginOptions } from "@ddtds/vitest";
+
+// A real config file, so Vitest runs the plugin's `configureVitest` hook
+let configs = 0;
+
+function writeConfig(
+  root: string,
+  plugin: DdtPluginOptions,
+  test: ViteUserConfig["test"],
+  logLevel: ViteUserConfig["logLevel"],
+): string {
+  const source = join(import.meta.dirname, "index.ts");
+  // A unique name per call, so Node's module cache does not hand back a
+  // previous config and its plugin instance.
+  const config = join(root, `vitest.config.${++configs}.ts`);
+  // for nicer dev experience since it will pull in real source instead of
+  // requiring dev server. source is tested in other example packages
+  const alias = {
+    "@ddtds/vitest/runtime": join(import.meta.dirname, "runtime.ts"),
+    "@ddtds/vitest": source,
+  };
+  writeFileSync(
+    config,
+    `import { defineConfig } from "vitest/config";
+import { ddtPlugin } from ${JSON.stringify(pathToFileURL(source).href)};
+
+export default defineConfig({
+  plugins: [ddtPlugin(${JSON.stringify(plugin)})],
+  resolve: { alias: ${JSON.stringify(alias)} },
+  test: ${JSON.stringify(test)},
+  logLevel: ${JSON.stringify(logLevel)},
+});
+`,
+  );
+  return config;
+}
 
 export async function create(
   root: string,
@@ -16,6 +52,7 @@ export async function create(
     output = {},
     coverage,
     logLevel,
+    file = false,
   }: {
     plugin?: DdtPluginOptions;
     test?: ViteUserConfig["test"];
@@ -24,24 +61,29 @@ export async function create(
     output?: { stdout?: Writable; stderr?: Writable };
     coverage?: TestUserConfig["coverage"];
     logLevel?: ViteUserConfig["logLevel"];
+    file?: boolean;
   } = {},
 ): Promise<Vitest & AsyncDisposable> {
+  const options: DdtPluginOptions = { logLevel: "fatal", ...plugin };
+  const config = file ? writeConfig(root, options, test, logLevel) : false;
   const instance = await createVitest(
     "test",
-    { root, config: false, watch, reporters: [reporter], ...(coverage && { coverage }) },
-    {
-      plugins: [ddtPlugin({ logLevel: "fatal", ...plugin })],
-      // for nicer dev experience since it will pull in real source instead of
-      // requiring dev server. source is tested in other example packages
-      resolve: {
-        alias: {
-          "@ddtds/vitest/runtime": join(import.meta.dirname, "runtime.ts"),
-          "@ddtds/vitest": join(import.meta.dirname, "index.ts"),
+    { root, config, watch, reporters: [reporter], ...(coverage && { coverage }) },
+    config
+      ? undefined
+      : {
+          plugins: [ddtPlugin(options)],
+          // for nicer dev experience since it will pull in real source instead of
+          // requiring dev server. source is tested in other example packages
+          resolve: {
+            alias: {
+              "@ddtds/vitest/runtime": join(import.meta.dirname, "runtime.ts"),
+              "@ddtds/vitest": join(import.meta.dirname, "index.ts"),
+            },
+          },
+          test,
+          logLevel,
         },
-      },
-      test,
-      logLevel,
-    },
     output,
   );
   // vitest v4 does not make vitest a Disposable
