@@ -2,6 +2,7 @@ import { writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { expect, test } from "vitest";
 import { collect, fence, fixture, logs, run, watch } from "./test-utils.ts";
+import { ddtPlugin } from "./index.ts";
 
 const files = {
   "guide.md": fence("1;"),
@@ -112,4 +113,12 @@ test("logs through Vite's logger, which Vitest keeps at warn unless configured",
       "stderr: [ddtds] unknown annotation in code block: "run fail"",
     ]
   `);
+});
+
+test("tolerates Vitest 4, which calls configureVitest without a cache key generator", () => {
+  const plugin = ddtPlugin({ logLevel: "fatal" });
+  const hook = plugin.configureVitest;
+  if (!hook) throw new Error("expected configureVitest to be defined");
+  // Vitest 4 calls the hook, but its context has no `defineCacheKeyGenerator`.
+  expect(() => Reflect.apply(hook, plugin, [{}])).not.toThrow();
 });
