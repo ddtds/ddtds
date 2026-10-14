@@ -87,7 +87,11 @@ export function ddtPlugin({ logLevel, ...docs }: DdtPluginOptions = {}): Plugin 
       //
       // Opt both out of the fs cache. Their transforms are cheap; the modules
       // they import are still cached, which is where the time is spent.
-      defineCacheKeyGenerator(({ id }) =>
+      //
+      // Vitest 4 still calls this hook but has no fs cache and no
+      // `defineCacheKeyGenerator`, so the generator is 5-only.
+      // oxlint-disable-next-line typescript/no-unnecessary-condition it is optional on Vitest 4
+      defineCacheKeyGenerator?.(({ id }) =>
         session.index.hasDoc(id) || session.index.fence(id) ? false : undefined,
       );
     },
