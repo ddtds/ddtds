@@ -45,6 +45,37 @@ const testName = ({ block }: Fence): string =>
 const importFences = (fences: readonly Fence[]): string[] =>
   fences.map(({ id }) => `  () => import(${JSON.stringify(id)}),`);
 
+const loadRuntime = (adapter: TestAdapter): string =>
+  `const { runtime } = await import(${JSON.stringify(adapter.runtime)});`;
+
+const loadFences = (fences: readonly Fence[], wait: boolean): string[] => [
+  `const fences = ${wait ? "await " : ""}runtime.loadFences([`,
+  ...importFences(fences),
+  "]);",
+];
+
+function lazyRegistration(adapter: TestAdapter, fences: readonly Fence[]): string[] {
+  return [
+    loadRuntime(adapter),
+    ...loadFences(fences, false),
+    ...fences.map((fence, i) => `test(${testName(fence)}, runtime.fenceAt(fences, ${i}));`),
+  ];
+}
+
+function suiteRegistration(
+  adapter: TestAdapter,
+  fences: readonly Fence[],
+  suite: string,
+): string[] {
+  const body = [
+    loadRuntime(adapter),
+    ...loadFences(fences, true),
+    ...fences.map((fence, i) => `test(${testName(fence)}, fences[${i}]);`),
+  ];
+  const name = JSON.stringify(fences[0]?.block.details.file);
+  return [`${suite}(${name}, async () => {`, ...body.map(indentText), "});"];
+}
+
 /**
  * for most runners, jsdoc fences arent loaded if the
  * source file isnt imported int a test
@@ -62,30 +93,12 @@ export function sourceTests(
   test: string,
   suite?: string,
 ): string {
-  const loadRuntime = `const { runtime } = await import(${JSON.stringify(adapter.runtime)});`;
-  const lines =
+  const registration =
     suite === undefined
-      ? [
-          `const test = ${test};`,
-          loadRuntime,
-          "const fences = runtime.loadFences([",
-          ...importFences(fences),
-          "]);",
-          ...fences.map((fence, i) => `test(${testName(fence)}, runtime.fenceAt(fences, ${i}));`),
-        ]
-      : [
-          `const test = ${test};`,
-          `${suite}(${JSON.stringify(fences[0]?.block.details.file)}, async () => {`,
-          ...[
-            loadRuntime,
-            "const fences = await runtime.loadFences([",
-            ...importFences(fences),
-            "]);",
-            ...fences.map((fence, i) => `test(${testName(fence)}, fences[${i}]);`),
-          ].map(indentText),
-          "});",
-        ];
-  return ["{", ...lines.map(indentText), "}"].join("\n");
+      ? lazyRegistration(adapter, fences)
+      : suiteRegistration(adapter, fences, suite);
+  const lines = [`const test = ${test};`, ...registration].map(indentText);
+  return ["{", ...lines, "}"].join("\n");
 }
 
 export function docModule(
@@ -94,13 +107,7 @@ export function docModule(
   fences: readonly Fence[],
   { source }: { source?: string } = {},
 ): GeneratedModule {
-  const header = [
-    adapter.testImport,
-    runtimeImport(adapter),
-    "const fences = await runtime.loadFences([",
-    ...importFences(fences),
-    "]);",
-  ];
+  const header = [adapter.testImport, runtimeImport(adapter), ...loadFences(fences, true)];
   const lines = [...header, ...fences.map((fence, i) => `test(${testName(fence)}, fences[${i}]);`)];
   const mappings: SourceMapSegment[][] = [
     ...header.map(() => []),
