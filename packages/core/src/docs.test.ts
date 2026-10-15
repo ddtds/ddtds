@@ -28,8 +28,8 @@ test("fromSources indexes runnable fences and skips docs without any", () => {
   expect(summary(docs)).toMatchInlineSnapshot(`
     {
       "/repo/docs/guide.md": [
-        "1 /repo/pkg/__doctests__/___docs_guide_md_1.ts",
-        "5 /repo/pkg/__doctests__/___docs_guide_md_5.tsx",
+        "1 /repo/pkg/__doctests__/___docs_guide_md_1_25d58d7b.ts",
+        "5 /repo/pkg/__doctests__/___docs_guide_md_5_427efaac.tsx",
       ],
     }
   `);
@@ -41,7 +41,7 @@ test("withDoc replaces one doc's fences and keeps docs that lose them all", () =
   expect(summary(after)).toMatchInlineSnapshot(`
     {
       "/repo/pkg/a.md": [
-        "3 /repo/pkg/__doctests__/a_md_3.ts",
+        "3 /repo/pkg/__doctests__/a_md_3_d974e864.ts",
       ],
       "/repo/pkg/b.md": [],
     }

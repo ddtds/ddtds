@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { join, relative, sep } from "node:path";
 import { parseCodeFences, type CodeBlock } from "./blocks.ts";
 
@@ -83,10 +84,24 @@ export class DocIndex {
 
 function parseFences({ root, moduleDir }: IndexOptions, doc: string, source: string): Fence[] {
   return parseCodeFences(source, relative(root, doc)).map((block) => ({
-    id: join(moduleDir, `${flatName(root, doc)}_${block.line}.${block.outputExtension}`),
+    id: join(
+      moduleDir,
+      `${flatName(root, doc)}_${block.line}_${contentHash(block)}.${block.outputExtension}`,
+    ),
     doc,
     block,
   }));
+}
+
+/**
+ * Content-address the fence, so a warm Vitest cache can reuse its transform:
+ * an edit to the code (or annotation) produces a new id, so nothing ever goes
+ * stale. The annotation is part of the hash because `fail`/`compile_fail`
+ * change the emitted code even when the fence body is unchanged.
+ */
+function contentHash(block: CodeBlock): string {
+  const input = JSON.stringify([block.details.annotation, block.code]);
+  return createHash("sha1").update(input).digest("hex").slice(0, 8);
 }
 
 function flatName(root: string, doc: string): string {
