@@ -6,15 +6,11 @@ import type { DdtPluginOptions } from "./index.ts";
 
 export type VitestRunnerOptions = {
   plugin?: DdtPluginOptions;
-  /**
-   * Any Vitest `test` config, e.g. `{ fsModuleCache: true }`. The index
-   * signature lets options from a newer Vitest (like `fsModuleCache`) type-check
-   * against an older one.
-   */
+  // a but cursed, but works with v4 and v5
   test?: ViteUserConfig["test"] & Record<string, unknown>;
 };
 
-/** The in-process Vitest, configured like `create` (plugin + any `test` options). */
+
 export function vitest(options: VitestRunnerOptions = {}): Runner {
   const plugin = (docs: string[]): DdtPluginOptions => ({ ...options.plugin, include: docs });
 
