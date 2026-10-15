@@ -77,7 +77,7 @@ export function ddtPlugin({ logLevel, ...docs }: DdtPluginOptions = {}): Plugin 
     },
     configureVitest({ defineCacheKeyGenerator }) {
       // opt out of caching markdown fences and files
-      // they are cheap and imports are still cached 
+      // they are cheap and imports are still cached
       // the file system module cache is on by default > v5.0.4
       //
       // oxlint-disable-next-line typescript/no-unnecessary-condition vitest 4 interop
