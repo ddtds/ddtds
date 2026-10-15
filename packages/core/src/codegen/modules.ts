@@ -42,12 +42,19 @@ export function fenceModule(adapter: TestAdapter, fence: Fence, source?: string)
 const testName = ({ block }: Fence): string =>
   JSON.stringify(`${block.details.file}:${block.line}`);
 
-/** Starts loading the fences and registers one test per fence, with `test` and `runtime` in scope */
-const registerFences = (fences: readonly Fence[]): string[] => [
+const loadFences = (fences: readonly Fence[]): string[] => [
   "const fences = runtime.loadFences([",
   ...fences.map(({ id }) => `  () => import(${JSON.stringify(id)}),`),
   "]);",
-  ...fences.map((fence, i) => `test(${testName(fence)}, runtime.fenceAt(fences, ${i}));`),
+];
+
+const testCall = (fence: Fence, i: number): string =>
+  `test(${testName(fence)}, runtime.fenceAt(fences, ${i}));`;
+
+/** Starts loading the fences and registers one test per fence, with `test` and `runtime` in scope */
+const registerFences = (fences: readonly Fence[]): string[] => [
+  ...loadFences(fences),
+  ...fences.map(testCall),
 ];
 
 /**
@@ -73,16 +80,15 @@ export function docModule(
   fences: readonly Fence[],
   { source }: { source?: string } = {},
 ): GeneratedModule {
-  const imports = [adapter.testImport, runtimeImport(adapter)];
-  const lines = [...imports, ...registerFences(fences)];
-  // the test calls are the last lines, in fence order
-  const first = lines.length - fences.length;
-  const mappings: SourceMapSegment[][] = lines.map((_, i) => {
-    const fence = fences[i - first];
-    if (!fence) return [];
-    const { line, column } = fence.block.zeroBasedStart;
-    return [[0, 0, line, column]];
-  });
+  const header = [adapter.testImport, runtimeImport(adapter), ...loadFences(fences)];
+  const lines = [...header, ...fences.map(testCall)];
+  const mappings: SourceMapSegment[][] = [
+    ...header.map(() => []),
+    ...fences.map(({ block }): SourceMapSegment[] => {
+      const { line, column } = block.zeroBasedStart;
+      return [[0, 0, line, column]];
+    }),
+  ];
   const map = new SourceMap({
     file: doc,
     sources: [doc],
