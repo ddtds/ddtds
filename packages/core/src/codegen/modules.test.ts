@@ -1,6 +1,6 @@
 import { expect, test } from "vitest";
 import { TraceMap, generatedPositionFor, originalPositionFor } from "@jridgewell/trace-mapping";
-import { docModule, fenceModule } from "./modules.ts";
+import { docModule, fenceModule, sourceTests } from "./modules.ts";
 import { adapter, fence } from "./test-utils.ts";
 
 /** The 1-based line and text of the first generated line matching `matches` */
@@ -65,6 +65,22 @@ test("a doc module loads each fence and registers one test per fence", () => {
       "]);",
       'test("t.md:3", fences[0]);',
       'test("t.md:9", fences[1]);',
+    ].join("\n"),
+  );
+});
+
+test("source tests load each fence and register it only while the host runs the file as a test", () => {
+  const first = fence("1;", null, { line: 3 });
+  expect(sourceTests(adapter, [first], { when: "host.test", test: "host.test.run" })).toBe(
+    [
+      "if (host.test) {",
+      "  const test = host.test.run;",
+      '  const { runtime } = await import("@ddtds/test/runtime");',
+      "  const fences = runtime.loadFences([",
+      '    () => import("/repo/__doctests__/t_md_3.ts"),',
+      "  ]);",
+      '  test("t.md:3", runtime.fenceAt(fences, 0));',
+      "}",
     ].join("\n"),
   );
 });

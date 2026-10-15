@@ -10,6 +10,7 @@ export {
   defaultOutDir,
 } from "./constants.ts";
 export { DocIndex, type Fence, type IndexOptions } from "./docs.ts";
+export { isSourceFile, parseJsDocFences } from "./jsdoc.ts";
 export {
   DdtCompileError,
   type CompileDiagnostic,
@@ -21,6 +22,7 @@ export { resolveLogLevel, type LogLevel } from "./log-level.ts";
 export {
   moduleFiles,
   moduleFor,
+  sourceTests,
   typedImports,
   type GeneratedModule,
   type TestAdapter,

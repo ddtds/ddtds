@@ -1,5 +1,12 @@
-export const defaultDocsInclude: string[] = ["**/*.{md,mdx}"];
-export const defaultDocsExclude: string[] = ["**/node_modules/**", "**/CHANGELOG.md"];
+/** Markdown docs, and source files whose JSDoc comments hold code fences */
+export const defaultDocsInclude: string[] = ["**/*.{md,mdx,ts,tsx,js,jsx,mts,cts,mjs,cjs}"];
+export const defaultDocsExclude: string[] = [
+  "**/node_modules/**",
+  "**/CHANGELOG.md",
+  "**/dist/**",
+  "**/*.d.ts",
+  "**/__ddtds__/**",
+];
 export const defaultOutDir = "__doctests__";
 
 const PARSERS = ["ts", "js", "tsx", "jsx", "tsrx"] as const;

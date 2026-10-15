@@ -19,6 +19,14 @@ function doc(code: string): string {
   return `\`\`\`ts run\n${code}\n\`\`\`\n`;
 }
 
+function source(name: string): string {
+  return `/**\n * \`\`\`ts run\n * expect(1).toBe(1);\n * \`\`\`\n */\nexport const ${name} = 1;\n`;
+}
+
+function docsOf(session: DdtSession, root: string): string[] {
+  return [...session.index.docs()].map(([doc]) => doc.slice(root.length + 1)).toSorted();
+}
+
 function sessionOver(root: string): DdtSession {
   return DdtSession.fromFiles(adapter, { root });
 }
@@ -37,6 +45,26 @@ describe("DdtSession.fromFiles", () => {
     expect(session.module(fence!.id)?.code).toContain("expect(1).toBe(1);");
     expect(session.module(join(root, "missing.md"))).toBeUndefined();
     expect(session.index.fence(fence!.id)).toBe(fence);
+  });
+});
+
+describe("DdtSession.fromFiles source files", () => {
+  const files = {
+    "src/a.ts": source("a"),
+    "src/b.ts": source("b"),
+    "dist/a.d.ts": source("built"),
+    "node_modules/pkg/index.js": source("dep"),
+  };
+
+  test("scans source files by default, skipping dependencies and build output", () => {
+    const root = fixture(files);
+    expect(docsOf(sessionOver(root), root)).toEqual(["src/a.ts", "src/b.ts"]);
+  });
+
+  test("scans only the given include", () => {
+    const root = fixture(files);
+    const session = DdtSession.fromFiles(adapter, { root, include: ["src/a.ts"] });
+    expect(docsOf(session, root)).toEqual(["src/a.ts"]);
   });
 });
 
@@ -66,6 +94,22 @@ describe("DdtSession.refresh", () => {
     const [updated] = session.index.fences();
     expect(session.module(updated!.id)?.code).toContain("expect(2).toBe(2);");
     expect([...session.index.docs()].map(([doc]) => doc)).toEqual([join(root, "guide.md")]);
+  });
+
+  test("picks up the first fence of a discovered doc without fences", () => {
+    const root = fixture({ "guide.md": "# Guide\n" });
+    const session = sessionOver(root);
+    const path = join(root, "guide.md");
+    expect(session.index.size).toBe(0);
+    expect(session.tracks(path)).toBe(true);
+
+    session.update(path, doc("expect(1).toBe(1);"));
+    expect(session.index.size).toBe(1);
+  });
+
+  test("does not track a doc it was never given", () => {
+    const session = DdtSession.fromSources(adapter, new Map(), fixture({}));
+    expect(session.tracks("guide.md")).toBe(false);
   });
 
   test("indexes a doc it has not seen yet", () => {

@@ -33,6 +33,8 @@ export type CodeBlockInit = {
   path: string;
   range: SourceRange;
   indent: number;
+  /** column shift of each code line, when it differs from `indent` (a fence in a JSDoc comment) */
+  lineIndents?: readonly number[];
 };
 
 export class CodeBlock {
@@ -42,14 +44,16 @@ export class CodeBlock {
   readonly #path: string;
   readonly #range: SourceRange;
   readonly #indent: number;
+  readonly #lineIndents: readonly number[];
 
-  public constructor({ code, lang, annotation, path, range, indent }: CodeBlockInit) {
+  public constructor({ code, lang, annotation, path, range, indent, lineIndents }: CodeBlockInit) {
     this.#code = code;
     this.lang = lang;
     this.#annotation = annotation;
     this.#path = path;
     this.#range = range;
     this.#indent = indent;
+    this.#lineIndents = lineIndents ?? [];
   }
 
   public get line(): number {
@@ -67,11 +71,17 @@ export class CodeBlock {
     };
   }
 
+  /** columns in the file before a code line (0-based) starts */
+  public indentAt(codeLine: number): number {
+    return this.#lineIndents[codeLine] ?? this.#indent;
+  }
+
   /** maps code block offset to file position */
   public positionAt(offset: number): Position {
     const before = this.#code.slice(0, offset);
-    const line = this.line + before.split("\n").length;
-    const column = offset - this.#code.lastIndexOf("\n", offset - 1) + this.#indent;
+    const codeLine = before.split("\n").length;
+    const line = this.line + codeLine;
+    const column = offset - this.#code.lastIndexOf("\n", offset - 1) + this.indentAt(codeLine - 1);
     return { line, column };
   }
 

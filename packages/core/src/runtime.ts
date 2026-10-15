@@ -30,6 +30,15 @@ export const runtime = {
         ),
       ),
     ),
+  /** A test body that runs one of the fences from `loadFences` once it has loaded. Source files
+   * use it because they cannot wait for fences that import them. */
+  fenceAt:
+    (fences: Promise<FenceRun[]>, index: number): FenceRun =>
+    async () => {
+      const run = (await fences)[index];
+      if (!run) throw new Error(`missing fence ${index}`);
+      await run();
+    },
   /** builds a function to throw a compile error */
   compileError: ({
     fileName,

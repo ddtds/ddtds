@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 import { join, relative, sep } from "node:path";
 import { parseCodeFences, type CodeBlock } from "./blocks.ts";
+import { isSourceFile, parseJsDocFences } from "./jsdoc.ts";
 
 export type Fence = Readonly<{
   id: string;
@@ -83,7 +84,8 @@ export class DocIndex {
 }
 
 function parseFences({ root, moduleDir }: IndexOptions, doc: string, source: string): Fence[] {
-  return parseCodeFences(source, relative(root, doc)).map((block) => ({
+  const parse = isSourceFile(doc) ? parseJsDocFences : parseCodeFences;
+  return parse(source, relative(root, doc)).map((block) => ({
     id: join(
       moduleDir,
       `${flatName(root, doc)}_${block.line}_${contentHash(block)}.${block.outputExtension}`,

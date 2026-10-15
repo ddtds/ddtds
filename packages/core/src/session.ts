@@ -47,8 +47,14 @@ export class DdtSession {
 
   public refresh(id: string): void {
     const doc = resolve(this.index.root, id);
-    if (!docPattern.test(doc) && !this.index.hasDoc(doc)) return;
-    this.index = this.index.withDoc(doc, readFileSync(doc, "utf8"));
+    if (docPattern.test(doc) || this.tracks(doc)) this.update(doc, readFileSync(doc, "utf8"));
+  }
+
+  /** Reindexes a doc from source the host already read */
+  public update(id: string, source: string): void {
+    const doc = resolve(this.index.root, id);
+    this.#known.add(doc);
+    this.index = this.index.withDoc(doc, source);
   }
 
   public module(id: string): GeneratedModule | undefined {
