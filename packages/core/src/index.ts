@@ -10,7 +10,8 @@ export {
   defaultOutDir,
 } from "./constants.ts";
 export { DocIndex, type Fence, type IndexOptions } from "./docs.ts";
-export { isSourceFile, parseJsDocFences } from "./jsdoc.ts";
+export { isSourceFile } from "./doc-kinds.ts";
+export { parseJsDocFences } from "./jsdoc.ts";
 export {
   DdtCompileError,
   type CompileDiagnostic,

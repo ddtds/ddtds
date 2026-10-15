@@ -1,7 +1,8 @@
 import { createHash } from "node:crypto";
 import { join, relative, sep } from "node:path";
 import { parseCodeFences, type CodeBlock } from "./blocks.ts";
-import { isSourceFile, parseJsDocFences } from "./jsdoc.ts";
+import { isSourceFile } from "./doc-kinds.ts";
+import { parseJsDocFences } from "./jsdoc.ts";
 
 export type Fence = Readonly<{
   id: string;

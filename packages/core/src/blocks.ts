@@ -11,6 +11,7 @@ import {
   isLang,
 } from "./constants.ts";
 import type { BlockDetails, Position, SourceRange } from "./compile-error.ts";
+import { NO_OFFSET, type Offset } from "./offset.ts";
 import { splitImportsAndBlock, type PreparedBlock } from "./parse.ts";
 
 const logger = getLogger(["ddtds", "blocks"]);
@@ -31,10 +32,10 @@ export type CodeBlockInit = {
   lang: Lang;
   annotation: Annotation | null;
   path: string;
+  /** Where the fence is in the parsed text, which is not the file when `offset` is set */
   range: SourceRange;
-  indent: number;
-  /** column shift of each code line, when it differs from `indent` (a fence in a JSDoc comment) */
-  lineIndents?: readonly number[];
+  /** Where the parsed text is in the file */
+  offset?: Offset;
 };
 
 export class CodeBlock {
@@ -42,38 +43,49 @@ export class CodeBlock {
   public readonly lang: Lang;
   readonly #annotation: Annotation | null;
   readonly #path: string;
-  readonly #range: SourceRange;
-  readonly #indent: number;
-  readonly #lineIndents: readonly number[];
+  readonly #textRange: SourceRange;
+  readonly #offset: Offset;
 
-  public constructor({ code, lang, annotation, path, range, indent, lineIndents }: CodeBlockInit) {
+  public constructor({ code, lang, annotation, path, range, offset = NO_OFFSET }: CodeBlockInit) {
     this.#code = code;
     this.lang = lang;
     this.#annotation = annotation;
     this.#path = path;
-    this.#range = range;
-    this.#indent = indent;
-    this.#lineIndents = lineIndents ?? [];
+    this.#textRange = range;
+    this.#offset = offset;
   }
 
   public get line(): number {
-    return this.#range.start.line;
+    return this.range.start.line;
+  }
+
+  /** The fence in the file */
+  public get range(): SourceRange {
+    const move = ({ line, column }: Position): Position => ({
+      line: line + this.#offset.lines,
+      column: column + this.#offset.columnsBefore(line),
+    });
+    return { start: move(this.#textRange.start), end: move(this.#textRange.end) };
   }
 
   public get details(): BlockDetails {
+    const range = this.range;
     return {
       file: this.#path,
       lang: this.lang,
       annotation: this.#annotation,
-      range: this.#range,
-      indent: this.#indent,
+      range,
+      indent: range.start.column - 1,
       contents: this.#code,
     };
   }
 
-  /** columns in the file before a code line (0-based) starts */
-  public indentAt(codeLine: number): number {
-    return this.#lineIndents[codeLine] ?? this.#indent;
+  /** The file column of a 1 indexed column in a 0 indexed line of the code */
+  public columnAt(codeLine: number, column: number): number {
+    const fenceIndent = this.#textRange.start.column - 1;
+    const textLine = this.#textRange.start.line + 1 + codeLine;
+    // the parser removes the fence's indent from each code line, so it is added back
+    return column + fenceIndent + this.#offset.columnsBefore(textLine);
   }
 
   /** maps code block offset to file position */
@@ -81,7 +93,7 @@ export class CodeBlock {
     const before = this.#code.slice(0, offset);
     const codeLine = before.split("\n").length;
     const line = this.line + codeLine;
-    const column = offset - this.#code.lastIndexOf("\n", offset - 1) + this.indentAt(codeLine - 1);
+    const column = this.columnAt(codeLine - 1, offset - this.#code.lastIndexOf("\n", offset - 1));
     return { line, column };
   }
 
@@ -114,7 +126,11 @@ function parseMarkdown(source: string, path: string): MdastNode {
   return path.endsWith(".mdx") ? mdxToMdast(source) : markdownToMdast(source);
 }
 
-export function parseCodeFences(source: string, path: string): CodeBlock[] {
+export function parseCodeFences(
+  source: string,
+  path: string,
+  offset: Offset = NO_OFFSET,
+): CodeBlock[] {
   const tree = parseMarkdown(source, path);
   const blocks: CodeBlock[] = [];
 
@@ -143,7 +159,7 @@ export function parseCodeFences(source: string, path: string): CodeBlock[] {
           start: { line: start.line, column: start.column },
           end: { line: end.line, column: end.column },
         },
-        indent: start.column - 1,
+        offset,
       }),
     );
   });

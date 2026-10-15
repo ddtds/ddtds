@@ -12,7 +12,7 @@ function shiftToFence(mappings: SourceMapSegment[][], { block }: Fence): SourceM
     segments.map((segment) => {
       if (segment.length === 1) return segment;
       const [column, source, sourceLine, sourceColumn] = segment;
-      return [column, source, sourceLine + line, sourceColumn + block.indentAt(sourceLine)];
+      return [column, source, sourceLine + line, block.columnAt(sourceLine, sourceColumn)];
     }),
   );
 }
@@ -79,7 +79,7 @@ export function docModule(
   const first = lines.length - fences.length;
   const mappings: SourceMapSegment[][] = lines.map((_, i) => {
     const fence = fences[i - first];
-    return fence ? [[0, 0, fence.block.line - 1, fence.block.details.indent]] : [];
+    return fence ? [[0, 0, fence.block.line - 1, fence.block.details.range.start.column - 1]] : [];
   });
   const map = new SourceMap({
     file: doc,

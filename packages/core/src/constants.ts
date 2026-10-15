@@ -1,5 +1,7 @@
+import { DOC_GLOB } from "./doc-kinds.ts";
+
 /** Markdown docs, and source files whose JSDoc comments hold code fences */
-export const defaultDocsInclude: string[] = ["**/*.{md,mdx,ts,tsx,js,jsx,mts,cts,mjs,cjs}"];
+export const defaultDocsInclude: string[] = [DOC_GLOB];
 export const defaultDocsExclude: string[] = [
   "**/node_modules/**",
   "**/CHANGELOG.md",
