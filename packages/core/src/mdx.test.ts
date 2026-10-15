@@ -14,12 +14,16 @@ test("finds fences inside JSX components in MDX", () => {
   ].join("\n");
   const blocks = parseCodeFences(steps, "guide.mdx");
   expect(
-    blocks.map(({ line, details }) => ({ line, indent: details.indent, code: details.contents })),
+    blocks.map(({ line, details }) => ({
+      line,
+      column: details.range.start.column,
+      code: details.contents,
+    })),
   ).toMatchInlineSnapshot(`
     [
       {
         "code": "expect(1).toBe(1);",
-        "indent": 4,
+        "column": 5,
         "line": 4,
       },
     ]

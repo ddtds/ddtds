@@ -29,7 +29,6 @@ export type BlockDetails = {
   lang: Lang;
   annotation: Annotation | null;
   range: SourceRange;
-  indent: number;
   contents: string;
 };
 

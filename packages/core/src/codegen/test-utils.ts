@@ -24,7 +24,6 @@ export function fence(
       annotation,
       path: "t.md",
       range: { start: { line, column: 1 }, end: { line: line + 2, column: 4 } },
-      indent: 0,
     }),
   };
 }

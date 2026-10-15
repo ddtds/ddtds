@@ -106,7 +106,6 @@ function block(
     annotation,
     path: "t.md",
     range: { start: { line, column: 1 }, end: { line, column: 1 } },
-    indent: 0,
   });
 }
 
@@ -217,7 +216,6 @@ describe("CodeBlock.splitImports", () => {
           "contents": "let x = 1;
       let x = 2;",
           "file": "t.md",
-          "indent": 0,
           "lang": "ts",
           "range": {
             "end": {

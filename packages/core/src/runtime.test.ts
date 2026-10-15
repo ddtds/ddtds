@@ -8,7 +8,6 @@ const details: CompileErrorDetails = {
     lang: "ts",
     annotation: null,
     range: { start: { line: 1, column: 1 }, end: { line: 3, column: 4 } },
-    indent: 0,
     contents: "",
   },
   parser: { name: "ts", package: "oxc-parser", version: "0.0.0" },
