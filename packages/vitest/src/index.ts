@@ -1,4 +1,4 @@
-import { join, relative } from "node:path";
+import { join, relative, resolve } from "node:path";
 import { defaultExclude, defaultInclude, type Plugin } from "vitest/config";
 import {
   DdtSession,
@@ -88,6 +88,8 @@ export function ddtPlugin({ logLevel, ...docs }: DdtPluginOptions = {}): Plugin 
       return this.resolve(source, fromRoot, { ...resolveOptions, skipSelf: true });
     },
     load(id) {
+      const doc = resolve(session.index.root, id);
+      if (session.index.hasDoc(doc)) session.refresh(doc);
       const fence = session.index.fence(id);
       if (fence) this.addWatchFile(fence.doc);
       return session.module(id);

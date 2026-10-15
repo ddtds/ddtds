@@ -1,7 +1,8 @@
+import { writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { expect, test } from "vitest";
 import { fence, fixture, spawn } from "@ddtds/test-utils";
-import { collect, logs } from "./test-utils.ts";
+import { collect, create, logs } from "./test-utils.ts";
 import { vitest } from "./e2e.ts";
 
 const files = {
@@ -77,6 +78,17 @@ test("reruns a doc when it is edited in watch mode", async () => {
   expect(await ddt.edit("guide.md", fence("expect(1).toBe(2);"))).toEqual({
     "guide.md:1": "AssertionError",
   });
+});
+
+test("refreshes a changed doc before loading its test module again", async () => {
+  await using dir = fixture({ "guide.md": fence("expect(1).toBe(1);") });
+  await using instance = await create(dir.root, { plugin: { include: ["guide.md"] } });
+
+  const id = join(dir.root, "guide.md");
+  const before = await instance.vite.pluginContainer.load(id);
+  writeFileSync(id, fence("expect(1).toBe(2);"));
+
+  expect(await instance.vite.pluginContainer.load(id)).not.toEqual(before);
 });
 
 test("keeps the user's test.exclude and still skips ddt build output", async () => {

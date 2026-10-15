@@ -1,5 +1,5 @@
 import { readFileSync } from "node:fs";
-import { join } from "node:path";
+import { join, resolve } from "node:path";
 import type { TestAdapter } from "./codegen/adapter.ts";
 import { moduleFor, type GeneratedModule } from "./codegen/modules.ts";
 import { type DocsConfig, readDocs, resolveDocsOptions } from "./discovery.ts";
@@ -31,8 +31,9 @@ export class DdtSession {
   }
 
   public refresh(id: string): void {
-    if (!docPattern.test(id) && !this.index.hasDoc(id)) return;
-    this.index = this.index.withDoc(id, readFileSync(id, "utf8"));
+    const doc = resolve(this.index.root, id);
+    if (!docPattern.test(doc) && !this.index.hasDoc(doc)) return;
+    this.index = this.index.withDoc(doc, readFileSync(doc, "utf8"));
   }
 
   public module(id: string): GeneratedModule | undefined {
