@@ -7,9 +7,11 @@ import {
   createVitest,
   version,
   type Reporter,
+  type TestModule,
   type TestUserConfig,
   type Vitest,
 } from "vitest/node";
+import type { Outcomes } from "@ddtds/test-utils";
 import { ddtPlugin, type DdtPluginOptions } from "@ddtds/vitest";
 
 /** The Vitest under test, so suites can branch on features (e.g. the fs cache). */
@@ -17,6 +19,20 @@ export const vitestVersion: { full: string; major: number } = {
   full: version,
   major: Number(version.split(".")[0]),
 };
+
+/** Each module's tests, as `name -> state` (or the first error's name). */
+export function outcomes(modules: readonly TestModule[]): Outcomes {
+  const results: Outcomes = {};
+  for (const module of modules) {
+    const [moduleError] = module.errors();
+    if (moduleError) results[module.moduleId] = moduleError.message;
+    for (const testCase of module.children.allTests()) {
+      const { state, errors } = testCase.result();
+      results[testCase.name] = errors?.[0]?.name ?? state;
+    }
+  }
+  return results;
+}
 
 export async function create(
   root: string,

@@ -1,19 +1,6 @@
 import type { Outcomes, Runner, Watcher } from "@ddtds/test-utils";
-import type { Reporter, TestModule } from "vitest/node";
-import { create } from "./test-utils.ts";
-
-function outcomes(modules: readonly TestModule[]): Outcomes {
-  const results: Outcomes = {};
-  for (const module of modules) {
-    const [moduleError] = module.errors();
-    if (moduleError) results[module.moduleId] = moduleError.message;
-    for (const testCase of module.children.allTests()) {
-      const { state, errors } = testCase.result();
-      results[testCase.name] = errors?.[0]?.name ?? state;
-    }
-  }
-  return results;
-}
+import type { Reporter } from "vitest/node";
+import { create, outcomes } from "./test-utils.ts";
 
 export const vitest: Runner = {
   name: "vitest",
