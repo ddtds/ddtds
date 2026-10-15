@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { fence, spawn, type Runner } from "./index.ts";
+import { fence, spawn, type Outcomes, type Runner } from "./index.ts";
 
 /** What a test framework has to say about itself; everything else is shared. */
 export type Dialect = {
@@ -11,6 +11,8 @@ export type Dialect = {
   missingImport: string;
 };
 
+const missingPackage = 'import { x } from "missing-package";\nx;';
+
 /**
  * Registers the end to end scenarios every framework has to pass.
  *
@@ -18,22 +20,66 @@ export type Dialect = {
  *   1. a reporter that prints `encode(outcomes)` once per run (see `packages/node-test/src/reporter.ts`)
  *   2. a `cli({ name, command })` runner that starts the framework in run or watch mode
  *   3. a `conformance.test.ts` calling this with a `Dialect`
+ *
+ * Outcomes are named `doc:line`. A fence of one line takes four lines in a doc: its opening, the
+ * code, its closing and a blank line, so the fences of a doc start at lines 1, 5, 9 and so on.
  */
 export function conformance(name: string, runner: Runner, dialect: Dialect): void {
+  const { assertion, missingImport } = dialect;
   const passing = dialect.equal("1", "1");
   const failing = dialect.equal("1", "2");
 
+  /** A doc, and the outcome of each of its fences */
+  const docs: [title: string, doc: string, expected: Outcomes][] = [
+    ["a passing fence", fence(passing), { "doc.md:1": "passed" }],
+    ["a failing assertion", fence(failing), { "doc.md:1": assertion }],
+    [
+      "passing and failing fences under a heading",
+      `# Guide\n\n${fence(`const sum: number = 1 + 1;\n${dialect.equal("sum", "2")}`)}${fence(failing)}`,
+      { "doc.md:3": "passed", "doc.md:8": assertion },
+    ],
+    ["a syntax error", fence("const = 1;"), { "doc.md:1": "DdtCompileError" }],
+    ["a syntax error at runtime", fence('JSON.parse("{");'), { "doc.md:1": "SyntaxError" }],
+    ["an undeclared name", fence("missingFn();"), { "doc.md:1": "ReferenceError" }],
+    ["a missing static import", fence(missingPackage), { "doc.md:1": missingImport }],
+    [
+      "a missing dynamic import",
+      fence('await import("missing-package");'),
+      { "doc.md:1": missingImport },
+    ],
+    [
+      "a broken fence next to a passing one",
+      fence(missingPackage) + fence(passing),
+      { "doc.md:1": missingImport, "doc.md:6": "passed" },
+    ],
+    [
+      "a fail fence that throws",
+      fence('throw new Error("boom");', "fail"),
+      { "doc.md:1": "passed" },
+    ],
+    ["a fail fence that passes", fence("1;", "fail"), { "doc.md:1": "Error" }],
+    ["a compile_fail fence that compiles", fence("1;", "compile_fail"), { "doc.md:1": "Error" }],
+    [
+      "a compile_fail fence that does not compile",
+      fence("const = 1;", "compile_fail"),
+      { "doc.md:1": "passed" },
+    ],
+    [
+      "an unclosed fence, which takes the rest of the doc as code",
+      `\`\`\`ts run\n${passing}\n\n## Next section\n`,
+      { "doc.md:1": "DdtCompileError" },
+    ],
+    [
+      "a fence after an unclosed html tag",
+      `<div\n\n\`\`\`ts run\n${passing}\n\`\`\`\n`,
+      { "doc.md:3": "passed" },
+    ],
+  ];
+
   describe(`${name} conformance`, () => {
-    test("runs passing and failing fences", async () => {
-      await using ddt = spawn(runner, {
-        "guide.md": [
-          "# Guide",
-          "",
-          fence(`const sum: number = 1 + 1;\n${dialect.equal("sum", "2")}`),
-          fence(dialect.equal("1 + 1", "3")),
-        ].join("\n"),
-      });
-      expect(await ddt.run()).toEqual({ "guide.md:3": "passed", "guide.md:9": dialect.assertion });
+    test.each(docs)("runs %s", async (_title, doc, expected) => {
+      await using ddt = spawn(runner, { "doc.md": doc });
+      expect(await ddt.run()).toEqual(expected);
     });
 
     test("imports packages from the project", async () => {
@@ -46,62 +92,11 @@ export function conformance(name: string, runner: Runner, dialect: Dialect): voi
       expect(await ddt.run()).toEqual({ "README.md:1": "passed" });
     });
 
-    test("a broken fence does not stop the rest of its doc", async () => {
-      await using ddt = spawn(runner, {
-        "guide.md": fence('import { x } from "missing-package";\nx;') + fence(passing),
-      });
-      expect(await ddt.run()).toEqual({
-        "guide.md:1": dialect.missingImport,
-        "guide.md:6": "passed",
-      });
-    });
-
-    test("any text is valid markdown: an unclosed fence takes the rest of the doc as code", async () => {
-      await using ddt = spawn(runner, {
-        "unclosed.md": `\`\`\`ts run\n${passing}\n\n## Next section\n`,
-        "unclosed-html.md": `<div\n\n\`\`\`ts run\n${passing}\n\`\`\`\n`,
-      });
-      expect(await ddt.run()).toEqual({
-        "unclosed-html.md:3": "passed",
-        "unclosed.md:1": "DdtCompileError",
-      });
-    });
-
-    test("reruns a doc when it is edited in watch mode", async () => {
+    test("reruns a doc each time it is edited in watch mode", async () => {
       await using ddt = spawn(runner, { "guide.md": fence(passing) });
       expect(await ddt.watch()).toEqual({ "guide.md:1": "passed" });
-      expect(await ddt.edit("guide.md", fence(failing))).toEqual({
-        "guide.md:1": dialect.assertion,
-      });
-    });
-
-    test("classifies how fences fail", async () => {
-      await using ddt = spawn(runner, {
-        "parse-error.md": fence("const = 1;"),
-        "runtime-syntax-error.md": fence('JSON.parse("{");'),
-        "undeclared-name.md": fence("missingFn();"),
-        "missing-static-import.md": fence('import { x } from "missing-package";\nx;'),
-        "missing-dynamic-import.md": fence('await import("missing-package");'),
-        "failed-assertion.md": fence(failing),
-        "fail-throws.md": fence('throw new Error("boom");', "fail"),
-        "fail-passes.md": fence("1;", "fail"),
-        "compile-fail-compiles.md": fence("1;", "compile_fail"),
-        "compile-fail-parse-error.md": fence("const = 1;", "compile_fail"),
-        "passes.md": fence(passing),
-      });
-      expect(await ddt.run()).toEqual({
-        "parse-error.md:1": "DdtCompileError",
-        "runtime-syntax-error.md:1": "SyntaxError",
-        "undeclared-name.md:1": "ReferenceError",
-        "missing-static-import.md:1": dialect.missingImport,
-        "missing-dynamic-import.md:1": dialect.missingImport,
-        "failed-assertion.md:1": dialect.assertion,
-        "fail-throws.md:1": "passed",
-        "fail-passes.md:1": "Error",
-        "compile-fail-compiles.md:1": "Error",
-        "compile-fail-parse-error.md:1": "passed",
-        "passes.md:1": "passed",
-      });
+      expect(await ddt.edit("guide.md", fence(failing))).toEqual({ "guide.md:1": assertion });
+      expect(await ddt.edit("guide.md", fence(passing))).toEqual({ "guide.md:1": "passed" });
     });
   });
 }
