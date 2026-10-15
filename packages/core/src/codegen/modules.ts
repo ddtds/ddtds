@@ -7,7 +7,6 @@ import { planFence } from "./plan.ts";
 export type GeneratedModule = { code: string; map: SourceMap };
 
 function shiftToFence(mappings: SourceMapSegment[][], { block }: Fence): SourceMapSegment[][] {
-  const { line } = block;
   return mappings.map((segments) =>
     segments.map((segment) => {
       if (segment.length === 1) return segment;
@@ -15,7 +14,7 @@ function shiftToFence(mappings: SourceMapSegment[][], { block }: Fence): SourceM
       return [
         column,
         source,
-        sourceLine + line,
+        block.firstCodeLine + sourceLine,
         sourceColumn + block.columnsBeforeCodeLine(sourceLine),
       ];
     }),
@@ -84,7 +83,9 @@ export function docModule(
   const first = lines.length - fences.length;
   const mappings: SourceMapSegment[][] = lines.map((_, i) => {
     const fence = fences[i - first];
-    return fence ? [[0, 0, fence.block.line - 1, fence.block.details.range.start.column - 1]] : [];
+    if (!fence) return [];
+    const { line, column } = fence.block.zeroBasedStart;
+    return [[0, 0, line, column]];
   });
   const map = new SourceMap({
     file: doc,

@@ -21,7 +21,7 @@ function commentMarkdown(
     markdown: lines.map((line, i) => line.slice(prefixLengths[i])).join("\n"),
     placement: {
       linesBefore: linesBeforeOffset(source, commentStart),
-      columnsBeforeLine: (line) => columnsBeforeLines[line - 1] ?? 0,
+      columnsBeforeLine: (line) => columnsBeforeLines[line] ?? 0,
     },
   };
 }
