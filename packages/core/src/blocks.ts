@@ -88,11 +88,6 @@ export class CodeBlock {
     return this.#fenceInFile;
   }
 
-  /** 0 indexed file line */
-  public get firstCodeLine(): number {
-    return this.#fenceInFile.line + 1;
-  }
-
   public get details(): BlockDetails {
     return {
       file: this.#path,
@@ -103,19 +98,22 @@ export class CodeBlock {
     };
   }
 
-  /** `codeLine` is 0 indexed */
-  public columnsBeforeCodeLine(codeLine: number): number {
-    const lineInText = this.#fenceInText.line + 1 + codeLine;
-    return this.#fenceInText.column + this.#placement.columnsBeforeLine(lineInText);
+  /** `codeLine` and `codeColumn` are 0 indexed in the code, and so is the result in the file */
+  public zeroBasedPositionAt(codeLine: number, codeColumn: number): Position {
+    const textLine = this.#fenceInText.line + 1 + codeLine;
+    return {
+      line: this.#fenceInFile.line + 1 + codeLine,
+      column: this.#fenceInText.column + this.#placement.columnsBeforeLine(textLine) + codeColumn,
+    };
   }
 
   public positionAt(offset: number): Position {
-    const codeLine = linesBeforeOffset(this.#code, offset);
-    const codeColumn = columnsBeforeOffset(this.#code, offset);
-    return oneBased({
-      line: this.firstCodeLine + codeLine,
-      column: this.columnsBeforeCodeLine(codeLine) + codeColumn,
-    });
+    return oneBased(
+      this.zeroBasedPositionAt(
+        linesBeforeOffset(this.#code, offset),
+        columnsBeforeOffset(this.#code, offset),
+      ),
+    );
   }
 
   public get outputExtension(): OutputExtension {
