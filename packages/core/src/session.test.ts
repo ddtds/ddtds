@@ -50,7 +50,10 @@ describe("DdtSession.refresh", () => {
     session.refresh(join(root, "guide.md"));
 
     expect(session.index.size).toBe(1);
-    expect(session.module(fence!.id)?.code).toContain("expect(2).toBe(2);");
+    // the fence id is content-addressed, so the edit produces a new id
+    const [after] = session.index.fences();
+    expect(after!.id).not.toBe(fence!.id);
+    expect(session.module(after!.id)?.code).toContain("expect(2).toBe(2);");
   });
 
   test("indexes a doc it has not seen yet", () => {

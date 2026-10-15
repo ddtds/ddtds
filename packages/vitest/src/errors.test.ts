@@ -4,7 +4,7 @@ import { failures } from "./test-utils.ts";
 import { vitest } from "./e2e.ts";
 
 test("classifies how doc tests fail", async () => {
-  await using ddt = spawn(vitest, {
+  await using ddt = spawn(vitest(), {
     "parse-error.md": fence("const = 1;"),
     "runtime-syntax-error.md": fence('JSON.parse("{");'),
     "undeclared-name.md": fence("missingFn();"),
@@ -31,7 +31,7 @@ test("classifies how doc tests fail", async () => {
 });
 
 test("a broken fence does not stop the rest of its doc", async () => {
-  await using ddt = spawn(vitest, {
+  await using ddt = spawn(vitest(), {
     "guide.md": fence('import { x } from "./missing.ts";\nx;') + fence("expect(1).toBe(1);"),
   });
   expect(await ddt.run()).toMatchInlineSnapshot(`
@@ -95,7 +95,7 @@ test("compile failures point at the markdown", async () => {
 });
 
 test("any text is valid markdown: an unclosed fence takes the rest of the doc as code", async () => {
-  await using ddt = spawn(vitest, {
+  await using ddt = spawn(vitest(), {
     "unclosed.md": "```ts run\nexpect(1).toBe(1);\n\n## Next section\n",
     "unclosed-html.md": "<div\n\n```ts run\nexpect(1).toBe(1);\n```\n",
   });
@@ -108,7 +108,7 @@ test("any text is valid markdown: an unclosed fence takes the rest of the doc as
 });
 
 test("invalid MDX fails the run with the parser's error", async () => {
-  await using ddt = spawn(vitest, {
+  await using ddt = spawn(vitest(), {
     "broken.mdx": "# Guide\n\n<!-- TODO: explain -->\n\n```ts run\nexpect(1).toBe(1);\n```\n",
     "fine.md": fence("expect(1).toBe(1);"),
   });

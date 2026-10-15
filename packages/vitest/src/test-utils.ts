@@ -3,8 +3,34 @@ import { join, relative } from "node:path";
 import { Writable } from "node:stream";
 import type { ParsedStack } from "vitest";
 import type { ViteUserConfig } from "vitest/config";
-import { createVitest, type Reporter, type TestUserConfig, type Vitest } from "vitest/node";
+import {
+  createVitest,
+  version,
+  type Reporter,
+  type TestModule,
+  type TestUserConfig,
+  type Vitest,
+} from "vitest/node";
+import type { Outcomes } from "@ddtds/test-utils";
 import { ddtPlugin, type DdtPluginOptions } from "@ddtds/vitest";
+
+export const vitestVersion: { full: string; major: number } = {
+  full: version,
+  major: Number(version.split(".")[0]),
+};
+
+export function outcomes(modules: readonly TestModule[]): Outcomes {
+  const results: Outcomes = {};
+  for (const module of modules) {
+    const [moduleError] = module.errors();
+    if (moduleError) results[module.moduleId] = moduleError.message;
+    for (const testCase of module.children.allTests()) {
+      const { state, errors } = testCase.result();
+      results[testCase.name] = errors?.[0]?.name ?? state;
+    }
+  }
+  return results;
+}
 
 export async function create(
   root: string,
@@ -82,7 +108,9 @@ export async function collect(
 type Failure = { error: string; diff?: string; frames: string[] };
 
 function frame(root: string, { file, line, column }: ParsedStack): string {
-  return `${relative(root, file).replace(/__ddtds__-\w+/, "__ddtds__")}:${line}:${column}`;
+  // Drop the content hash from generated fence paths so snapshots stay stable.
+  const name = relative(root, file).replace(/_[0-9a-f]{8}(?=\.\w+$)/, "");
+  return `${name}:${line}:${column}`;
 }
 
 /** The first error of each failed test, with only the stack frames inside the fixture */
@@ -125,16 +153,16 @@ type Coverage = { covered: number[]; uncovered: number[] };
 type Location = { start: { line: number } };
 type FileCoverage = { s: Record<string, number>; statementMap: Record<string, Location> };
 
-/** Lines with statements that ran and that did not, per file, from v8 coverage */
 export async function coverage(root: string): Promise<Record<string, Coverage>> {
   const reportsDirectory = join(root, "coverage");
-  // Vitest writes the report when it closes, at the end of this block
+
   {
     await using instance = await create(root, {
       coverage: { enabled: true, provider: "v8", reporter: ["json"], reportsDirectory },
     });
     await instance.start();
   }
+  // report written when instance closed at end lf block
   const report: Record<string, FileCoverage> = JSON.parse(
     readFileSync(join(reportsDirectory, "coverage-final.json"), "utf8"),
   );

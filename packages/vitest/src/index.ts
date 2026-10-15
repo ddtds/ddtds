@@ -79,7 +79,10 @@ export function ddtPlugin({ logLevel, ...docs }: DdtPluginOptions = {}): Plugin 
       session.refresh(id);
     },
     resolveId(source, importer, resolveOptions) {
-      if (session.index.fence(source)) return source;
+      // A cached doc module carries the fence imports Vite rewrote to
+      // root-relative urls, so accept those too, not just absolute ids.
+      const fence = session.index.fence(source) ? source : join(session.index.root, source);
+      if (session.index.fence(fence)) return fence;
       if (!importer || !session.index.hasDoc(importer)) return undefined;
       const fromRoot = join(session.index.root, "package.json");
       return this.resolve(source, fromRoot, { ...resolveOptions, skipSelf: true });

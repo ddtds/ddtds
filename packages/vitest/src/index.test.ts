@@ -66,13 +66,13 @@ test("resolves packages from the root for docs outside it", async () => {
     "pkg/node_modules/local-dep/index.js": "export const one = 1;",
     "docs/guide.md": fence('import { one } from "local-dep";\nexpect(one).toBe(1);'),
   });
-  expect(await vitest.run(join(dir.root, "pkg"), ["../docs/guide.md"])).toEqual({
+  expect(await vitest().run(join(dir.root, "pkg"), ["../docs/guide.md"])).toEqual({
     "../docs/guide.md:1": "passed",
   });
 });
 
 test("reruns a doc when it is edited in watch mode", async () => {
-  await using ddt = spawn(vitest, { "guide.md": fence("expect(1).toBe(1);") });
+  await using ddt = spawn(vitest(), { "guide.md": fence("expect(1).toBe(1);") });
   expect(await ddt.watch()).toEqual({ "guide.md:1": "passed" });
   expect(await ddt.edit("guide.md", fence("expect(1).toBe(2);"))).toEqual({
     "guide.md:1": "AssertionError",

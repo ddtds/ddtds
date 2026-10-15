@@ -1,4 +1,3 @@
-import { randomUUID } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import type { TestAdapter } from "./codegen/adapter.ts";
@@ -22,7 +21,7 @@ export class DdtSession {
     sources: ReadonlyMap<string, string>,
     root: string,
   ): DdtSession {
-    const moduleDir = join(root, `__ddtds__-${randomUUID().slice(0, 8)}`);
+    const moduleDir = join(root, "__ddtds__");
     return new DdtSession(adapter, DocIndex.fromSources(sources, { root, moduleDir }));
   }
 
