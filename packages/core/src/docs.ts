@@ -94,11 +94,9 @@ function parseFences({ root, moduleDir }: IndexOptions, doc: string, source: str
 }
 
 /**
- * Content-address the fence, so a warm Vitest cache can reuse its transform:
- * an edit to the code (or annotation) produces a new id, so nothing ever goes
- * stale. The annotation is part of the hash because `fail`/`compile_fail`
- * change the emitted code even when the fence body is unchanged.
- */
+ * hashes code fence content and annotations
+ * stable bashes enable caching for some runners
+*/
 function contentHash(block: CodeBlock): string {
   const input = JSON.stringify([block.details.annotation, block.code]);
   return createHash("sha1").update(input).digest("hex").slice(0, 8);
