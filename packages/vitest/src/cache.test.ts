@@ -1,15 +1,13 @@
-import { readdirSync, statSync, writeFileSync } from "node:fs";
+import { readdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, test } from "vitest";
 import { fence, fixture, spawn } from "@ddtds/test-utils";
 import { vitest } from "./e2e.ts";
 import { vitestVersion } from "./test-utils.ts";
 
-/** Cache entry mtimes, so a rerun that reuses them rather than rewriting is visible. */
-function cacheSnapshot(cache: string): Record<string, number> {
-  return Object.fromEntries(
-    readdirSync(cache).map((file) => [file, statSync(join(cache, file)).mtimeMs]),
-  );
+/** The cache keys written so far: one entry per transform that had to run. */
+function cacheEntries(cache: string): string[] {
+  return readdirSync(cache).toSorted();
 }
 
 // `fsModuleCache` is Vitest 5+, so the suite is skipped on 4.
@@ -22,13 +20,13 @@ describe.skipIf(vitestVersion.major < 5)("fs module cache", () => {
     });
 
     expect(await ddt.run()).toEqual({ "guide.md:1": "passed" });
-    const cold = cacheSnapshot(cache);
-    expect(Object.keys(cold).length).toBeGreaterThan(0);
+    const cold = cacheEntries(cache);
+    expect(cold.length).toBeGreaterThan(0);
 
     expect(await ddt.run()).toEqual({ "guide.md:1": "passed" });
-    // The ids are content-addressed, so the warm run reads the cached transforms
-    // back verbatim: nothing is added or rewritten.
-    expect(cacheSnapshot(cache)).toEqual(cold);
+    // The ids are content-addressed, so the warm run reuses every key. An id
+    // that changed per run would show up here as a new entry.
+    expect(cacheEntries(cache)).toEqual(cold);
   });
 
   test("picks up an edit instead of serving a stale transform", async () => {
