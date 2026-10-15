@@ -65,8 +65,8 @@ export type Session = AsyncDisposable & {
 
 type Command = (docs: string[], mode: Mode) => readonly [string, ...string[]];
 
-export function fence(code: string, annotation = "run"): string {
-  return `\`\`\`ts ${annotation}\n${code}\n\`\`\`\n\n`;
+export function fence(code: string, annotation = "run", lang = "ts"): string {
+  return `\`\`\`${lang} ${annotation}\n${code}\n\`\`\`\n\n`;
 }
 
 export function encode(outcomes: Outcomes): string {
