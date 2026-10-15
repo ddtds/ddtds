@@ -1,13 +1,13 @@
-/** Where a text sits in the file it was taken from, such as a JSDoc comment's markdown */
-export type Offset = {
+/** How far a text is shifted from the file's own lines and columns, such as a JSDoc comment's markdown */
+export type Shift = {
   /** File lines before the text */
   lines: number;
   /** File columns before the start of a 1 indexed line of the text */
-  columnsBefore: (line: number) => number;
+  columns: (line: number) => number;
 };
 
 /** For text that is the whole file */
-export const NO_OFFSET: Offset = { lines: 0, columnsBefore: () => 0 };
+export const NO_SHIFT: Shift = { lines: 0, columns: () => 0 };
 
 /** The source up to `offset`, split into the lines that come before it and the start of its own line */
 function textBefore(source: string, offset: number): string[] {
