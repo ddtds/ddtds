@@ -270,5 +270,12 @@ export function conformance(name: string, runner: Runner, dialect: Dialect): voi
         expect(await ddt.edit("guide.md", next)).toEqual(outcomes);
       }
     });
+
+    test("runs a doc once it gains its first fence in watch mode", async () => {
+      await using ddt = open(runner, { "guide.md": "# Guide\n", "other.md": fence(passing) });
+      expect(await ddt.watch()).toEqual({ "other.md:1": "passed" });
+      expect(await ddt.edit("guide.md", fence(passing))).toEqual({ "guide.md:1": "passed" });
+      expect(await ddt.edit("guide.md", fence(failing))).toEqual({ "guide.md:1": "failed" });
+    });
   });
 }
