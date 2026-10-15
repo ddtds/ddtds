@@ -1,9 +1,8 @@
 import { existsSync, readdirSync, statSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, test } from "vitest";
-import { version } from "vitest/node";
 import { fence, fixture } from "@ddtds/test-utils";
-import { create } from "./test-utils.ts";
+import { create, vitestVersion } from "./test-utils.ts";
 
 const cachePath = (root: string): string => join(root, ".ddt-cache");
 
@@ -35,7 +34,7 @@ function cacheSnapshot(root: string): Record<string, number> {
 }
 
 // `fsModuleCache` is Vitest 5+, so the suite is skipped on 4.
-describe.skipIf(Number(version.split(".")[0]) < 5)("fs module cache", () => {
+describe.skipIf(vitestVersion.major < 5)("fs module cache", () => {
   test("reuses generated modules across runs instead of regenerating them", async () => {
     await using dir = fixture({ "guide.md": fence("expect(1).toBe(1);") });
 

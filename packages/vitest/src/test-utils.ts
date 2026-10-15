@@ -3,8 +3,20 @@ import { join, relative } from "node:path";
 import { Writable } from "node:stream";
 import type { ParsedStack } from "vitest";
 import type { ViteUserConfig } from "vitest/config";
-import { createVitest, type Reporter, type TestUserConfig, type Vitest } from "vitest/node";
+import {
+  createVitest,
+  version,
+  type Reporter,
+  type TestUserConfig,
+  type Vitest,
+} from "vitest/node";
 import { ddtPlugin, type DdtPluginOptions } from "@ddtds/vitest";
+
+/** The Vitest under test, so suites can branch on features (e.g. the fs cache). */
+export const vitestVersion: { full: string; major: number } = {
+  full: version,
+  major: Number(version.split(".")[0]),
+};
 
 export async function create(
   root: string,
