@@ -11,7 +11,7 @@ import {
   isLang,
 } from "./constants.ts";
 import type { BlockDetails, Position, SourceRange } from "./compile-error.ts";
-import { columnsBefore, linesBefore, NO_SHIFT, type Shift } from "./shift.ts";
+import { columnsBeforeOffset, linesBeforeOffset, WHOLE_FILE, type Placement } from "./placement.ts";
 import { splitImportsAndBlock, type PreparedBlock } from "./parse.ts";
 
 const logger = getLogger(["ddtds", "blocks"]);
@@ -32,10 +32,8 @@ export type CodeBlockInit = {
   lang: Lang;
   annotation: Annotation | null;
   path: string;
-  /** Where the fence is in the parsed text, which is not the file when `shift` is set */
-  range: SourceRange;
-  /** How far the parsed text is shifted in the file */
-  shift?: Shift;
+  rangeInText: SourceRange;
+  placement?: Placement;
 };
 
 export class CodeBlock {
@@ -43,27 +41,33 @@ export class CodeBlock {
   public readonly lang: Lang;
   readonly #annotation: Annotation | null;
   readonly #path: string;
-  readonly #textRange: SourceRange;
-  readonly #shift: Shift;
-  readonly #range: SourceRange;
+  readonly #rangeInText: SourceRange;
+  readonly #placement: Placement;
+  readonly #rangeInFile: SourceRange;
 
-  public constructor({ code, lang, annotation, path, range, shift = NO_SHIFT }: CodeBlockInit) {
+  public constructor({
+    code,
+    lang,
+    annotation,
+    path,
+    rangeInText,
+    placement = WHOLE_FILE,
+  }: CodeBlockInit) {
     this.#code = code;
     this.lang = lang;
     this.#annotation = annotation;
     this.#path = path;
-    this.#textRange = range;
-    this.#shift = shift;
-    const move = ({ line, column }: Position): Position => ({
-      line: line + shift.lines,
-      column: column + shift.columns(line),
+    this.#rangeInText = rangeInText;
+    this.#placement = placement;
+    const inFile = ({ line, column }: Position): Position => ({
+      line: line + placement.linesBefore,
+      column: column + placement.columnsBeforeLine(line),
     });
-    this.#range = { start: move(range.start), end: move(range.end) };
+    this.#rangeInFile = { start: inFile(rangeInText.start), end: inFile(rangeInText.end) };
   }
 
-  /** The line of the fence's opening in the file */
   public get line(): number {
-    return this.#range.start.line;
+    return this.#rangeInFile.start.line;
   }
 
   public get details(): BlockDetails {
@@ -71,26 +75,23 @@ export class CodeBlock {
       file: this.#path,
       lang: this.lang,
       annotation: this.#annotation,
-      range: this.#range,
+      range: this.#rangeInFile,
       contents: this.#code,
     };
   }
 
-  /** How many file columns come before the text of a 0 indexed line of the code */
-  public columnsBeforeCode(codeLine: number): number {
-    // the parser strips the fence's indent from each code line, so it is added back
-    const fenceIndent = this.#textRange.start.column - 1;
-    const textLine = this.#textRange.start.line + 1 + codeLine;
-    return fenceIndent + this.#shift.columns(textLine);
+  public columnsBeforeCodeLine(codeLine: number): number {
+    const fenceIndentRemovedByParser = this.#rangeInText.start.column - 1;
+    const lineInText = this.#rangeInText.start.line + 1 + codeLine;
+    return fenceIndentRemovedByParser + this.#placement.columnsBeforeLine(lineInText);
   }
 
-  /** The 1 indexed file position of a character offset in the code */
   public positionAt(offset: number): Position {
-    const codeLine = linesBefore(this.#code, offset);
-    const codeColumn = columnsBefore(this.#code, offset);
+    const codeLine = linesBeforeOffset(this.#code, offset);
+    const codeColumn = columnsBeforeOffset(this.#code, offset);
     return {
       line: this.line + 1 + codeLine,
-      column: this.columnsBeforeCode(codeLine) + codeColumn + 1,
+      column: this.columnsBeforeCodeLine(codeLine) + codeColumn + 1,
     };
   }
 
@@ -126,7 +127,7 @@ function parseMarkdown(source: string, path: string): MdastNode {
 export function parseCodeFences(
   source: string,
   path: string,
-  shift: Shift = NO_SHIFT,
+  placement: Placement = WHOLE_FILE,
 ): CodeBlock[] {
   const tree = parseMarkdown(source, path);
   const blocks: CodeBlock[] = [];
@@ -152,11 +153,11 @@ export function parseCodeFences(
         lang,
         annotation: result.annotation,
         path,
-        range: {
+        rangeInText: {
           start: { line: start.line, column: start.column },
           end: { line: end.line, column: end.column },
         },
-        shift,
+        placement,
       }),
     );
   });

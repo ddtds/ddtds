@@ -105,7 +105,7 @@ function block(
     lang,
     annotation,
     path: "t.md",
-    range: { start: { line, column: 1 }, end: { line, column: 1 } },
+    rangeInText: { start: { line, column: 1 }, end: { line, column: 1 } },
   });
 }
 

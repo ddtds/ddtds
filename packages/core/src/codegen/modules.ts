@@ -16,7 +16,7 @@ function shiftToFence(mappings: SourceMapSegment[][], { block }: Fence): SourceM
         column,
         source,
         sourceLine + line,
-        sourceColumn + block.columnsBeforeCode(sourceLine),
+        sourceColumn + block.columnsBeforeCodeLine(sourceLine),
       ];
     }),
   );

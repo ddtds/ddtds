@@ -42,7 +42,7 @@ test("CodeBlock.splitImports", async ({ bench }) => {
       lang: "ts",
       annotation: null,
       path: "bench.md",
-      range: { start: { line: 1, column: 1 }, end: { line: 1, column: 1 } },
+      rangeInText: { start: { line: 1, column: 1 }, end: { line: 1, column: 1 } },
     }).splitImports();
   }).run();
 });
