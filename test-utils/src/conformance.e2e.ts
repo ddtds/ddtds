@@ -23,18 +23,62 @@ const verdicts = (outcomes: Outcomes): Verdicts =>
       .map(([id, outcome]) => [id, outcome === PASSED ? PASSED : FAILED]),
   );
 
+/** Where a doc's markdown lives: in a markdown file, or in a JSDoc comment of a source file */
+type Kind = {
+  title: string;
+  /** The runner's file for a markdown file */
+  file(markdown: string): string;
+  content(markdown: string): string;
+  /** The markdown id for an id the runner reports */
+  id(reported: string): string;
+};
+
+const markdown: Kind = {
+  title: "markdown",
+  file: (name) => name,
+  content: (text) => text,
+  id: (reported) => reported,
+};
+
+const jsdoc: Kind = {
+  title: "JSDoc",
+  file: (name) => name.replace(/\.mdx?$/, ".ts"),
+  content(text) {
+    const lines = text
+      .replace(/\n$/, "")
+      .split("\n")
+      .map((line) => (line === "" ? " *" : ` * ${line}`));
+    return ["/**", ...lines, " */", "export {};", ""].join("\n");
+  },
+  // the comment opens one line above the markdown
+  id: (reported) => reported.replace(/\.ts:(\d+)$/, (_, line) => `.md:${Number(line) - 1}`),
+};
+
 type Opened = AsyncDisposable & {
   run(): Promise<Verdicts>;
   watch(): Promise<Verdicts>;
   edit(file: string, content: string): Promise<Verdicts>;
 };
 
-function open(runner: Runner, files: Record<string, string>): Opened {
-  const ddt = spawn(runner, files);
+const isMarkdown = (file: string): boolean => /\.mdx?$/.test(file);
+
+function open(runner: Runner, kind: Kind, files: Record<string, string>): Opened {
+  const converted = Object.fromEntries(
+    Object.entries(files).map(([file, text]) =>
+      isMarkdown(file) ? [kind.file(file), kind.content(text)] : [file, text],
+    ),
+  );
+  const docs = Object.keys(files)
+    .filter(isMarkdown)
+    .map((file) => kind.file(file));
+  const ddt = spawn(runner, converted, { docs });
+  const normalize = (outcomes: Outcomes): Verdicts =>
+    Object.fromEntries(Object.entries(verdicts(outcomes)).map(([id, v]) => [kind.id(id), v]));
   return {
-    run: async () => verdicts(await ddt.run()),
-    watch: async () => verdicts(await ddt.watch()),
-    edit: async (file: string, content: string) => verdicts(await ddt.edit(file, content)),
+    run: async () => normalize(await ddt.run()),
+    watch: async () => normalize(await ddt.watch()),
+    edit: async (file, content) =>
+      normalize(await ddt.edit(kind.file(file), kind.content(content))),
     [Symbol.asyncDispose]: () => ddt[Symbol.asyncDispose](),
   };
 }
@@ -121,11 +165,6 @@ export function conformance(name: string, runner: Runner, dialect: Dialect): voi
   ];
 
   const projects: [title: string, files: Record<string, string>, expected: Verdicts][] = [
-    [
-      "an mdx doc",
-      { "doc.mdx": `# Guide\n\n{/* a comment */}\n\n${fence(passing)}` },
-      { "doc.mdx:5": PASSED },
-    ],
     [
       "a doc in a nested directory",
       { "docs/api/doc.md": fence(passing) },
@@ -214,18 +253,27 @@ export function conformance(name: string, runner: Runner, dialect: Dialect): voi
   ];
 
   describe(`${name} conformance`, () => {
+    test("runs an mdx doc", async () => {
+      await using ddt = open(runner, markdown, {
+        "doc.mdx": `# Guide\n\n{/* a comment */}\n\n${fence(passing)}`,
+      });
+      expect(await ddt.run()).toEqual({ "doc.mdx:5": PASSED });
+    });
+  });
+
+  describe.each([markdown, jsdoc])(`${name} $title conformance`, (kind) => {
     test.each(docs)("runs %s", async (_title, doc, expected) => {
-      await using ddt = open(runner, { "doc.md": doc });
+      await using ddt = open(runner, kind, { "doc.md": doc });
       expect(await ddt.run()).toEqual(expected);
     });
 
     test.each(projects)("runs %s", async (_title, files, expected) => {
-      await using ddt = open(runner, files);
+      await using ddt = open(runner, kind, files);
       expect(await ddt.run()).toEqual(expected);
     });
 
     test("imports packages from the project", async () => {
-      await using ddt = open(runner, {
+      await using ddt = open(runner, kind, {
         "node_modules/calc/package.json":
           '{ "name": "calc", "type": "module", "main": "index.js" }',
         "node_modules/calc/index.js": "export const add = (a, b) => a + b;",
@@ -235,7 +283,7 @@ export function conformance(name: string, runner: Runner, dialect: Dialect): voi
     });
 
     test.each(edits)("reruns %s in watch mode", async (_title, [[doc, expected], ...rest]) => {
-      await using ddt = open(runner, { "guide.md": doc });
+      await using ddt = open(runner, kind, { "guide.md": doc });
       expect(await ddt.watch()).toEqual(expected);
       for (const [next, outcomes] of rest) {
         // oxlint-disable-next-line no-await-in-loop
@@ -244,14 +292,17 @@ export function conformance(name: string, runner: Runner, dialect: Dialect): voi
     });
 
     test("runs a doc once it gains its first fence in watch mode", async () => {
-      await using ddt = open(runner, { "guide.md": "# Guide\n", "other.md": fence(passing) });
+      await using ddt = open(runner, kind, { "guide.md": "# Guide\n", "other.md": fence(passing) });
       expect(await ddt.watch()).toEqual({ "other.md:1": PASSED });
       expect(await ddt.edit("guide.md", fence(passing))).toEqual({ "guide.md:1": PASSED });
       expect(await ddt.edit("guide.md", fence(failing))).toEqual({ "guide.md:1": FAILED });
     });
 
     test("stops running a doc once it loses its last fence in watch mode", async () => {
-      await using ddt = open(runner, { "guide.md": fence(passing), "other.md": fence(passing) });
+      await using ddt = open(runner, kind, {
+        "guide.md": fence(passing),
+        "other.md": fence(passing),
+      });
       expect(await ddt.watch()).toEqual({ "guide.md:1": PASSED, "other.md:1": PASSED });
       expect(await ddt.edit("guide.md", "# Guide\n")).toEqual({});
     });
