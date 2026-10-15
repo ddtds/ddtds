@@ -47,6 +47,33 @@ jobs:
       - run: pnpm install --no-frozen-lockfile
       - run: pnpm run test:coverage
 
+  conformance:
+    name: conformance (${{ matrix.name }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { name: vitest 4, package: "@ddtds/vitest", vitest-version: 4 }
+          - { name: vitest 5, package: "@ddtds/vitest", vitest-version: 5 }
+          - { name: node:test on node 24, package: "@ddtds/node-test", node-version: 24 }
+          - { name: node:test on node 26, package: "@ddtds/node-test", node-version: 26 }
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: $/.github/actions/setup
+        with:
+          node-version: ${{ matrix.node-version }}
+      - if: matrix.vitest-version
+        run: |
+          sed -i -E "s/^(    (vitest|\"@vitest\/coverage-v8\")): .*/\1: ^${VITEST_VERSION}/" pnpm-workspace.yaml
+          pnpm install --no-frozen-lockfile
+        env:
+          VITEST_VERSION: ${{ matrix.vitest-version }}
+      - run: pnpm run build
+      - run: pnpm --filter ${{ matrix.package }} exec vitest run conformance
+
   node:
     runs-on: ubuntu-latest
     strategy:
