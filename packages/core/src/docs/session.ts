@@ -1,9 +1,9 @@
 import { readFileSync } from "node:fs";
 import { join, resolve } from "node:path";
-import type { TestAdapter } from "./codegen/adapter.ts";
-import { moduleFor, type GeneratedModule } from "./codegen/modules.ts";
+import type { TestAdapter } from "../codegen/adapter.ts";
+import { moduleFor, type GeneratedModule } from "../codegen/modules.ts";
 import { type DocsConfig, readDocs, resolveDocsOptions } from "./discovery.ts";
-import { isMarkdownFile } from "./doc-kinds.ts";
+import { isMarkdownFile } from "../fences/doc-kinds.ts";
 import { DocIndex } from "./docs.ts";
 
 export class DdtSession {

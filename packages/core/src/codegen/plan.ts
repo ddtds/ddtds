@@ -1,8 +1,12 @@
 import { inspect } from "node:util";
 import type { MagicString } from "magic-string";
-import { DdtCompileError, type CompileErrorDetails, type Position } from "../compile-error.ts";
-import type { PreparedBlock } from "../parse.ts";
-import type { Fence } from "../docs.ts";
+import {
+  DdtCompileError,
+  type CompileErrorDetails,
+  type Position,
+} from "../fences/compile-error.ts";
+import type { PreparedBlock } from "../fences/parse.ts";
+import type { Fence } from "../docs/docs.ts";
 import type { SerializedCause } from "../runtime.ts";
 
 export type Fragment = string | MagicString;

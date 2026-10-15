@@ -4,7 +4,7 @@ import { parseSync } from "oxc-parser";
 import type * as TsrxParser from "@tsrx/oxc/parser";
 import type { ExportDefaultDeclarationKind, Program } from "@oxc-project/types";
 import type { CodeBlock } from "./blocks.ts";
-import { parserOf, type Parser } from "./constants.ts";
+import { parserOf, type Parser } from "../constants.ts";
 import {
   DdtCompileError,
   type CompileDiagnostic,

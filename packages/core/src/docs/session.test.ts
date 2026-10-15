@@ -2,7 +2,7 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { describe, expect, onTestFinished, test } from "vitest";
-import { adapter } from "./codegen/test-utils.ts";
+import { adapter } from "../codegen/test-utils.ts";
 import { DdtSession } from "./session.ts";
 
 function fixture(files: Record<string, string>): string {

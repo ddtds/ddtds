@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest";
 import type { Position } from "./compile-error.ts";
-import { DocIndex } from "./docs.ts";
+import { DocIndex } from "../docs/docs.ts";
 import { parseJsDocFences } from "./jsdoc.ts";
 
 test("finds code fences in JSDoc comments at their place in the file", () => {

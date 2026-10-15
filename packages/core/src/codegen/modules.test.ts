@@ -1,7 +1,7 @@
 import { expect, test } from "vitest";
 import { TraceMap, generatedPositionFor, originalPositionFor } from "@jridgewell/trace-mapping";
 import { docModule, fenceModule, sourceTests } from "./modules.ts";
-import { parseJsDocFences } from "../jsdoc.ts";
+import { parseJsDocFences } from "../fences/jsdoc.ts";
 import { adapter, fence } from "./test-utils.ts";
 
 /** The 1-based line and text of the first generated line matching `matches` */

@@ -9,7 +9,7 @@ import {
   type OutputExtension,
   isAnnotation,
   isLang,
-} from "./constants.ts";
+} from "../constants.ts";
 import type { BlockDetails, Position, SourceRange } from "./compile-error.ts";
 import { columnsBeforeOffset, linesBeforeOffset, WHOLE_FILE, type Placement } from "./placement.ts";
 import { splitImportsAndBlock, type PreparedBlock } from "./parse.ts";

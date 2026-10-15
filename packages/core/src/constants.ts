@@ -1,4 +1,4 @@
-import { DOC_GLOB } from "./doc-kinds.ts";
+import { DOC_GLOB } from "./fences/doc-kinds.ts";
 
 /** Markdown docs, and source files whose JSDoc comments hold code fences */
 export const defaultDocsInclude: string[] = [DOC_GLOB];
