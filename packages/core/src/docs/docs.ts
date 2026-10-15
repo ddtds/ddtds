@@ -2,17 +2,14 @@ import { createHash } from "node:crypto";
 import { join, relative, sep } from "node:path";
 import { parseCodeFences, type CodeBlock } from "../fences/blocks.ts";
 
-/** A code fence, with the doc it is in and the id of its generated module. */
 export type Fence = Readonly<{
   id: string;
   doc: string;
   block: CodeBlock;
 }>;
 
-/** Where the docs are, and where their generated modules go. */
 export type IndexOptions = Readonly<{ root: string; moduleDir: string }>;
 
-/** Every fence found in a set of docs, looked up by doc or by module id. */
 export class DocIndex {
   readonly #options: IndexOptions;
   readonly #docs: ReadonlyMap<string, readonly Fence[]>;

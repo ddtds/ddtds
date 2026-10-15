@@ -9,10 +9,8 @@ import type { PreparedBlock } from "../fences/parse.ts";
 import type { Fence } from "../docs/docs.ts";
 import type { SerializedCause } from "../runtime.ts";
 
-/** A piece of generated code, as text or as a slice of the fence's source that keeps its source map. */
 export type Fragment = string | MagicString;
 
-/** What a fence becomes: code to run, an error to throw, or nothing. */
 export type FenceOutcome =
   | { tag: "run"; imports: Fragment[]; body: Fragment[]; shouldFail: boolean }
   | { tag: "missingCompileError"; fileName: string; position: Position }

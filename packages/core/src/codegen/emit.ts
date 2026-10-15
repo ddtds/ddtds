@@ -4,14 +4,10 @@ import { serialize } from "seroval";
 import { runtimeImport, type TestAdapter } from "./adapter.ts";
 import type { FenceOutcome, Fragment } from "./plan.ts";
 
-/** An expression as source pieces: the text before the body, the body lines, and the text after. */
 export type Expression = { open: string; body: Fragment[]; close: string };
-/** A fence's expression and the imports it needs. */
 export type FenceCode = Expression & { imports: Fragment[] };
 
-/** A runtime helper that a module calls inline, which is every helper but `loadFences`. */
 type InlineHelper = Exclude<keyof FenceRuntime, "loadFences">;
-/** The input a runtime helper takes. */
 type HelperInput<Helper extends InlineHelper> = Parameters<FenceRuntime[Helper]>[0];
 
 function runtimeCall<Helper extends InlineHelper>(

@@ -1,4 +1,3 @@
-/** Where a text sits in its file, such as a JSDoc comment's markdown. */
 export type Placement = {
   linesBefore: number;
   /** `line` is a 0 indexed line of the text */

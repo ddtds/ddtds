@@ -4,7 +4,6 @@ import { runtimeImport, type TestAdapter } from "./adapter.ts";
 import { emitFence, wrap } from "./emit.ts";
 import { planFence } from "./plan.ts";
 
-/** Generated code and its source map. */
 export type GeneratedModule = { code: string; map: SourceMap };
 
 function shiftToFence(mappings: SourceMapSegment[][], { block }: Fence): SourceMapSegment[][] {

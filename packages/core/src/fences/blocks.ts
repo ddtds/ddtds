@@ -16,7 +16,6 @@ import { splitImportsAndBlock, type PreparedBlock } from "./parse.ts";
 
 const logger = getLogger(["ddtds", "blocks"]);
 
-/** A fence's meta read as an annotation, or why it is not one. */
 type AnnotationResult =
   | { tag: "ok"; annotation: Annotation }
   | { tag: "none" }
@@ -36,7 +35,6 @@ function oneBased({ line, column }: Position): Position {
   return { line: line + 1, column: column + 1 };
 }
 
-/** What a `CodeBlock` needs: the fence's code, and where the fence is in the text and in the file. */
 export type CodeBlockInit = {
   code: string;
   lang: Lang;
@@ -46,7 +44,6 @@ export type CodeBlockInit = {
   placement?: Placement;
 };
 
-/** A code fence to run, with its code and where it is in the file. */
 export class CodeBlock {
   readonly #code: string;
   public readonly lang: Lang;

@@ -2,7 +2,6 @@ import { readFileSync } from "node:fs";
 import { globSync } from "tinyglobby";
 import { defaultDocsExclude, defaultDocsInclude } from "../constants.ts";
 
-/** Which docs to test. */
 export type DocsOptions = {
   /** Globs of docs to test, relative to the root. Defaults to `defaultDocsInclude` when unset or empty. */
   include?: string[];
@@ -14,7 +13,6 @@ export function findDocs(root: string, include: string[], exclude: string[]): st
   return globSync(include, { cwd: root, ignore: exclude, absolute: true });
 }
 
-/** Docs options and the directory they are relative to. */
 export type DocsConfig = DocsOptions & {
   /** Directory that `include` and `exclude` are relative to. */
   root: string;

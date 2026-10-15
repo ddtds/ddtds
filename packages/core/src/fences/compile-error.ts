@@ -1,13 +1,11 @@
 import type { Annotation, Lang, Parser } from "../constants.ts";
 
-/** An error as the parser reports it, with offsets into the fence's code. */
 export type ParserError = {
   message: string;
   helpMessage: string | null;
   labels: { message: string | null; start: number; end: number }[];
 };
 
-/** A line and column in a file, 1 indexed unless the name says otherwise. */
 export type Position = {
   /** 1 indexed line in the source markdown file */
   line: number;
@@ -15,13 +13,10 @@ export type Position = {
   column: number;
 };
 
-/** Where something starts and ends in a file. */
 export type SourceRange = { start: Position; end: Position };
 
-/** A span of a fence that a diagnostic points at. */
 export type CompileLabel = { message?: string; start: Position; end: Position };
 
-/** One problem found in a fence, with the spans it points at. */
 export type CompileDiagnostic = {
   message: string;
   help?: string;
@@ -29,7 +24,6 @@ export type CompileDiagnostic = {
   source?: ParserError;
 };
 
-/** A fence as errors and hosts see it, with its range in the file. */
 export type BlockDetails = {
   file: string;
   lang: Lang;
@@ -38,13 +32,10 @@ export type BlockDetails = {
   contents: string;
 };
 
-/** The parser that read a fence. */
 export type ParserDetails = { name: Parser; package: string; version: string };
 
-/** Where compiling stopped: a syntax error, or a crash in the parser. */
 export type CompilePhase = "parse" | "parser-crash";
 
-/** Everything known about why a fence did not compile. */
 export type CompileErrorDetails = {
   block: BlockDetails;
   parser: ParserDetails;
@@ -52,7 +43,6 @@ export type CompileErrorDetails = {
   diagnostics: CompileDiagnostic[];
 };
 
-/** Thrown when a fence does not compile, with `details` for hosts to report. */
 export class DdtCompileError extends Error {
   public readonly details: CompileErrorDetails;
 
