@@ -1,7 +1,7 @@
 import type { LoadFnOutput, RegisterHooksOptions } from "node:module";
 import { extname, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
-import { DdtSession, isSourceFile, sourceTests } from "@ddtds/core";
+import { DdtSession, isSourceFile, sourceTests, type Fence } from "@ddtds/core";
 import { nodeTestAdapter } from "./adapter.ts";
 
 // works with both built and source
@@ -49,8 +49,12 @@ function withFenceTests(session: DdtSession, path: string, loaded: LoadFnOutput)
   session.update(path, source);
   const fences = session.index.fencesOf(path);
   if (fences.length === 0) return loaded;
+  return { ...loaded, source: appendTests(source, fences) };
+}
+
+function appendTests(source: string, fences: readonly Fence[]): string {
   const tests = sourceTests(nodeTestAdapter, fences, '(await import("node:test")).test');
-  return { ...loaded, source: `${source}\n(async () => ${tests})();` };
+  return `${source}\n;(async () => ${tests})();`;
 }
 
 function sourceText(source: string | ArrayBuffer | NodeJS.ArrayBufferView): string {

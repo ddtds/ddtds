@@ -41,3 +41,17 @@ test.each(["own.ts", "own.cts"])("a failing fence in %s fails its test", async (
   await using ddt = spawn(nodeTest, { [own]: source.join("\n") }, { docs: [own] });
   expect(await ddt.run()).toEqual({ [`${own}:2`]: "AssertionError ERR_ASSERTION" });
 });
+
+test("a file ending without a semicolon still registers its JSDoc fences", async () => {
+  const source = [
+    "/**",
+    " * ```ts run",
+    " * assert.equal(1, 1);",
+    " * ```",
+    " */",
+    "console.log",
+    "",
+  ];
+  await using ddt = spawn(nodeTest, { "own.ts": source.join("\n") }, { docs: ["own.ts"] });
+  expect(await ddt.run()).toEqual({ "own.ts:2": "passed" });
+});
