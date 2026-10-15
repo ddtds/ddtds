@@ -1,6 +1,6 @@
 import { parseSync } from "oxc-parser";
 import { parseCodeFences, type CodeBlock } from "./blocks.ts";
-import { columnsBefore, linesBefore, type Offset } from "./offset.ts";
+import { columnsBefore, linesBefore, type Shift } from "./shift.ts";
 
 /** The `/*` opening a comment, which oxc leaves out of the comment's `value` */
 const COMMENT_OPEN_LENGTH = "/*".length;
@@ -13,7 +13,7 @@ function commentMarkdown(
   source: string,
   start: number,
   value: string,
-): { markdown: string; offset: Offset } {
+): { markdown: string; shift: Shift } {
   const lines = value.split("\n");
   const prefixLengths = lines.map((line) => LINE_PREFIX.exec(line)?.[0].length ?? 0);
   // only the first line also has the file text before the comment, and the comment's own `/*`
@@ -21,9 +21,9 @@ function commentMarkdown(
   const columns = prefixLengths.map((length, i) => (i === 0 ? firstLineStart + length : length));
   return {
     markdown: lines.map((line, i) => line.slice(prefixLengths[i])).join("\n"),
-    offset: {
+    shift: {
       lines: linesBefore(source, start),
-      columnsBefore: (line) => columns[line - 1] ?? 0,
+      columns: (line) => columns[line - 1] ?? 0,
     },
   };
 }
@@ -38,7 +38,7 @@ export function parseJsDocFences(source: string, path: string): CodeBlock[] {
   return parseSync(path, source)
     .comments.filter(({ type, value }) => type === "Block" && value.startsWith("*"))
     .flatMap(({ start, value }) => {
-      const { markdown, offset } = commentMarkdown(source, start, value);
-      return parseCodeFences(markdown, path, offset);
+      const { markdown, shift } = commentMarkdown(source, start, value);
+      return parseCodeFences(markdown, path, shift);
     });
 }
