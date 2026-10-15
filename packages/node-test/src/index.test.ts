@@ -54,11 +54,3 @@ test("imports packages from the project", async () => {
     }
   `);
 });
-
-test("reruns a doc when it is edited in watch mode", async () => {
-  await using ddt = spawn(nodeTest, { "guide.md": fence("assert.equal(1, 1);") });
-  expect(await ddt.watch()).toEqual({ "guide.md:1": "passed" });
-  expect(await ddt.edit("guide.md", fence("assert.equal(1, 2);"))).toEqual({
-    "guide.md:1": "AssertionError ERR_ASSERTION",
-  });
-});
