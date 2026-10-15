@@ -23,3 +23,21 @@ test("only the file node starts with registers its JSDoc fences", async () => {
   );
   expect(await ddt.run()).toEqual({ "own.ts:2": "passed" });
 });
+
+test.each([
+  ["a CommonJS package", { "package.json": '{"type":"commonjs"}', "own.ts": "own.ts" }],
+  ["a .cts file", { "own.cts": "own.cts" }],
+  ["a .cjs file", { "own.cjs": "own.cjs" }],
+  ["a .mts file", { "own.mts": "own.mts" }],
+])("%s registers its JSDoc fences", async (_, files) => {
+  const documented = ["/**", " * ```ts run", " * assert.equal(1, 1);", " * ```", " */", "1;", ""];
+  const own = Object.keys(files).find((name) => name.startsWith("own."))!;
+  await using ddt = spawn(nodeTest, { ...files, [own]: documented.join("\n") }, { docs: [own] });
+  expect(await ddt.run()).toEqual({ [`${own}:2`]: "passed" });
+});
+
+test.each(["own.ts", "own.cts"])("a failing fence in %s fails its test", async (own) => {
+  const source = ["/**", " * ```ts run", " * assert.equal(1, 2);", " * ```", " */", "1;", ""];
+  await using ddt = spawn(nodeTest, { [own]: source.join("\n") }, { docs: [own] });
+  expect(await ddt.run()).toEqual({ [`${own}:2`]: "AssertionError ERR_ASSERTION" });
+});

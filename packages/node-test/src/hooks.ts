@@ -7,12 +7,9 @@ import { nodeTestAdapter } from "./adapter.ts";
 // works with both built and source
 const runtimeUrl = new URL(`./runtime${extname(import.meta.filename)}`, import.meta.url).href;
 
-const moduleFormats = new Set(["module", "module-typescript"]);
-
-export function ddtHooks(root: string): RegisterHooksOptions {
+export function ddtHooks(root: string, entry?: string): RegisterHooksOptions {
   const session = DdtSession.fromSources(nodeTestAdapter, new Map(), root);
-  // node:test runs each test file in its own process, so the entry file is the one under test
-  const entry = process.argv[1] === undefined ? undefined : resolve(root, process.argv[1]);
+  const entryPath = entry === undefined ? undefined : resolve(root, entry);
 
   return {
     resolve(specifier, context, next) {
@@ -28,9 +25,7 @@ export function ddtHooks(root: string): RegisterHooksOptions {
       // ignore if not a file
       if (path === undefined) return next(url, context);
 
-      // a source file only registers its fences when it is the test file itself; the files it
-      // imports are loaded as usual
-      if (isSourceFile(path) && path === entry) {
+      if (isSourceFile(path) && path === entryPath) {
         return withFenceTests(session, path, next(url, context));
       }
 
@@ -48,16 +43,18 @@ export function ddtHooks(root: string): RegisterHooksOptions {
   };
 }
 
-/** The loaded source with its fences registered as tests after its own code */
 function withFenceTests(session: DdtSession, path: string, loaded: LoadFnOutput): LoadFnOutput {
-  if (loaded.source === undefined || !moduleFormats.has(loaded.format ?? "")) return loaded;
-  const source =
-    typeof loaded.source === "string" ? loaded.source : new TextDecoder().decode(loaded.source);
+  if (!loaded.format || !loaded.source) return loaded;
+  const source = sourceText(loaded.source);
   session.update(path, source);
   const fences = session.index.fencesOf(path);
   if (fences.length === 0) return loaded;
   const tests = sourceTests(nodeTestAdapter, fences, '(await import("node:test")).test');
-  return { ...loaded, source: `${source}\n${tests}` };
+  return { ...loaded, source: `${source}\n(async () => ${tests})();` };
+}
+
+function sourceText(source: string | ArrayBuffer | NodeJS.ArrayBufferView): string {
+  return typeof source === "string" ? source : new TextDecoder().decode(source);
 }
 
 function filePath(url: string): string | undefined {
