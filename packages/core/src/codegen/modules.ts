@@ -42,32 +42,29 @@ export function fenceModule(adapter: TestAdapter, fence: Fence, source?: string)
 const testName = ({ block }: Fence): string =>
   JSON.stringify(`${block.details.file}:${block.line}`);
 
-const loadFences = (fences: readonly Fence[], wait = "await "): string[] => [
-  `const fences = ${wait}runtime.loadFences([`,
+/** Starts loading the fences and registers one test per fence, with `test` and `runtime` in scope */
+const registerFences = (fences: readonly Fence[]): string[] => [
+  "const fences = runtime.loadFences([",
   ...fences.map(({ id }) => `  () => import(${JSON.stringify(id)}),`),
   "]);",
+  ...fences.map((fence, i) => `test(${testName(fence)}, runtime.fenceAt(fences, ${i}));`),
 ];
 
 /**
- * Code appended to a source file to register its fences as tests. `when` is a condition that
- * holds only while the host runs the file as a test, and `test` is an expression for the host's
- * `test` function, so the file imports nothing from the test runner outside of tests.
+ * Code appended to a source file to register its fences as tests. `test` is an expression for the
+ * host's `test` function, so the file imports nothing from the test runner. The code is a block,
+ * and the host decides when it runs, such as only while the file is a test.
  *
- * The fences start loading at once but are not awaited, because a fence usually imports the file
- * it documents, and waiting for it here would wait on the file itself.
+ * The fences are not awaited, because a fence usually imports the file it documents, and waiting
+ * for it here would wait on the file itself.
  */
-export function sourceTests(
-  adapter: TestAdapter,
-  fences: readonly Fence[],
-  { when, test }: { when: string; test: string },
-): string {
+export function sourceTests(adapter: TestAdapter, fences: readonly Fence[], test: string): string {
   const lines = [
     `const test = ${test};`,
     `const { runtime } = await import(${JSON.stringify(adapter.runtime)});`,
-    ...loadFences(fences, ""),
-    ...fences.map((fence, i) => `test(${testName(fence)}, runtime.fenceAt(fences, ${i}));`),
+    ...registerFences(fences),
   ];
-  return [`if (${when}) {`, ...lines.map((line) => `  ${line}`), "}"].join("\n");
+  return ["{", ...lines.map((line) => `  ${line}`), "}"].join("\n");
 }
 
 export function docModule(
@@ -76,12 +73,14 @@ export function docModule(
   fences: readonly Fence[],
   { source }: { source?: string } = {},
 ): GeneratedModule {
-  const lines = [adapter.testImport, runtimeImport(adapter), ...loadFences(fences)];
-  const mappings: SourceMapSegment[][] = lines.map(() => []);
-  for (const [i, fence] of fences.entries()) {
-    lines.push(`test(${testName(fence)}, fences[${i}]);`);
-    mappings.push([[0, 0, fence.block.line - 1, fence.block.details.indent]]);
-  }
+  const imports = [adapter.testImport, runtimeImport(adapter)];
+  const lines = [...imports, ...registerFences(fences)];
+  // the test calls are the last lines, in fence order
+  const first = lines.length - fences.length;
+  const mappings: SourceMapSegment[][] = lines.map((_, i) => {
+    const fence = fences[i - first];
+    return fence ? [[0, 0, fence.block.line - 1, fence.block.details.indent]] : [];
+  });
   const map = new SourceMap({
     file: doc,
     sources: [doc],

@@ -59,21 +59,21 @@ test("a doc module loads each fence and registers one test per fence", () => {
     [
       "import { test } from 'test';",
       "import { runtime } from '@ddtds/test/runtime';",
-      "const fences = await runtime.loadFences([",
+      "const fences = runtime.loadFences([",
       '  () => import("/repo/__doctests__/t_md_3.ts"),',
       '  () => import("/repo/__doctests__/t_md_9.ts"),',
       "]);",
-      'test("t.md:3", fences[0]);',
-      'test("t.md:9", fences[1]);',
+      'test("t.md:3", runtime.fenceAt(fences, 0));',
+      'test("t.md:9", runtime.fenceAt(fences, 1));',
     ].join("\n"),
   );
 });
 
-test("source tests load each fence and register it only while the host runs the file as a test", () => {
+test("source tests register each fence in a block that imports nothing into the file", () => {
   const first = fence("1;", null, { line: 3 });
-  expect(sourceTests(adapter, [first], { when: "host.test", test: "host.test.run" })).toBe(
+  expect(sourceTests(adapter, [first], "host.test.run")).toBe(
     [
-      "if (host.test) {",
+      "{",
       "  const test = host.test.run;",
       '  const { runtime } = await import("@ddtds/test/runtime");',
       "  const fences = runtime.loadFences([",
