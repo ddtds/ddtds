@@ -227,3 +227,32 @@ test("comments without fences, or with only unclosed fences, yield nothing", () 
   expect(parseJsDocFences("/** just text */\nconst a = 1;", "a.ts")).toEqual([]);
   expect(parseJsDocFences("/**\n * ```ts run\n * const a = 1;\n */", "a.ts")).toHaveLength(1);
 });
+
+describe("what is not a JSDoc fence", () => {
+  const fence = "/**\n * ```ts run\n * const a = 1;\n * ```\n */\n";
+
+  test("comment-like text inside strings and templates", () => {
+    expect(parseJsDocFences(`const s = ${JSON.stringify(fence)};`, "a.ts")).toEqual([]);
+    expect(parseJsDocFences(`const s = \`\n${fence}\`;`, "a.ts")).toEqual([]);
+  });
+
+  test("a skipped fence", () => {
+    expect(parseJsDocFences(fence.replace("run", "skip"), "a.ts")).toEqual([]);
+  });
+
+  test("an unterminated comment", () => {
+    expect(parseJsDocFences(fence.replace(" */\n", ""), "a.ts")).toEqual([]);
+  });
+});
+
+describe("files that are not plain TypeScript", () => {
+  const fence = "/**\n * ```ts run\n * const a = 1;\n * ```\n */\n";
+
+  test.each([
+    ["a hashbang", `#!/usr/bin/env node\n${fence}`],
+    ["a byte order mark", `\uFEFF${fence}`],
+    ["a syntax error after the comment", `${fence}const = = ;;{{{`],
+  ])("finds the fence with %s", (_, source) => {
+    expect(parseJsDocFences(source, "a.ts").map(({ code }) => code)).toEqual(["const a = 1;"]);
+  });
+});
