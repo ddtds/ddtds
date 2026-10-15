@@ -39,26 +39,52 @@ export function fenceModule(adapter: TestAdapter, fence: Fence, source?: string)
   return { code: bundle.toString(), map };
 }
 
+const testName = ({ block }: Fence): string =>
+  JSON.stringify(`${block.details.file}:${block.line}`);
+
+const importFences = (fences: readonly Fence[]): string[] =>
+  fences.map(({ id }) => `  () => import(${JSON.stringify(id)}),`);
+
+/**
+ * for most runners, jsdoc fences arent loaded if the
+ * source file isnt imported int a test
+ *
+ * fences arent waited since jsdoc is very often
+ * a self import and would cause a desdlock
+ */
+export function sourceTests(adapter: TestAdapter, fences: readonly Fence[], test: string): string {
+  const lines = [
+    `const test = ${test};`,
+    `const { runtime } = await import(${JSON.stringify(adapter.runtime)});`,
+    "const fences = runtime.loadFences([",
+    ...importFences(fences),
+    "]);",
+    ...fences.map((fence, i) => `test(${testName(fence)}, runtime.fenceAt(fences, ${i}));`),
+  ];
+  return ["{", ...lines.map((line) => `  ${line}`), "}"].join("\n");
+}
+
 export function docModule(
   adapter: TestAdapter,
   doc: string,
   fences: readonly Fence[],
   { source }: { source?: string } = {},
 ): GeneratedModule {
-  const lines = [
+  const header = [
     adapter.testImport,
     runtimeImport(adapter),
     "const fences = await runtime.loadFences([",
-    ...fences.map(({ id }) => `  () => import(${JSON.stringify(id)}),`),
+    ...importFences(fences),
     "]);",
   ];
-  const mappings: SourceMapSegment[][] = lines.map(() => []);
-  for (const [i, { block }] of fences.entries()) {
-    const name = JSON.stringify(`${block.details.file}:${block.line}`);
-    lines.push(`test(${name}, fences[${i}]);`);
-    const { line, column } = block.zeroBasedStart;
-    mappings.push([[0, 0, line, column]]);
-  }
+  const lines = [...header, ...fences.map((fence, i) => `test(${testName(fence)}, fences[${i}]);`)];
+  const mappings: SourceMapSegment[][] = [
+    ...header.map(() => []),
+    ...fences.map(({ block }): SourceMapSegment[] => {
+      const { line, column } = block.zeroBasedStart;
+      return [[0, 0, line, column]];
+    }),
+  ];
   const map = new SourceMap({
     file: doc,
     sources: [doc],

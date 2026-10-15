@@ -1,6 +1,7 @@
 import { expect, test } from "vitest";
 import { TraceMap, generatedPositionFor, originalPositionFor } from "@jridgewell/trace-mapping";
-import { docModule, fenceModule } from "./modules.ts";
+import { docModule, fenceModule, sourceTests } from "./modules.ts";
+import { parseJsDocFences } from "../fences/jsdoc.ts";
 import { adapter, fence } from "./test-utils.ts";
 
 /** The 1-based line and text of the first generated line matching `matches` */
@@ -46,13 +47,38 @@ test("a fence module maps its code back to the markdown", () => {
   ).toMatchObject({ line, column });
 });
 
+test("a fence in a JSDoc comment maps each line to its own column in the file", () => {
+  const source = [
+    "class A {",
+    "  /**",
+    "   * ```ts run",
+    "   * const first = 1;",
+    "   *\tconst second = 2;",
+    "   *     const third = 3;",
+    "   * ```",
+    "   */",
+    "}",
+  ].join("\n");
+  const [block] = parseJsDocFences(source, "src/a.ts");
+  const { code, map } = fenceModule(adapter, { ...fence("", null), block: block! });
+  const traces = new TraceMap(JSON.parse(map.toString()));
+  const fileLines = source.split("\n");
+  for (const name of ["first", "second", "third"]) {
+    const { line, text } = generatedLine(code, (generated) => generated.includes(`const ${name}`));
+    const original = originalPositionFor(traces, { line, column: text.indexOf("const") });
+    expect(fileLines[original.line! - 1]?.slice(original.column!)).toMatch(
+      new RegExp(`^const ${name}`),
+    );
+  }
+});
+
 test("a fence module embeds the doc for debuggers that cannot resolve the path", () => {
   const { map } = fenceModule(adapter, fence("a();", null, { line: 3 }), "# Title\n");
   expect(map.file).toBe("/repo/docs/t.md");
   expect(map.sourcesContent).toEqual(["# Title\n"]);
 });
 
-test("a doc module loads each fence and registers one test per fence", () => {
+test("a doc module loads each fence before it registers one test per fence", () => {
   const first = fence("1;", null, { line: 3 });
   const second = { ...fence("2;", null, { line: 9 }), id: "/repo/__doctests__/t_md_9.ts" };
   expect(docModule(adapter, "/repo/docs/t.md", [first, second]).code).toBe(
@@ -65,6 +91,22 @@ test("a doc module loads each fence and registers one test per fence", () => {
       "]);",
       'test("t.md:3", fences[0]);',
       'test("t.md:9", fences[1]);',
+    ].join("\n"),
+  );
+});
+
+test("source tests register each fence in a block that imports nothing into the file", () => {
+  const first = fence("1;", null, { line: 3 });
+  expect(sourceTests(adapter, [first], "host.test.run")).toBe(
+    [
+      "{",
+      "  const test = host.test.run;",
+      '  const { runtime } = await import("@ddtds/test/runtime");',
+      "  const fences = runtime.loadFences([",
+      '    () => import("/repo/__doctests__/t_md_3.ts"),',
+      "  ]);",
+      '  test("t.md:3", runtime.fenceAt(fences, 0));',
+      "}",
     ].join("\n"),
   );
 });

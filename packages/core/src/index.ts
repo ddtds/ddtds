@@ -3,11 +3,13 @@ import { mkdirSync, rmSync, writeFileSync } from "node:fs";
 export { CodeBlock, parseCodeFences } from "./fences/blocks.ts";
 export { defaultDocsInclude, defaultDocsExclude, defaultOutDir } from "./constants.ts";
 export { DocIndex, type Fence, type IndexOptions } from "./docs/docs.ts";
+export { isSourceFile } from "./fences/doc-kinds.ts";
 export { DdtCompileError } from "./fences/compile-error.ts";
 export { resolveLogLevel, type LogLevel } from "./log-level.ts";
 export {
   moduleFiles,
   moduleFor,
+  sourceTests,
   typedImports,
   type GeneratedModule,
   type TestAdapter,
