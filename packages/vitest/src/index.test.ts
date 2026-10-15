@@ -1,7 +1,7 @@
 import { writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { expect, test } from "vitest";
-import { fence, fixture, spawn } from "@ddtds/test-utils";
+import { fence, fixture } from "@ddtds/test-utils";
 import { collect, create, logs } from "./test-utils.ts";
 import { vitest } from "./e2e.ts";
 
@@ -69,14 +69,6 @@ test("resolves packages from the root for docs outside it", async () => {
   });
   expect(await vitest().run(join(dir.root, "pkg"), ["../docs/guide.md"])).toEqual({
     "../docs/guide.md:1": "passed",
-  });
-});
-
-test("reruns a doc when it is edited in watch mode", async () => {
-  await using ddt = spawn(vitest(), { "guide.md": fence("expect(1).toBe(1);") });
-  expect(await ddt.watch()).toEqual({ "guide.md:1": "passed" });
-  expect(await ddt.edit("guide.md", fence("expect(1).toBe(2);"))).toEqual({
-    "guide.md:1": "AssertionError",
   });
 });
 

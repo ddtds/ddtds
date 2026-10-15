@@ -7,6 +7,10 @@
     ".": {
       "@ddtds/source": "./src/index.ts",
       "default": "./src/index.ts"
+    },
+    "./conformance": {
+      "@ddtds/source": "./src/conformance.e2e.ts",
+      "default": "./src/conformance.e2e.ts"
     }
   },
   "scripts": {
@@ -16,6 +20,7 @@
     "valibot": "^1.5.0"
   },
   "devDependencies": {
-    "@types/node": "catalog:dev"
+    "@types/node": "catalog:dev",
+    "vitest": "catalog:dev"
   }
 }

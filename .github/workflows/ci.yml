@@ -29,29 +29,17 @@ jobs:
       - run: pnpm run publint
       - run: pnpm --filter @ddtds/core --filter ddtds --filter @ddtds/vitest --filter @ddtds/node-test publish --dry-run --no-git-checks
 
-  tests:
+  test:
+    name: ${{ matrix.name }}
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
-        vitest-version: [4, 5]
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-      - uses: $/.github/actions/setup
-      - name: Use Vitest ${{ matrix.vitest-version }}
-        run: |
-          sed -i -E "s/^(    (vitest|\"@vitest\/coverage-v8\")): .*/\1: ^${VITEST_VERSION}/" pnpm-workspace.yaml
-        env:
-          VITEST_VERSION: ${{ matrix.vitest-version }}
-      - run: pnpm install --no-frozen-lockfile
-      - run: pnpm run test:coverage
-
-  node:
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        node-version: [24, 26]
+        include:
+          - { name: vitest 4, script: test:vitest, vitest-version: 4 }
+          - { name: vitest 5, script: test:vitest, vitest-version: 5 }
+          - { name: node:test 24, script: test:node, node-version: 24 }
+          - { name: node:test 26, script: test:node, node-version: 26 }
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -59,6 +47,11 @@ jobs:
       - uses: $/.github/actions/setup
         with:
           node-version: ${{ matrix.node-version }}
+      - if: matrix.vitest-version
+        run: |
+          sed -i -E "s/^(    (vitest|\"@vitest\/coverage-v8\")): .*/\1: ^${VITEST_VERSION}/" pnpm-workspace.yaml
+          pnpm install --no-frozen-lockfile
+        env:
+          VITEST_VERSION: ${{ matrix.vitest-version }}
       - run: pnpm run build
-      - run: pnpm --filter @ddtds/node-test test
-      - run: pnpm --filter @ddtds/example-node test
+      - run: pnpm run ${{ matrix.script }}
