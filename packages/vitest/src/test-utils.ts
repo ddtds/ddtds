@@ -14,13 +14,11 @@ import {
 import type { Outcomes } from "@ddtds/test-utils";
 import { ddtPlugin, type DdtPluginOptions } from "@ddtds/vitest";
 
-/** The Vitest under test, so suites can branch on features (e.g. the fs cache). */
 export const vitestVersion: { full: string; major: number } = {
   full: version,
   major: Number(version.split(".")[0]),
 };
 
-/** Each module's tests, as `name -> state` (or the first error's name). */
 export function outcomes(modules: readonly TestModule[]): Outcomes {
   const results: Outcomes = {};
   for (const module of modules) {
@@ -155,16 +153,16 @@ type Coverage = { covered: number[]; uncovered: number[] };
 type Location = { start: { line: number } };
 type FileCoverage = { s: Record<string, number>; statementMap: Record<string, Location> };
 
-/** Lines with statements that ran and that did not, per file, from v8 coverage */
 export async function coverage(root: string): Promise<Record<string, Coverage>> {
   const reportsDirectory = join(root, "coverage");
-  // Vitest writes the report when it closes, at the end of this block
+
   {
     await using instance = await create(root, {
       coverage: { enabled: true, provider: "v8", reporter: ["json"], reportsDirectory },
     });
     await instance.start();
   }
+  // report written when instance closed at end lf block
   const report: Record<string, FileCoverage> = JSON.parse(
     readFileSync(join(reportsDirectory, "coverage-final.json"), "utf8"),
   );
