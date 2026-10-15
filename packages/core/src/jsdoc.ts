@@ -7,8 +7,11 @@ export function isSourceFile(path: string): boolean {
   return /\.[cm]?[jt]sx?$/.test(path);
 }
 
-/** The ` * ` starting each line of a JSDoc comment */
-const linePrefix = /^\s*\*? ?/;
+/** The `/*` opening a comment, which oxc leaves out of the comment's `value` */
+const COMMENT_OPEN_LENGTH = "/*".length;
+
+/** The indent, `*` and one space or tab starting each line of a JSDoc comment */
+const LINE_PREFIX = /^\s*\*?[ \t]?/;
 
 /**
  * Code fences in a source file's JSDoc comments (`/** … *\/`). Each comment is read as markdown
@@ -20,35 +23,47 @@ export function parseJsDocFences(source: string, path: string): CodeBlock[] {
   return parseSync(path, source)
     .comments.filter(({ type, value }) => type === "Block" && value.startsWith("*"))
     .flatMap(({ start, value }) => {
-      const lines = value.split("\n");
-      // the first line starts after the comment's `/*`, which is not part of `value`
       const before = source.slice(0, start);
-      const firstColumn = start - (before.lastIndexOf("\n") + 1) + 2;
-      const cuts = lines.map((line) => linePrefix.exec(line)?.[0].length ?? 0);
-      const prefixes = cuts.map((cut, i) => cut + (i === 0 ? firstColumn : 0));
-      const markdown = lines.map((line, i) => line.slice(cuts[i])).join("\n");
+      const lineStart = before.lastIndexOf("\n") + 1;
       const commentLine = before.split("\n").length - 1;
-      return parseCodeFences(markdown, path).map((block) => moved(block, commentLine, prefixes));
+      const lines = value.split("\n");
+      const prefixLengths = lines.map((line) => LINE_PREFIX.exec(line)?.[0].length ?? 0);
+      // file columns before each line's markdown; only the first line also has the text before the comment
+      const markdownColumns = prefixLengths.map(
+        (length, i) => length + (i === 0 ? start - lineStart + COMMENT_OPEN_LENGTH : 0),
+      );
+      const markdown = lines.map((line, i) => line.slice(prefixLengths[i])).join("\n");
+      return parseCodeFences(markdown, path).map((block) =>
+        moved(block, commentLine, markdownColumns),
+      );
     });
 }
 
-/** Moves a fence from its comment's markdown to the file; `prefixes` is each line's columns before the markdown */
-function moved(block: CodeBlock, lines: number, prefixes: readonly number[]): CodeBlock {
+/**
+ * Moves a fence from its comment's markdown to the file. `markdownColumns[i]` is how many file
+ * columns precede markdown line `i + 1`, and `lineOffset` is how many file lines precede the comment.
+ */
+function moved(
+  block: CodeBlock,
+  lineOffset: number,
+  markdownColumns: readonly number[],
+): CodeBlock {
   const { contents, lang, annotation, file, range, indent } = block.details;
-  const prefix = (line: number): number => prefixes[line - 1] ?? 0;
+  const columnsBefore = (markdownLine: number): number => markdownColumns[markdownLine - 1] ?? 0;
   const move = ({ line, column }: Position): Position => ({
-    line: line + lines,
-    column: column + prefix(line),
+    line: line + lineOffset,
+    column: column + columnsBefore(line),
   });
-  const first = block.line;
+  const openingLine = block.line;
+  const firstCodeLine = openingLine + 1;
   return new CodeBlock({
     code: contents,
     lang,
     annotation,
     path: file,
     range: { start: move(range.start), end: move(range.end) },
-    indent: indent + prefix(first),
-    // code starts on the line after the fence; remark also strips the fence's indent from each
-    lineIndents: contents.split("\n").map((_, i) => indent + prefix(first + 1 + i)),
+    indent: indent + columnsBefore(openingLine),
+    // remark strips the fence's indent from each code line, so it is added back along with the prefix
+    lineIndents: contents.split("\n").map((_, i) => indent + columnsBefore(firstCodeLine + i)),
   });
 }
