@@ -9,13 +9,17 @@ export type Offset = {
 /** For text that is the whole file */
 export const NO_OFFSET: Offset = { lines: 0, columnsBefore: () => 0 };
 
+/** The source up to `offset`, split into the lines that come before it and the start of its own line */
+function textBefore(source: string, offset: number): string[] {
+  return source.slice(0, offset).split("\n");
+}
+
 /** How many lines come before `offset` in `source` */
 export function linesBefore(source: string, offset: number): number {
-  return source.slice(0, offset).split("\n").length - 1;
+  return textBefore(source, offset).length - 1;
 }
 
 /** How many characters come before `offset` on its own line */
 export function columnsBefore(source: string, offset: number): number {
-  const lineStart = source.lastIndexOf("\n", offset - 1) + 1;
-  return offset - lineStart;
+  return textBefore(source, offset).at(-1)?.length ?? 0;
 }

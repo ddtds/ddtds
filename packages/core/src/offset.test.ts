@@ -12,3 +12,8 @@ test("counts the characters before an offset on its own line", () => {
     0, 1, 0, 1, 2, 0, 1,
   ]);
 });
+
+test("an offset at the very start has nothing before it, even when the source starts with a newline", () => {
+  expect([linesBefore("\nab", 0), columnsBefore("\nab", 0)]).toEqual([0, 0]);
+  expect([linesBefore("\nab", 1), columnsBefore("\nab", 1)]).toEqual([1, 0]);
+});
