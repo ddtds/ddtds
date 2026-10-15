@@ -7,9 +7,9 @@ export default defineConfig({
     env: { NO_COLOR: "1" },
     projects: [
       "packages/*/vitest.config.ts",
-      "examples/{js,ts,react}",
-      "examples/monorepo/packages/*",
-      "examples/monorepo/packages/*/vitest.server.config.ts",
+      "examples/vitest/{js,ts,react}",
+      "examples/vitest/monorepo/packages/*",
+      "examples/vitest/monorepo/packages/*/vitest.server.config.ts",
       {
         plugins: [ddtPlugin({ include: ["README.md"] })],
         test: { name: "readme", include: ["README.md"], environment: "happy-dom" },

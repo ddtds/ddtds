@@ -2,8 +2,8 @@ packages:
   - "packages/*"
   - "benches"
   - "test-utils"
-  - "examples/*"
-  - "examples/monorepo/packages/*"
+  - "examples/*/*"
+  - "examples/vitest/monorepo/packages/*"
 
 allowBuilds:
   # no-op/warning-only postinstall scripts, nothing to build

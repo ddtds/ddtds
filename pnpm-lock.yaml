@@ -355,18 +355,24 @@ importers:
         specifier: catalog:dev
         version: 5.0.3(@opentelemetry/api@1.9.1)(@types/node@24.19.1)(@vitest/coverage-v8@5.0.3)(happy-dom@20.14.6)(jsdom@30.1.2(@noble/hashes@2.4.0))(vite@8.3.3(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1))
 
-  examples/js:
+  examples/node-test/ts:
+    devDependencies:
+      '@ddtds/node-test':
+        specifier: workspace:*
+        version: link:../../../packages/node-test
+
+  examples/vitest/js:
     devDependencies:
       '@ddtds/vitest':
         specifier: workspace:*
-        version: link:../../packages/vitest
+        version: link:../../../packages/vitest
       vitest:
         specifier: catalog:dev
         version: 5.0.3(@opentelemetry/api@1.9.1)(@types/node@24.19.1)(@vitest/coverage-v8@5.0.3)(happy-dom@20.14.6)(jsdom@30.1.2(@noble/hashes@2.4.0))(vite@8.3.3(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1))
 
-  examples/monorepo: {}
+  examples/vitest/monorepo: {}
 
-  examples/monorepo/packages/angular-greet:
+  examples/vitest/monorepo/packages/angular-greet:
     dependencies:
       '@angular/core':
         specifier: catalog:examples
@@ -386,7 +392,7 @@ importers:
         version: 22.2.2
       '@ddtds/vitest':
         specifier: workspace:*
-        version: link:../../../../packages/vitest
+        version: link:../../../../../packages/vitest
       '@oxc-project/runtime':
         specifier: catalog:examples
         version: 0.153.0
@@ -397,16 +403,16 @@ importers:
         specifier: catalog:dev
         version: 5.0.3(@opentelemetry/api@1.9.1)(@types/node@24.19.1)(@vitest/coverage-v8@5.0.3)(happy-dom@20.14.6)(jsdom@30.1.2(@noble/hashes@2.4.0))(vite@8.3.3(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1))
 
-  examples/monorepo/packages/greet:
+  examples/vitest/monorepo/packages/greet:
     devDependencies:
       '@ddtds/vitest':
         specifier: workspace:*
-        version: link:../../../../packages/vitest
+        version: link:../../../../../packages/vitest
       vitest:
         specifier: catalog:dev
         version: 5.0.3(@opentelemetry/api@1.9.1)(@types/node@24.19.1)(@vitest/coverage-v8@5.0.3)(happy-dom@20.14.6)(jsdom@30.1.2(@noble/hashes@2.4.0))(vite@8.3.3(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1))
 
-  examples/monorepo/packages/lit-greet:
+  examples/vitest/monorepo/packages/lit-greet:
     dependencies:
       '@ddtds/greet':
         specifier: workspace:*
@@ -417,7 +423,7 @@ importers:
     devDependencies:
       '@ddtds/vitest':
         specifier: workspace:*
-        version: link:../../../../packages/vitest
+        version: link:../../../../../packages/vitest
       happy-dom:
         specifier: catalog:examples
         version: 20.14.6
@@ -425,7 +431,7 @@ importers:
         specifier: catalog:dev
         version: 5.0.3(@opentelemetry/api@1.9.1)(@types/node@24.19.1)(@vitest/coverage-v8@5.0.3)(happy-dom@20.14.6)(jsdom@30.1.2(@noble/hashes@2.4.0))(vite@8.3.3(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1))
 
-  examples/monorepo/packages/octane-greet:
+  examples/vitest/monorepo/packages/octane-greet:
     dependencies:
       '@ddtds/greet':
         specifier: workspace:*
@@ -436,7 +442,7 @@ importers:
     devDependencies:
       '@ddtds/vitest':
         specifier: workspace:*
-        version: link:../../../../packages/vitest
+        version: link:../../../../../packages/vitest
       happy-dom:
         specifier: catalog:examples
         version: 20.14.6
@@ -444,7 +450,7 @@ importers:
         specifier: catalog:dev
         version: 5.0.3(@opentelemetry/api@1.9.1)(@types/node@24.19.1)(@vitest/coverage-v8@5.0.3)(happy-dom@20.14.6)(jsdom@30.1.2(@noble/hashes@2.4.0))(vite@8.3.3(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1))
 
-  examples/monorepo/packages/preact-greet:
+  examples/vitest/monorepo/packages/preact-greet:
     dependencies:
       '@ddtds/greet':
         specifier: workspace:*
@@ -455,7 +461,7 @@ importers:
     devDependencies:
       '@ddtds/vitest':
         specifier: workspace:*
-        version: link:../../../../packages/vitest
+        version: link:../../../../../packages/vitest
       '@preact/preset-vite':
         specifier: catalog:examples
         version: 2.10.6(@babel/core@7.29.7(supports-color@7.2.0))(preact@11.0.1)(rollup@4.64.0)(supports-color@7.2.0)(vite@8.3.3(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1))
@@ -466,7 +472,7 @@ importers:
         specifier: catalog:dev
         version: 5.0.3(@opentelemetry/api@1.9.1)(@types/node@24.19.1)(@vitest/coverage-v8@5.0.3)(happy-dom@20.14.6)(jsdom@30.1.2(@noble/hashes@2.4.0))(vite@8.3.3(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1))
 
-  examples/monorepo/packages/react-greet:
+  examples/vitest/monorepo/packages/react-greet:
     dependencies:
       '@ddtds/greet':
         specifier: workspace:*
@@ -480,7 +486,7 @@ importers:
     devDependencies:
       '@ddtds/vitest':
         specifier: workspace:*
-        version: link:../../../../packages/vitest
+        version: link:../../../../../packages/vitest
       '@types/react':
         specifier: catalog:examples
         version: 19.3.0
@@ -497,7 +503,7 @@ importers:
         specifier: catalog:dev
         version: 5.0.3(@opentelemetry/api@1.9.1)(@types/node@24.19.1)(@vitest/coverage-v8@5.0.3)(happy-dom@20.14.6)(jsdom@30.1.2(@noble/hashes@2.4.0))(vite@8.3.3(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1))
 
-  examples/monorepo/packages/solid-greet:
+  examples/vitest/monorepo/packages/solid-greet:
     dependencies:
       '@ddtds/greet':
         specifier: workspace:*
@@ -508,7 +514,7 @@ importers:
     devDependencies:
       '@ddtds/vitest':
         specifier: workspace:*
-        version: link:../../../../packages/vitest
+        version: link:../../../../../packages/vitest
       '@testing-library/jest-dom':
         specifier: catalog:examples
         version: 7.0.1(@testing-library/dom@10.4.2)(vitest@5.0.3)
@@ -522,7 +528,7 @@ importers:
         specifier: catalog:dev
         version: 5.0.3(@opentelemetry/api@1.9.1)(@types/node@24.19.1)(@vitest/coverage-v8@5.0.3)(happy-dom@20.14.6)(jsdom@30.1.2(@noble/hashes@2.4.0))(vite@8.3.3(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1))
 
-  examples/monorepo/packages/svelte-greet:
+  examples/vitest/monorepo/packages/svelte-greet:
     dependencies:
       '@ddtds/greet':
         specifier: workspace:*
@@ -533,7 +539,7 @@ importers:
     devDependencies:
       '@ddtds/vitest':
         specifier: workspace:*
-        version: link:../../../../packages/vitest
+        version: link:../../../../../packages/vitest
       '@sveltejs/vite-plugin-svelte':
         specifier: catalog:examples
         version: 7.3.1(svelte@5.57.2)(vite@8.3.3(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1))
@@ -544,7 +550,7 @@ importers:
         specifier: catalog:dev
         version: 5.0.3(@opentelemetry/api@1.9.1)(@types/node@24.19.1)(@vitest/coverage-v8@5.0.3)(happy-dom@20.14.6)(jsdom@30.1.2(@noble/hashes@2.4.0))(vite@8.3.3(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1))
 
-  examples/monorepo/packages/vue-greet:
+  examples/vitest/monorepo/packages/vue-greet:
     dependencies:
       '@ddtds/greet':
         specifier: workspace:*
@@ -555,7 +561,7 @@ importers:
     devDependencies:
       '@ddtds/vitest':
         specifier: workspace:*
-        version: link:../../../../packages/vitest
+        version: link:../../../../../packages/vitest
       '@vitejs/plugin-vue':
         specifier: catalog:examples
         version: 6.0.9(vite@8.3.3(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1))(vue@3.5.43(typescript@7.0.2))
@@ -566,17 +572,11 @@ importers:
         specifier: catalog:dev
         version: 5.0.3(@opentelemetry/api@1.9.1)(@types/node@24.19.1)(@vitest/coverage-v8@5.0.3)(happy-dom@20.14.6)(jsdom@30.1.2(@noble/hashes@2.4.0))(vite@8.3.3(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1))
 
-  examples/node:
-    devDependencies:
-      '@ddtds/node-test':
-        specifier: workspace:*
-        version: link:../../packages/node-test
-
-  examples/react:
+  examples/vitest/react:
     devDependencies:
       '@ddtds/vitest':
         specifier: workspace:*
-        version: link:../../packages/vitest
+        version: link:../../../packages/vitest
       '@testing-library/jest-dom':
         specifier: catalog:examples
         version: 7.0.1(@testing-library/dom@10.4.2)(vitest@5.0.3)
@@ -596,11 +596,11 @@ importers:
         specifier: catalog:dev
         version: 5.0.3(@opentelemetry/api@1.9.1)(@types/node@24.19.1)(@vitest/coverage-v8@5.0.3)(happy-dom@20.14.6)(jsdom@30.1.2(@noble/hashes@2.4.0))(vite@8.3.3(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1))
 
-  examples/ts:
+  examples/vitest/ts:
     devDependencies:
       '@ddtds/vitest':
         specifier: workspace:*
-        version: link:../../packages/vitest
+        version: link:../../../packages/vitest
       vitest:
         specifier: catalog:dev
         version: 5.0.3(@opentelemetry/api@1.9.1)(@types/node@24.19.1)(@vitest/coverage-v8@5.0.3)(happy-dom@20.14.6)(jsdom@30.1.2(@noble/hashes@2.4.0))(vite@8.3.3(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1))
@@ -5598,10 +5598,6 @@ packages:
     engines: {node: '>=10'}
     peerDependencies:
       seroval: ^1.0
-
-  seroval@1.6.8:
-    resolution: {integrity: sha512-HlSgSAkTk4EqHcje1ptJjfZi1YDv5KbhVJ/d3P7T/nAXua2VmDu+AKDX5VTdFfZf48nDkWB2TKYt0DrCSa+3wg==}
-    engines: {node: '>=10'}
 
   seroval@1.6.9:
     resolution: {integrity: sha512-UeEzHwAK+yl0YLbsvROV1t5yMYEwZZ0CfKYxDvUgS2fO9Vxdf8djqVIB+OuVpuawRNPqw68LE1Du/GMsW2ZPqA==}
@@ -11212,11 +11208,9 @@ snapshots:
     dependencies:
       type-fest: 0.13.1
 
-  seroval-plugins@1.6.8(seroval@1.6.8):
+  seroval-plugins@1.6.8(seroval@1.6.9):
     dependencies:
-      seroval: 1.6.8
-
-  seroval@1.6.8: {}
+      seroval: 1.6.9
 
   seroval@1.6.9: {}
 
@@ -11316,8 +11310,8 @@ snapshots:
   solid-js@1.9.17:
     dependencies:
       csstype: 3.2.3
-      seroval: 1.6.8
-      seroval-plugins: 1.6.8(seroval@1.6.8)
+      seroval: 1.6.9
+      seroval-plugins: 1.6.8(seroval@1.6.9)
 
   solid-refresh@0.6.3(solid-js@1.9.17)(supports-color@7.2.0):
     dependencies:
