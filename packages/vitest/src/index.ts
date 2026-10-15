@@ -1,5 +1,6 @@
 import { join, relative, resolve } from "node:path";
 import { defaultExclude, defaultInclude, type Plugin } from "vitest/config";
+import type { TestProject } from "vitest/node";
 import {
   DdtSession,
   DocIndex,
@@ -44,9 +45,17 @@ export type DdtPluginOptions = DocsOptions & {
   logLevel?: LogLevel;
 };
 
+function docsWithoutFences(session: DdtSession): string[] {
+  return session
+    .trackedDocs()
+    .filter((doc) => session.index.fencesOf(doc).length === 0)
+    .map((doc) => relative(session.index.root, doc));
+}
+
 export function ddtPlugin({ logLevel, ...docs }: DdtPluginOptions = {}): Plugin {
   const vite = createViteSink();
   configureLogging(resolveLogLevel(logLevel), vite);
+  let project: TestProject | undefined;
   let session = DdtSession.fromSources(vitestTestAdapter, new Map(), process.cwd());
 
   return {
@@ -63,13 +72,31 @@ export function ddtPlugin({ logLevel, ...docs }: DdtPluginOptions = {}): Plugin 
         }));
       }
       const docFiles = [...session.index.docs()].map(([doc]) => doc);
+      const included = new Set(docFiles);
       const buildOutput = join(root, defaultOutDir, "**");
       return {
         test: {
           include: [...(config.test?.include ? [] : defaultInclude), ...docFiles],
           exclude: [...(config.test?.exclude ? [] : defaultExclude), buildOutput],
+          includeSource: docsWithoutFences(session),
+          watchTriggerPatterns: [
+            {
+              pattern: /\.mdx?$/,
+              testsToRun(file: string): string[] | undefined {
+                if (!session.tracks(file) || included.has(file)) return undefined;
+                session.refresh(file);
+                if (session.index.fencesOf(file).length === 0) return undefined;
+                return project?.matchesTestGlob(file, () => "import.meta.vitest")
+                  ? [file]
+                  : undefined;
+              },
+            },
+          ],
         },
       };
+    },
+    configureVitest(context) {
+      project = context.project;
     },
     configResolved(config) {
       vite.attach(config.logger);

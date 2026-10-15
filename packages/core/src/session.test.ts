@@ -90,3 +90,28 @@ describe("DdtSession.refresh", () => {
     expect(session.module(join(root, "src/index.ts"))).toBeUndefined();
   });
 });
+
+describe("DdtSession.tracks", () => {
+  test("tracks docs found at startup even when they have no fences", () => {
+    const root = fixture({
+      "empty.md": "# Nothing to run\n",
+      "guide.md": doc("expect(1).toBe(1);"),
+    });
+    const session = sessionOver(root);
+
+    expect(session.tracks(join(root, "empty.md"))).toBe(true);
+    expect(session.tracks("empty.md")).toBe(true);
+    expect(session.tracks(join(root, "guide.md"))).toBe(true);
+    expect(session.trackedDocs().toSorted()).toEqual([
+      join(root, "empty.md"),
+      join(root, "guide.md"),
+    ]);
+  });
+
+  test("does not track a doc it was not given", () => {
+    const root = fixture({ "guide.md": doc("expect(1).toBe(1);") });
+    const session = sessionOver(root);
+
+    expect(session.tracks(join(root, "other.md"))).toBe(false);
+  });
+});
