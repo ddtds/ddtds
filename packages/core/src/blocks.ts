@@ -75,7 +75,6 @@ export class CodeBlock {
       lang: this.lang,
       annotation: this.#annotation,
       range,
-      indent: range.start.column - 1,
       contents: this.#code,
     };
   }

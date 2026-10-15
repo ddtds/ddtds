@@ -19,12 +19,11 @@ test("finds code fences in JSDoc comments at their place in the file", () => {
     "}",
   ].join("\n");
   const blocks = parseJsDocFences(source, "src/counter.ts");
-  expect(blocks.map(({ details: { range, indent, contents } }) => ({ range, indent, contents })))
+  expect(blocks.map(({ details: { range, contents } }) => ({ range, contents })))
     .toMatchInlineSnapshot(`
       [
         {
           "contents": "const counter = new Counter();",
-          "indent": 5,
           "range": {
             "end": {
               "column": 9,
