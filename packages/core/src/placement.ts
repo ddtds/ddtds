@@ -1,5 +1,6 @@
 export type Placement = {
   linesBefore: number;
+  /** `line` is a 0 indexed line of the text */
   columnsBeforeLine: (line: number) => number;
 };
 

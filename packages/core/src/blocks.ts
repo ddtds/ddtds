@@ -83,10 +83,12 @@ export class CodeBlock {
     return this.#rangeInFile.start.line;
   }
 
+  /** 0 indexed */
   public get zeroBasedStart(): Position {
     return this.#fenceInFile;
   }
 
+  /** 0 indexed file line */
   public get firstCodeLine(): number {
     return this.#fenceInFile.line + 1;
   }
@@ -101,6 +103,7 @@ export class CodeBlock {
     };
   }
 
+  /** `codeLine` is 0 indexed */
   public columnsBeforeCodeLine(codeLine: number): number {
     const lineInText = this.#fenceInText.line + 1 + codeLine;
     return this.#fenceInText.column + this.#placement.columnsBeforeLine(lineInText);
