@@ -5,12 +5,10 @@ import { fence, fixture, spawn } from "@ddtds/test-utils";
 import { vitest } from "./e2e.ts";
 import { vitestVersion } from "./test-utils.ts";
 
-/** The cache keys written so far: one entry per transform that had to run. */
 function cacheEntries(cache: string): string[] {
   return readdirSync(cache).toSorted();
 }
 
-// `fsModuleCache` is Vitest 5+, so the suite is skipped on 4.
 describe.skipIf(vitestVersion.major < 5)("fs module cache", () => {
   test("reuses generated modules across runs instead of regenerating them", async () => {
     await using cacheDir = fixture({});
@@ -24,8 +22,6 @@ describe.skipIf(vitestVersion.major < 5)("fs module cache", () => {
     expect(cold.length).toBeGreaterThan(0);
 
     expect(await ddt.run()).toEqual({ "guide.md:1": "passed" });
-    // The ids are content-addressed, so the warm run reuses every key. An id
-    // that changed per run would show up here as a new entry.
     expect(cacheEntries(cache)).toEqual(cold);
   });
 
