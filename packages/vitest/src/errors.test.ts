@@ -3,18 +3,6 @@ import { fence, fixture, spawn } from "@ddtds/test-utils";
 import { failures } from "./test-utils.ts";
 import { vitest } from "./e2e.ts";
 
-test("a broken fence does not stop the rest of its doc", async () => {
-  await using ddt = spawn(vitest(), {
-    "guide.md": fence('import { x } from "./missing.ts";\nx;') + fence("expect(1).toBe(1);"),
-  });
-  expect(await ddt.run()).toMatchInlineSnapshot(`
-    {
-      "guide.md:1": "Error",
-      "guide.md:6": "passed",
-    }
-  `);
-});
-
 test("failures report the error the fence threw", async () => {
   await using dir = fixture({
     "guide.md": `# Guide\n\n${fence("const a = 1;\nexpect(a).toBe(2);")}${fence('throw new TypeError("boom");')}`,
@@ -63,19 +51,6 @@ test("compile failures point at the markdown", async () => {
           "guide.md:8:1",
         ],
       },
-    }
-  `);
-});
-
-test("any text is valid markdown: an unclosed fence takes the rest of the doc as code", async () => {
-  await using ddt = spawn(vitest(), {
-    "unclosed.md": "```ts run\nexpect(1).toBe(1);\n\n## Next section\n",
-    "unclosed-html.md": "<div\n\n```ts run\nexpect(1).toBe(1);\n```\n",
-  });
-  expect(await ddt.run()).toMatchInlineSnapshot(`
-    {
-      "unclosed-html.md:3": "passed",
-      "unclosed.md:1": "DdtCompileError",
     }
   `);
 });

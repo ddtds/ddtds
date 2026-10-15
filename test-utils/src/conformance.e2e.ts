@@ -24,6 +24,49 @@ export function conformance(name: string, runner: Runner, dialect: Dialect): voi
   const failing = dialect.equal("1", "2");
 
   describe(`${name} conformance`, () => {
+    test("runs passing and failing fences", async () => {
+      await using ddt = spawn(runner, {
+        "guide.md": [
+          "# Guide",
+          "",
+          fence(`const sum: number = 1 + 1;\n${dialect.equal("sum", "2")}`),
+          fence(dialect.equal("1 + 1", "3")),
+        ].join("\n"),
+      });
+      expect(await ddt.run()).toEqual({ "guide.md:3": "passed", "guide.md:9": dialect.assertion });
+    });
+
+    test("imports packages from the project", async () => {
+      await using ddt = spawn(runner, {
+        "node_modules/calc/package.json":
+          '{ "name": "calc", "type": "module", "main": "index.js" }',
+        "node_modules/calc/index.js": "export const add = (a, b) => a + b;",
+        "README.md": fence(`import { add } from "calc";\n\n${dialect.equal("add(1, 2)", "3")}`),
+      });
+      expect(await ddt.run()).toEqual({ "README.md:1": "passed" });
+    });
+
+    test("a broken fence does not stop the rest of its doc", async () => {
+      await using ddt = spawn(runner, {
+        "guide.md": fence('import { x } from "missing-package";\nx;') + fence(passing),
+      });
+      expect(await ddt.run()).toEqual({
+        "guide.md:1": dialect.missingImport,
+        "guide.md:6": "passed",
+      });
+    });
+
+    test("any text is valid markdown: an unclosed fence takes the rest of the doc as code", async () => {
+      await using ddt = spawn(runner, {
+        "unclosed.md": `\`\`\`ts run\n${passing}\n\n## Next section\n`,
+        "unclosed-html.md": `<div\n\n\`\`\`ts run\n${passing}\n\`\`\`\n`,
+      });
+      expect(await ddt.run()).toEqual({
+        "unclosed-html.md:3": "passed",
+        "unclosed.md:1": "DdtCompileError",
+      });
+    });
+
     test("reruns a doc when it is edited in watch mode", async () => {
       await using ddt = spawn(runner, { "guide.md": fence(passing) });
       expect(await ddt.watch()).toEqual({ "guide.md:1": "passed" });
