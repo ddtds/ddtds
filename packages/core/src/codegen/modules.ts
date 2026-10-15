@@ -11,12 +11,8 @@ function shiftToFence(mappings: SourceMapSegment[][], { block }: Fence): SourceM
     segments.map((segment) => {
       if (segment.length === 1) return segment;
       const [column, source, sourceLine, sourceColumn] = segment;
-      return [
-        column,
-        source,
-        block.firstCodeLine + sourceLine,
-        sourceColumn + block.columnsBeforeCodeLine(sourceLine),
-      ];
+      const { line, column: fileColumn } = block.zeroBasedPositionAt(sourceLine, sourceColumn);
+      return [column, source, line, fileColumn];
     }),
   );
 }
