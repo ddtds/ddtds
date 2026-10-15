@@ -1,7 +1,11 @@
+/* tests common properties of test frameworks
+ * for example, watch mode should rerun when a
+ * fence is modified
+ */
+
 import { describe, expect, test } from "vitest";
 import { fence, spawn, type Outcomes, type Runner } from "./index.ts";
 
-/** What a test framework has to say about itself; everything else is shared. */
 export type Dialect = {
   /** An assertion that passes when `actual` equals `expected` */
   equal(actual: string, expected: string): string;
@@ -13,23 +17,11 @@ export type Dialect = {
 
 const missingPackage = 'import { x } from "missing-package";\nx;';
 
-/**
- * Registers the end to end scenarios every framework has to pass.
- *
- * To cover a new framework, add three small pieces to its package:
- *   1. a reporter that prints `encode(outcomes)` once per run (see `packages/node-test/src/reporter.ts`)
- *   2. a `cli({ name, command })` runner that starts the framework in run or watch mode
- *   3. a `conformance.test.ts` calling this with a `Dialect`
- *
- * Outcomes are named `doc:line`. A fence of one line takes four lines in a doc: its opening, the
- * code, its closing and a blank line, so the fences of a doc start at lines 1, 5, 9 and so on.
- */
 export function conformance(name: string, runner: Runner, dialect: Dialect): void {
   const { assertion, missingImport } = dialect;
   const passing = dialect.equal("1", "1");
   const failing = dialect.equal("1", "2");
 
-  /** A doc, and the outcome of each of its fences */
   const docs: [title: string, doc: string, expected: Outcomes][] = [
     ["a passing fence", fence(passing), { "doc.md:1": "passed" }],
     ["a failing assertion", fence(failing), { "doc.md:1": assertion }],
