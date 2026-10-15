@@ -190,10 +190,17 @@ export function fixture(files: Record<string, string>): AsyncDisposable & { root
   };
 }
 
-export function spawn(runner: Runner, files: Record<string, string>): Session {
+/**
+ * Creates a project from `files` and a session to run or watch it. `docs` are the paths or globs
+ * handed to the runner, and default to the markdown files.
+ */
+export function spawn(
+  runner: Runner,
+  files: Record<string, string>,
+  { docs = Object.keys(files).filter((file) => /\.mdx?$/.test(file)) }: { docs?: string[] } = {},
+): Session {
   const root = create(files);
   runner.prepare?.(root);
-  const docs = Object.keys(files).filter((file) => /\.mdx?$/.test(file));
   let watching: Watcher | undefined;
 
   return {
