@@ -46,12 +46,11 @@ const importFences = (fences: readonly Fence[]): string[] =>
   fences.map(({ id }) => `  () => import(${JSON.stringify(id)}),`);
 
 /**
- * Code appended to a source file to register its fences as tests. `test` is an expression for the
- * host's `test` function, so the file imports nothing from the test runner. The code is a block,
- * and the host decides when it runs, such as only while the file is a test.
+ * for most runners, jsdoc fences arent loaded if the
+ * source file isnt imported int a test
  *
- * The fences are not awaited, because a fence usually imports the file it documents, and waiting
- * for it here would wait on the file itself.
+ * fences arent waited since jsdoc is very often
+ * a self import and would cause a desdlock
  */
 export function sourceTests(adapter: TestAdapter, fences: readonly Fence[], test: string): string {
   const lines = [
