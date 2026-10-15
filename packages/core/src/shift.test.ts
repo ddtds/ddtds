@@ -1,5 +1,5 @@
 import { expect, test } from "vitest";
-import { columnsBefore, linesBefore } from "./offset.ts";
+import { columnsBefore, linesBefore } from "./shift.ts";
 
 const source = "ab\ncd\r\nef";
 
