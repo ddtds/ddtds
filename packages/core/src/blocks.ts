@@ -27,6 +27,14 @@ function parseAnnotation(meta: string): AnnotationResult {
   return { tag: "unknown", raw: meta };
 }
 
+function zeroBased({ line, column }: Position): Position {
+  return { line: line - 1, column: column - 1 };
+}
+
+function oneBased({ line, column }: Position): Position {
+  return { line: line + 1, column: column + 1 };
+}
+
 export type CodeBlockInit = {
   code: string;
   lang: Lang;
@@ -41,9 +49,10 @@ export class CodeBlock {
   public readonly lang: Lang;
   readonly #annotation: Annotation | null;
   readonly #path: string;
-  readonly #rangeInText: SourceRange;
+  readonly #fenceInText: Position;
   readonly #placement: Placement;
   readonly #rangeInFile: SourceRange;
+  readonly #fenceInFile: Position;
 
   public constructor({
     code,
@@ -57,17 +66,29 @@ export class CodeBlock {
     this.lang = lang;
     this.#annotation = annotation;
     this.#path = path;
-    this.#rangeInText = rangeInText;
     this.#placement = placement;
-    const inFile = ({ line, column }: Position): Position => ({
-      line: line + placement.linesBefore,
-      column: column + placement.columnsBeforeLine(line),
+    this.#fenceInText = zeroBased(rangeInText.start);
+    const inFile = (position: Position): Position => ({
+      line: position.line + placement.linesBefore,
+      column: position.column + placement.columnsBeforeLine(position.line),
     });
-    this.#rangeInFile = { start: inFile(rangeInText.start), end: inFile(rangeInText.end) };
+    this.#fenceInFile = inFile(this.#fenceInText);
+    this.#rangeInFile = {
+      start: oneBased(this.#fenceInFile),
+      end: oneBased(inFile(zeroBased(rangeInText.end))),
+    };
   }
 
   public get line(): number {
     return this.#rangeInFile.start.line;
+  }
+
+  public get zeroBasedStart(): Position {
+    return this.#fenceInFile;
+  }
+
+  public get firstCodeLine(): number {
+    return this.#fenceInFile.line + 1;
   }
 
   public get details(): BlockDetails {
@@ -81,18 +102,17 @@ export class CodeBlock {
   }
 
   public columnsBeforeCodeLine(codeLine: number): number {
-    const fenceIndentRemovedByParser = this.#rangeInText.start.column - 1;
-    const lineInText = this.#rangeInText.start.line + 1 + codeLine;
-    return fenceIndentRemovedByParser + this.#placement.columnsBeforeLine(lineInText);
+    const lineInText = this.#fenceInText.line + 1 + codeLine;
+    return this.#fenceInText.column + this.#placement.columnsBeforeLine(lineInText);
   }
 
   public positionAt(offset: number): Position {
     const codeLine = linesBeforeOffset(this.#code, offset);
     const codeColumn = columnsBeforeOffset(this.#code, offset);
-    return {
-      line: this.line + 1 + codeLine,
-      column: this.columnsBeforeCodeLine(codeLine) + codeColumn + 1,
-    };
+    return oneBased({
+      line: this.firstCodeLine + codeLine,
+      column: this.columnsBeforeCodeLine(codeLine) + codeColumn,
+    });
   }
 
   public get outputExtension(): OutputExtension {
