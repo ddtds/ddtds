@@ -23,12 +23,15 @@ function runtimeCall<Helper extends InlineHelper>(
   };
 }
 
-function indent(fragment: Fragment): Fragment {
-  if (fragment instanceof MagicString) return fragment.indent("  ");
-  return fragment
+export function indentText(text: string): string {
+  return text
     .split("\n")
     .map((line) => `  ${line}`)
     .join("\n");
+}
+
+function indent(fragment: Fragment): Fragment {
+  return fragment instanceof MagicString ? fragment.indent("  ") : indentText(fragment);
 }
 
 export function wrap(expression: Expression, before: string, after: string): Expression {

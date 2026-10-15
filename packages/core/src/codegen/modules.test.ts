@@ -111,6 +111,24 @@ test("source tests register each fence in a block that imports nothing into the 
   );
 });
 
+test("source tests with a suite load the fences inside the suite callback", () => {
+  const first = fence("1;", null, { line: 3 });
+  expect(sourceTests(adapter, [first], "host.test.run", "host.describe")).toBe(
+    [
+      "{",
+      "  const test = host.test.run;",
+      '  host.describe("t.md", async () => {',
+      '    const { runtime } = await import("@ddtds/test/runtime");',
+      "    const fences = await runtime.loadFences([",
+      '      () => import("/repo/__doctests__/t_md_3.ts"),',
+      "    ]);",
+      '    test("t.md:3", fences[0]);',
+      "  });",
+      "}",
+    ].join("\n"),
+  );
+});
+
 test("a doc module maps each test call to its fence in the markdown", () => {
   const { code, map } = docModule(adapter, "/repo/docs/t.md", [fence("1;", null, { line: 3 })]);
   expect(map.sources).toEqual(["/repo/docs/t.md"]);

@@ -6,7 +6,7 @@ export default defineConfig({
   plugins: [
     solid(),
     ddtPlugin({
-      include: ["../../docs/framework/solid/**/*.md"],
+      include: ["../../docs/framework/solid/**/*.md", "src/*.tsx"],
       exclude: ["../../docs/framework/solid/ssr/**"],
     }),
   ],

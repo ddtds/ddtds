@@ -2,6 +2,6 @@ import { defineConfig } from "vitest/config";
 import { ddtPlugin } from "@ddtds/vitest";
 
 export default defineConfig({
-  plugins: [ddtPlugin({ include: ["../../docs/framework/angular/**/*.md"] })],
+  plugins: [ddtPlugin({ include: ["../../docs/framework/angular/**/*.md", "src/*.ts"] })],
   test: { dir: "./tests", environment: "happy-dom", setupFiles: ["@angular/compiler"] },
 });

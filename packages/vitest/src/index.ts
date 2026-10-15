@@ -5,9 +5,11 @@ import {
   DdtSession,
   DocIndex,
   defaultOutDir,
+  isSourceFile,
   moduleFiles as generateModuleFiles,
   moduleFor,
   resolveLogLevel,
+  sourceTests,
   type DocsOptions,
   type GeneratedModule,
   type LogLevel,
@@ -19,8 +21,8 @@ import { configureLogging, createViteSink } from "./logging.ts";
 export type { CodeBlock, DocIndex, DocsOptions, Fence, LogLevel } from "@ddtds/core";
 export {
   DdtCompileError,
-  defaultDocsInclude,
   defaultDocsExclude,
+  defaultDocsInclude,
   defaultOutDir,
 } from "@ddtds/core";
 
@@ -35,6 +37,25 @@ export function loadModule(index: DocIndex, id: string): GeneratedModule | undef
 
 const logger = getLogger(["ddtds", "vitest"]);
 
+/** Without an `include`, every markdown file, so one created while watching is found */
+function includeSourceGlobs({ include }: DocsOptions): string[] {
+  return include?.length ? include : ["**/*.{md,mdx}"];
+}
+
+/**
+ * Source files scanned for JSDoc that have no fences yet, so one that gains its first fence while
+ * watching can run. A file that already holds in-source tests is left alone: listing it would
+ * start running tests the user had not enabled.
+ */
+function sourcesWithoutTests(session: DdtSession): string[] {
+  return session
+    .trackedDocs()
+    .filter(
+      (doc) => isSourceFile(doc) && !session.index.sourceOf(doc)?.includes("import.meta.vitest"),
+    )
+    .map((doc) => relative(session.index.root, doc));
+}
+
 export type DdtPluginOptions = DocsOptions & {
   /**
    * Precedence (highest to lowest):
@@ -44,13 +65,6 @@ export type DdtPluginOptions = DocsOptions & {
    */
   logLevel?: LogLevel;
 };
-
-function docsWithoutFences(session: DdtSession): string[] {
-  return session
-    .trackedDocs()
-    .filter((doc) => session.index.fencesOf(doc).length === 0)
-    .map((doc) => relative(session.index.root, doc));
-}
 
 export function ddtPlugin({ logLevel, ...docs }: DdtPluginOptions = {}): Plugin {
   const vite = createViteSink();
@@ -78,10 +92,10 @@ export function ddtPlugin({ logLevel, ...docs }: DdtPluginOptions = {}): Plugin 
         test: {
           include: [...(config.test?.include ? [] : defaultInclude), ...docFiles],
           exclude: [...(config.test?.exclude ? [] : defaultExclude), buildOutput],
-          includeSource: docsWithoutFences(session),
+          includeSource: [...includeSourceGlobs(docs), ...sourcesWithoutTests(session)],
           watchTriggerPatterns: [
             {
-              pattern: /\.mdx?$/,
+              pattern: /\.(?:mdx?|[cm]?[jt]sx?)$/,
               testsToRun(file: string): string[] | undefined {
                 if (!session.tracks(file) || included.has(file)) return undefined;
                 session.refresh(file);
@@ -114,11 +128,29 @@ export function ddtPlugin({ logLevel, ...docs }: DdtPluginOptions = {}): Plugin 
       const fromRoot = join(session.index.root, "package.json");
       return this.resolve(source, fromRoot, { ...resolveOptions, skipSelf: true });
     },
+    transform(code, id) {
+      if (!isSourceFile(id) || !session.tracks(id)) return undefined;
+      session.update(id, code);
+      const fences = session.index.fencesOf(id);
+      if (fences.length === 0) return undefined;
+      // Vitest only defines `import.meta.vitest` while it runs the file as a test. The tests go
+      // after the file's own code, so its source map is unchanged.
+      const tests = sourceTests(
+        vitestTestAdapter,
+        fences,
+        "import.meta.vitest.test",
+        "import.meta.vitest.describe",
+      );
+      return { code: `${code}\nif (import.meta.vitest) ${tests}`, map: null };
+    },
     load(id) {
       const doc = resolve(session.index.root, id);
-      if (session.index.hasDoc(doc)) session.refresh(doc);
+      // a source file is reindexed in `transform`, from the code Vite read
+      if (session.index.hasDoc(doc) && !isSourceFile(doc)) session.refresh(doc);
       const fence = session.index.fence(id);
       if (fence) this.addWatchFile(fence.doc);
+      // a source file loads from disk; `transform` adds its tests
+      if (session.index.hasDoc(doc) && isSourceFile(doc)) return undefined;
       return session.module(id);
     },
   };

@@ -1,7 +1,7 @@
 import { Bundle, MagicString, SourceMap, type SourceMapSegment } from "magic-string";
 import type { DocIndex, Fence } from "../docs/docs.ts";
 import { runtimeImport, type TestAdapter } from "./adapter.ts";
-import { emitFence, wrap } from "./emit.ts";
+import { emitFence, indentText, wrap } from "./emit.ts";
 import { planFence } from "./plan.ts";
 
 export type GeneratedModule = { code: string; map: SourceMap };
@@ -51,17 +51,41 @@ const importFences = (fences: readonly Fence[]): string[] =>
  *
  * fences arent waited since jsdoc is very often
  * a self import and would cause a desdlock
+ *
+ * with a `suite`, the fences load inside the suite callback instead. the runner
+ * waits for that callback after the file has loaded, so there is no deadlock and the
+ * load time isnt charged to a test's timeout
  */
-export function sourceTests(adapter: TestAdapter, fences: readonly Fence[], test: string): string {
-  const lines = [
-    `const test = ${test};`,
-    `const { runtime } = await import(${JSON.stringify(adapter.runtime)});`,
-    "const fences = runtime.loadFences([",
-    ...importFences(fences),
-    "]);",
-    ...fences.map((fence, i) => `test(${testName(fence)}, runtime.fenceAt(fences, ${i}));`),
-  ];
-  return ["{", ...lines.map((line) => `  ${line}`), "}"].join("\n");
+export function sourceTests(
+  adapter: TestAdapter,
+  fences: readonly Fence[],
+  test: string,
+  suite?: string,
+): string {
+  const loadRuntime = `const { runtime } = await import(${JSON.stringify(adapter.runtime)});`;
+  const lines =
+    suite === undefined
+      ? [
+          `const test = ${test};`,
+          loadRuntime,
+          "const fences = runtime.loadFences([",
+          ...importFences(fences),
+          "]);",
+          ...fences.map((fence, i) => `test(${testName(fence)}, runtime.fenceAt(fences, ${i}));`),
+        ]
+      : [
+          `const test = ${test};`,
+          `${suite}(${JSON.stringify(fences[0]?.block.details.file)}, async () => {`,
+          ...[
+            loadRuntime,
+            "const fences = await runtime.loadFences([",
+            ...importFences(fences),
+            "]);",
+            ...fences.map((fence, i) => `test(${testName(fence)}, fences[${i}]);`),
+          ].map(indentText),
+          "});",
+        ];
+  return ["{", ...lines.map(indentText), "}"].join("\n");
 }
 
 export function docModule(

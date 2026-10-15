@@ -16,7 +16,7 @@ const config: KnipConfig = {
     },
     "examples/vitest/react": {
       // used in generated tests
-      ignoreDependencies: ["react", "react-dom", "@testing-library/react"],
+      ignoreDependencies: ["react-dom", "@testing-library/react"],
     },
     "examples/vitest/monorepo/packages/react-greet": {
       // used in generated tests
