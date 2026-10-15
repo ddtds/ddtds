@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { DdtCompileError, type CompileErrorDetails } from "./compile-error.ts";
+import { DdtCompileError, type CompileErrorDetails } from "./fences/compile-error.ts";
 import { runtime } from "./runtime.ts";
 
 const details: CompileErrorDetails = {

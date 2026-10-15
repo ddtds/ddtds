@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { join, resolve } from "node:path";
-import type { TestAdapter } from "./codegen/adapter.ts";
-import { moduleFor, type GeneratedModule } from "./codegen/modules.ts";
+import type { TestAdapter } from "../codegen/adapter.ts";
+import { moduleFor, type GeneratedModule } from "../codegen/modules.ts";
 import { type DocsConfig, readDocs, resolveDocsOptions } from "./discovery.ts";
 import { DocIndex } from "./docs.ts";
 

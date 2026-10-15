@@ -1,9 +1,9 @@
 import { mkdirSync, rmSync, writeFileSync } from "node:fs";
 
-export { CodeBlock, parseCodeFences } from "./blocks.ts";
+export { CodeBlock, parseCodeFences } from "./fences/blocks.ts";
 export { defaultDocsInclude, defaultDocsExclude, defaultOutDir } from "./constants.ts";
-export { DocIndex, type Fence, type IndexOptions } from "./docs.ts";
-export { DdtCompileError } from "./compile-error.ts";
+export { DocIndex, type Fence, type IndexOptions } from "./docs/docs.ts";
+export { DdtCompileError } from "./fences/compile-error.ts";
 export { resolveLogLevel, type LogLevel } from "./log-level.ts";
 export {
   moduleFiles,
@@ -12,8 +12,8 @@ export {
   type GeneratedModule,
   type TestAdapter,
 } from "./codegen/index.ts";
-export { DdtSession } from "./session.ts";
-export { findDocs, readDocs, resolveDocsOptions, type DocsOptions } from "./discovery.ts";
+export { DdtSession } from "./docs/session.ts";
+export { findDocs, readDocs, resolveDocsOptions, type DocsOptions } from "./docs/discovery.ts";
 
 export function writeFiles(dir: string, files: ReadonlyMap<string, string>): void {
   rmSync(dir, { recursive: true, force: true });

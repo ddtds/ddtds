@@ -1,5 +1,5 @@
 import { Bundle, MagicString, SourceMap, type SourceMapSegment } from "magic-string";
-import type { DocIndex, Fence } from "../docs.ts";
+import type { DocIndex, Fence } from "../docs/docs.ts";
 import { runtimeImport, type TestAdapter } from "./adapter.ts";
 import { emitFence, wrap } from "./emit.ts";
 import { planFence } from "./plan.ts";

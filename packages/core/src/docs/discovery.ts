@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { globSync } from "tinyglobby";
-import { defaultDocsExclude, defaultDocsInclude } from "./constants.ts";
+import { defaultDocsExclude, defaultDocsInclude } from "../constants.ts";
 
 export type DocsOptions = {
   /** Globs of docs to test, relative to the root. Defaults to `defaultDocsInclude` when unset or empty. */

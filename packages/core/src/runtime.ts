@@ -5,7 +5,11 @@
  * e.g. satteri attempts WASI imports if test runner uses DOM runtime
  */
 
-import { DdtCompileError, type CompileErrorDetails, type Position } from "./compile-error.ts";
+import {
+  DdtCompileError,
+  type CompileErrorDetails,
+  type Position,
+} from "./fences/compile-error.ts";
 
 type FenceRun = () => Promise<void>;
 type FenceModule = { default: FenceRun };
