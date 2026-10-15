@@ -3,7 +3,8 @@ import { existsSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { dirname, join } from "node:path";
 import { pathToFileURL } from "node:url";
-import { expect, test } from "vitest";
+import { describe, expect, test } from "vitest";
+import { version } from "vitest/node";
 import { fence, fixture } from "@ddtds/test-utils";
 import type { DdtPluginOptions } from "./index.ts";
 
@@ -91,63 +92,68 @@ function cacheEntries(stderr: string): CacheEntry[] {
 /** Doc and fence modules are generated, but they are still safe to cache. */
 const isGenerated = (id: string): boolean => id.endsWith("guide.md") || id.includes("__ddtds__");
 
-test("reuses generated modules from the fs cache without going stale", async () => {
-  await using dir = fixture({
-    "vitest.config.ts": configSource({ logLevel: "fatal" }),
-    "guide.md": fence("expect(1).toBe(1);"),
+// `fsModuleCache` is Vitest 5+, so the suite is skipped on 4.
+describe.skipIf(Number(version.split(".")[0]) < 5)("fs module cache", () => {
+  test("reuses generated modules from the fs cache without going stale", async () => {
+    await using dir = fixture({
+      "vitest.config.ts": configSource({ logLevel: "fatal" }),
+      "guide.md": fence("expect(1).toBe(1);"),
+    });
+    rmSync(cacheDir(dir.root), { recursive: true, force: true });
+
+    const cold = run(dir.root, { debug: true });
+    expect(cold.status).toBe(0);
+    expect(cold.tests).toEqual([{ name: "guide.md:1", status: "passed" }]);
+    expect(cacheEntries(cold.stderr).some((entry) => entry.action === "write")).toBe(true);
+
+    // A second process shares the cache. The doc and fence ids are deterministic,
+    // so their transforms are read back instead of being generated again.
+    const warm = run(dir.root, { debug: true });
+    expect(warm.status).toBe(0);
+    expect(warm.tests).toEqual([{ name: "guide.md:1", status: "passed" }]);
+
+    const reads = cacheEntries(warm.stderr).filter((entry) => entry.action === "read");
+    expect(reads.some((entry) => isGenerated(entry.id))).toBe(true);
+    expect(warm.stderr).not.toContain("[stale]");
+    // Dependencies still cache across processes, which is the whole point.
+    expect(reads.some((entry) => entry.path.startsWith(cacheDir(dir.root)))).toBe(true);
   });
-  rmSync(cacheDir(dir.root), { recursive: true, force: true });
 
-  const cold = run(dir.root, { debug: true });
-  expect(cold.status).toBe(0);
-  expect(cold.tests).toEqual([{ name: "guide.md:1", status: "passed" }]);
-  expect(cacheEntries(cold.stderr).some((entry) => entry.action === "write")).toBe(true);
+  test("picks up a markdown edit with a warm cache from another process", async () => {
+    await using dir = fixture({
+      "vitest.config.ts": configSource({ logLevel: "fatal" }),
+      "guide.md": fence("expect(1).toBe(1);"),
+    });
+    rmSync(cacheDir(dir.root), { recursive: true, force: true });
+    expect(run(dir.root, { debug: true }).tests).toEqual([
+      { name: "guide.md:1", status: "passed" },
+    ]);
 
-  // A second process shares the cache. The doc and fence ids are deterministic,
-  // so their transforms are read back instead of being generated again.
-  const warm = run(dir.root, { debug: true });
-  expect(warm.status).toBe(0);
-  expect(warm.tests).toEqual([{ name: "guide.md:1", status: "passed" }]);
-
-  const reads = cacheEntries(warm.stderr).filter((entry) => entry.action === "read");
-  expect(reads.some((entry) => isGenerated(entry.id))).toBe(true);
-  expect(warm.stderr).not.toContain("[stale]");
-  // Dependencies still cache across processes, which is the whole point.
-  expect(reads.some((entry) => entry.path.startsWith(cacheDir(dir.root)))).toBe(true);
-});
-
-test("picks up a markdown edit with a warm cache from another process", async () => {
-  await using dir = fixture({
-    "vitest.config.ts": configSource({ logLevel: "fatal" }),
-    "guide.md": fence("expect(1).toBe(1);"),
-  });
-  rmSync(cacheDir(dir.root), { recursive: true, force: true });
-  expect(run(dir.root, { debug: true }).tests).toEqual([{ name: "guide.md:1", status: "passed" }]);
-
-  writeFileSync(join(dir.root, "guide.md"), fence("expect(1).toBe(2);"));
-  const warm = run(dir.root, { debug: true });
-  expect(warm.tests).toEqual([{ name: "guide.md:1", status: "failed" }]);
-  expect(warm.status).toBe(1);
-});
-
-test("reruns a doc with fresh fence code in watch mode", async () => {
-  await using dir = fixture({
-    "vitest.config.ts": configSource({ logLevel: "fatal" }),
-    "guide.md": fence("expect(1).toBe(1);"),
-  });
-  rmSync(cacheDir(dir.root), { recursive: true, force: true });
-
-  const watch = spawnWatch(dir.root);
-  try {
-    await watch.waitFor(() => watch.summaries().length >= 1);
     writeFileSync(join(dir.root, "guide.md"), fence("expect(1).toBe(2);"));
-    await watch.waitFor(() => watch.summaries().length >= 2);
-    expect(watch.summaries().at(-1)).toContain("failed");
-    expect(watch.output()).toContain("expected 1 to be 2");
-  } finally {
-    await watch.close();
-  }
-}, 30_000);
+    const warm = run(dir.root, { debug: true });
+    expect(warm.tests).toEqual([{ name: "guide.md:1", status: "failed" }]);
+    expect(warm.status).toBe(1);
+  });
+
+  test("reruns a doc with fresh fence code in watch mode", async () => {
+    await using dir = fixture({
+      "vitest.config.ts": configSource({ logLevel: "fatal" }),
+      "guide.md": fence("expect(1).toBe(1);"),
+    });
+    rmSync(cacheDir(dir.root), { recursive: true, force: true });
+
+    const watch = spawnWatch(dir.root);
+    try {
+      await watch.waitFor(() => watch.summaries().length >= 1);
+      writeFileSync(join(dir.root, "guide.md"), fence("expect(1).toBe(2);"));
+      await watch.waitFor(() => watch.summaries().length >= 2);
+      expect(watch.summaries().at(-1)).toContain("failed");
+      expect(watch.output()).toContain("expected 1 to be 2");
+    } finally {
+      await watch.close();
+    }
+  }, 30_000);
+});
 
 function spawnWatch(root: string): {
   waitFor: (condition: () => boolean) => Promise<void>;
