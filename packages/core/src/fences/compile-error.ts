@@ -1,4 +1,4 @@
-import type { Annotation, Lang, Parser } from "./constants.ts";
+import type { Annotation, Lang, Parser } from "../constants.ts";
 
 export type ParserError = {
   message: string;

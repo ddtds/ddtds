@@ -1,7 +1,7 @@
-import { CodeBlock } from "../blocks.ts";
-import { DdtCompileError } from "../compile-error.ts";
+import { CodeBlock } from "../fences/blocks.ts";
+import { DdtCompileError } from "../fences/compile-error.ts";
 import type { Annotation, Lang } from "../constants.ts";
-import type { Fence } from "../docs.ts";
+import type { Fence } from "../docs/docs.ts";
 import type { TestAdapter } from "./adapter.ts";
 
 export const adapter: TestAdapter = {
