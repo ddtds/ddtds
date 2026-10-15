@@ -3,7 +3,6 @@ import { tmpdir } from "node:os";
 import { dirname, join, relative } from "node:path";
 import { describe, test, expect, onTestFinished } from "vitest";
 import {
-  ANNOTATIONS,
   CodeBlock,
   DdtCompileError,
   parseCodeFences,
@@ -11,10 +10,8 @@ import {
   defaultDocsInclude,
   findDocs,
   resolveDocsOptions,
-  type Annotation,
-  type Lang,
 } from "./index";
-import { isLang } from "./constants";
+import { ANNOTATIONS, isLang, type Annotation, type Lang } from "./constants";
 
 describe("parseBlocks", () => {
   test.each([
