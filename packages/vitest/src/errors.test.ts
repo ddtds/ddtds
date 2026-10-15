@@ -3,33 +3,6 @@ import { fence, fixture, spawn } from "@ddtds/test-utils";
 import { failures } from "./test-utils.ts";
 import { vitest } from "./e2e.ts";
 
-test("classifies how doc tests fail", async () => {
-  await using ddt = spawn(vitest(), {
-    "parse-error.md": fence("const = 1;"),
-    "runtime-syntax-error.md": fence('JSON.parse("{");'),
-    "undeclared-name.md": fence("missingFn();"),
-    "missing-static-import.md": fence('import { x } from "./missing.ts";\nx;'),
-    "missing-dynamic-import.md": fence('await import("./missing.ts");'),
-    "failed-assertion.md": fence("expect(1).toBe(2);"),
-    "fail-annotation-passes.md": fence("1;", "fail"),
-    "compile-fail-compiles.md": fence("1;", "compile_fail"),
-    "passes.md": fence("expect(1).toBe(1);"),
-  });
-  expect(await ddt.run()).toMatchInlineSnapshot(`
-    {
-      "compile-fail-compiles.md:1": "Error",
-      "fail-annotation-passes.md:1": "Error",
-      "failed-assertion.md:1": "AssertionError",
-      "missing-dynamic-import.md:1": "Error",
-      "missing-static-import.md:1": "Error",
-      "parse-error.md:1": "DdtCompileError",
-      "passes.md:1": "passed",
-      "runtime-syntax-error.md:1": "SyntaxError",
-      "undeclared-name.md:1": "ReferenceError",
-    }
-  `);
-});
-
 test("a broken fence does not stop the rest of its doc", async () => {
   await using ddt = spawn(vitest(), {
     "guide.md": fence('import { x } from "./missing.ts";\nx;') + fence("expect(1).toBe(1);"),

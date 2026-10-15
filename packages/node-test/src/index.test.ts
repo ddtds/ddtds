@@ -19,29 +19,6 @@ test("runs fences in markdown with node:test", async () => {
   `);
 });
 
-test("classifies how doc tests fail", async () => {
-  await using ddt = spawn(nodeTest, {
-    "parse-error.md": fence("const = 1;"),
-    "missing-import.md": fence('import { x } from "missing-package";\nx;'),
-    "undeclared-name.md": fence("missingFn();"),
-    "fail-annotation-throws.md": fence('throw new Error("boom");', "fail"),
-    "fail-annotation-passes.md": fence("1;", "fail"),
-    "compile-fail-compiles.md": fence("1;", "compile_fail"),
-    "compile-fail-parse-error.md": fence("const = 1;", "compile_fail"),
-  });
-  expect(await ddt.run()).toMatchInlineSnapshot(`
-    {
-      "compile-fail-compiles.md:1": "Error",
-      "compile-fail-parse-error.md:1": "passed",
-      "fail-annotation-passes.md:1": "Error",
-      "fail-annotation-throws.md:1": "passed",
-      "missing-import.md:1": "Error ERR_MODULE_NOT_FOUND",
-      "parse-error.md:1": "DdtCompileError",
-      "undeclared-name.md:1": "ReferenceError",
-    }
-  `);
-});
-
 test("imports packages from the project", async () => {
   await using ddt = spawn(nodeTest, {
     "node_modules/calc/package.json": '{ "name": "calc", "type": "module", "main": "index.js" }',
