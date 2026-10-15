@@ -245,9 +245,9 @@ export function conformance(name: string, runner: Runner, dialect: Dialect): voi
 
     test("runs a doc once it gains its first fence in watch mode", async () => {
       await using ddt = open(runner, { "guide.md": "# Guide\n", "other.md": fence(passing) });
-      expect(await ddt.watch()).toEqual({ "other.md:1": "passed" });
-      expect(await ddt.edit("guide.md", fence(passing))).toEqual({ "guide.md:1": "passed" });
-      expect(await ddt.edit("guide.md", fence(failing))).toEqual({ "guide.md:1": "failed" });
+      expect(await ddt.watch()).toEqual({ "other.md:1": PASSED });
+      expect(await ddt.edit("guide.md", fence(passing))).toEqual({ "guide.md:1": PASSED });
+      expect(await ddt.edit("guide.md", fence(failing))).toEqual({ "guide.md:1": FAILED });
     });
 
     test("stops running a doc once it loses its last fence in watch mode", async () => {
