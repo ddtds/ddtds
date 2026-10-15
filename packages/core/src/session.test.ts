@@ -56,6 +56,18 @@ describe("DdtSession.refresh", () => {
     expect(session.module(after!.id)?.code).toContain("expect(2).toBe(2);");
   });
 
+  test("refreshes a doc when the watcher reports a root-relative id", () => {
+    const root = fixture({ "guide.md": doc("expect(1).toBe(1);") });
+    const session = sessionOver(root);
+
+    writeFileSync(join(root, "guide.md"), doc("expect(2).toBe(2);"));
+    session.refresh("guide.md");
+
+    const [updated] = session.index.fences();
+    expect(session.module(updated!.id)?.code).toContain("expect(2).toBe(2);");
+    expect([...session.index.docs()].map(([doc]) => doc)).toEqual([join(root, "guide.md")]);
+  });
+
   test("indexes a doc it has not seen yet", () => {
     const root = fixture({});
     const session = DdtSession.fromSources(adapter, new Map(), root);
