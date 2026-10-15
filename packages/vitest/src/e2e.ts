@@ -10,7 +10,6 @@ export type VitestRunnerOptions = {
   test?: ViteUserConfig["test"] & Record<string, unknown>;
 };
 
-
 export function vitest(options: VitestRunnerOptions = {}): Runner {
   const plugin = (docs: string[]): DdtPluginOptions => ({ ...options.plugin, include: docs });
 
