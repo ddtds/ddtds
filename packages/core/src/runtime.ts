@@ -11,9 +11,12 @@ import {
   type Position,
 } from "./fences/compile-error.ts";
 
+/** Runs one fence as a test body. */
 type FenceRun = () => Promise<void>;
+/** A generated fence module, whose default export runs the fence. */
 type FenceModule = { default: FenceRun };
 
+/** An error cause as plain data, so it can be written into a generated module. */
 export type SerializedCause = { name: string; message: string; code?: string };
 
 /** Points the error's stack at the markdown. */
@@ -74,4 +77,5 @@ export const runtime = {
     },
 } as const;
 
+/** The helpers that generated modules call. */
 export type FenceRuntime = typeof runtime;

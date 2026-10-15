@@ -7,6 +7,7 @@ import { DocIndex } from "./docs.ts";
 
 const docPattern = /\.mdx?$/;
 
+/** The docs a host is testing, kept current as files change, and the modules generated for them. */
 export class DdtSession {
   readonly #adapter: TestAdapter;
   readonly #known: Set<string>;

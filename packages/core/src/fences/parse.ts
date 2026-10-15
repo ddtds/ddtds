@@ -13,13 +13,17 @@ import {
   type ParserError,
 } from "./compile-error.ts";
 
+/** A top level statement as the parser returns it. */
 type ParsedBodyNode = Program["body"][number];
+/** A default export of an expression, which becomes a constant so the expression still runs. */
 type SyntheticDefaultNode = {
   kind: "synthetic-default";
   declaration: ExportDefaultDeclarationKind;
 };
+/** A statement to print into the generated module. */
 type BodyNode = ParsedBodyNode | SyntheticDefaultNode;
 
+/** A fence's code split into its imports and the rest of its body. */
 export type PreparedBlock = {
   imports: MagicString[];
   body: MagicString[];
@@ -35,6 +39,7 @@ export function splitImportsAndBlock(block: CodeBlock): PreparedBlock {
   return { imports, body };
 }
 
+/** A parsed fence, with the offsets of its static imports. */
 type ParsedBlock = { program: Program; staticImports: Range[] };
 
 function parse(block: CodeBlock): ParsedBlock {
@@ -51,6 +56,7 @@ function parse(block: CodeBlock): ParsedBlock {
   return { program, staticImports: module.staticImports };
 }
 
+/** What either parser returns. */
 type ParseResult = ReturnType<typeof parseSync> | ReturnType<typeof TsrxParser.parseSync>;
 
 function runParser(block: CodeBlock, parser: Parser): ParseResult {
@@ -158,6 +164,7 @@ function printBodyNode(source: MagicString, node: BodyNode): MagicString {
   return sliceSource(source, node);
 }
 
+/** Start and end offsets in a text. */
 type Range = { start: number; end: number };
 function sliceSource(source: MagicString, { start, end }: Range): MagicString {
   const trimmed = source.original.slice(start, end).trimEnd();
