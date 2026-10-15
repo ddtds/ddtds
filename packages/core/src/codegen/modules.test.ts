@@ -78,19 +78,19 @@ test("a fence module embeds the doc for debuggers that cannot resolve the path",
   expect(map.sourcesContent).toEqual(["# Title\n"]);
 });
 
-test("a doc module loads each fence and registers one test per fence", () => {
+test("a doc module loads each fence before it registers one test per fence", () => {
   const first = fence("1;", null, { line: 3 });
   const second = { ...fence("2;", null, { line: 9 }), id: "/repo/__doctests__/t_md_9.ts" };
   expect(docModule(adapter, "/repo/docs/t.md", [first, second]).code).toBe(
     [
       "import { test } from 'test';",
       "import { runtime } from '@ddtds/test/runtime';",
-      "const fences = runtime.loadFences([",
+      "const fences = await runtime.loadFences([",
       '  () => import("/repo/__doctests__/t_md_3.ts"),',
       '  () => import("/repo/__doctests__/t_md_9.ts"),',
       "]);",
-      'test("t.md:3", runtime.fenceAt(fences, 0));',
-      'test("t.md:9", runtime.fenceAt(fences, 1));',
+      'test("t.md:3", fences[0]);',
+      'test("t.md:9", fences[1]);',
     ].join("\n"),
   );
 });

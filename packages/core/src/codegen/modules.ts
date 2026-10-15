@@ -42,20 +42,8 @@ export function fenceModule(adapter: TestAdapter, fence: Fence, source?: string)
 const testName = ({ block }: Fence): string =>
   JSON.stringify(`${block.details.file}:${block.line}`);
 
-const loadFences = (fences: readonly Fence[]): string[] => [
-  "const fences = runtime.loadFences([",
-  ...fences.map(({ id }) => `  () => import(${JSON.stringify(id)}),`),
-  "]);",
-];
-
-const testCall = (fence: Fence, i: number): string =>
-  `test(${testName(fence)}, runtime.fenceAt(fences, ${i}));`;
-
-/** Starts loading the fences and registers one test per fence, with `test` and `runtime` in scope */
-const registerFences = (fences: readonly Fence[]): string[] => [
-  ...loadFences(fences),
-  ...fences.map(testCall),
-];
+const importFences = (fences: readonly Fence[]): string[] =>
+  fences.map(({ id }) => `  () => import(${JSON.stringify(id)}),`);
 
 /**
  * Code appended to a source file to register its fences as tests. `test` is an expression for the
@@ -69,7 +57,10 @@ export function sourceTests(adapter: TestAdapter, fences: readonly Fence[], test
   const lines = [
     `const test = ${test};`,
     `const { runtime } = await import(${JSON.stringify(adapter.runtime)});`,
-    ...registerFences(fences),
+    "const fences = runtime.loadFences([",
+    ...importFences(fences),
+    "]);",
+    ...fences.map((fence, i) => `test(${testName(fence)}, runtime.fenceAt(fences, ${i}));`),
   ];
   return ["{", ...lines.map((line) => `  ${line}`), "}"].join("\n");
 }
@@ -80,8 +71,14 @@ export function docModule(
   fences: readonly Fence[],
   { source }: { source?: string } = {},
 ): GeneratedModule {
-  const header = [adapter.testImport, runtimeImport(adapter), ...loadFences(fences)];
-  const lines = [...header, ...fences.map(testCall)];
+  const header = [
+    adapter.testImport,
+    runtimeImport(adapter),
+    "const fences = await runtime.loadFences([",
+    ...importFences(fences),
+    "]);",
+  ];
+  const lines = [...header, ...fences.map((fence, i) => `test(${testName(fence)}, fences[${i}]);`)];
   const mappings: SourceMapSegment[][] = [
     ...header.map(() => []),
     ...fences.map(({ block }): SourceMapSegment[] => {
