@@ -47,11 +47,10 @@ export type CodeBlockInit = {
 export class CodeBlock {
   readonly #code: string;
   public readonly lang: Lang;
+  public readonly details: BlockDetails;
   readonly #annotation: Annotation | null;
-  readonly #path: string;
   readonly #fenceInText: Position;
   readonly #placement: Placement;
-  readonly #rangeInFile: SourceRange;
   readonly #fenceInFile: Position;
 
   public constructor({
@@ -65,7 +64,6 @@ export class CodeBlock {
     this.#code = code;
     this.lang = lang;
     this.#annotation = annotation;
-    this.#path = path;
     this.#placement = placement;
     this.#fenceInText = zeroBased(rangeInText.start);
     const inFile = (position: Position): Position => ({
@@ -73,29 +71,25 @@ export class CodeBlock {
       column: position.column + placement.columnsBeforeLine(position.line),
     });
     this.#fenceInFile = inFile(this.#fenceInText);
-    this.#rangeInFile = {
-      start: oneBased(this.#fenceInFile),
-      end: oneBased(inFile(zeroBased(rangeInText.end))),
+    this.details = {
+      file: path,
+      lang,
+      annotation,
+      range: {
+        start: oneBased(this.#fenceInFile),
+        end: oneBased(inFile(zeroBased(rangeInText.end))),
+      },
+      contents: code,
     };
   }
 
   public get line(): number {
-    return this.#rangeInFile.start.line;
+    return this.details.range.start.line;
   }
 
   /** 0 indexed */
   public get zeroBasedStart(): Position {
     return this.#fenceInFile;
-  }
-
-  public get details(): BlockDetails {
-    return {
-      file: this.#path,
-      lang: this.lang,
-      annotation: this.#annotation,
-      range: this.#rangeInFile,
-      contents: this.#code,
-    };
   }
 
   /** `codeLine` and `codeColumn` are 0 indexed in the code, and so is the result in the file */
