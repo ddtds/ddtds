@@ -3,7 +3,6 @@ import { tmpdir } from "node:os";
 import { dirname, join, relative } from "node:path";
 import { describe, test, expect, onTestFinished } from "vitest";
 import {
-  ANNOTATIONS,
   CodeBlock,
   DdtCompileError,
   parseCodeFences,
@@ -11,10 +10,8 @@ import {
   defaultDocsInclude,
   findDocs,
   resolveDocsOptions,
-  type Annotation,
-  type Lang,
 } from "./index";
-import { isLang } from "./constants";
+import { ANNOTATIONS, isLang, type Annotation, type Lang } from "./constants";
 
 describe("parseBlocks", () => {
   test.each([
@@ -105,8 +102,7 @@ function block(
     lang,
     annotation,
     path: "t.md",
-    range: { start: { line, column: 1 }, end: { line, column: 1 } },
-    indent: 0,
+    rangeInText: { start: { line, column: 1 }, end: { line, column: 1 } },
   });
 }
 
@@ -217,7 +213,6 @@ describe("CodeBlock.splitImports", () => {
           "contents": "let x = 1;
       let x = 2;",
           "file": "t.md",
-          "indent": 0,
           "lang": "ts",
           "range": {
             "end": {

@@ -7,12 +7,12 @@ import { planFence } from "./plan.ts";
 export type GeneratedModule = { code: string; map: SourceMap };
 
 function shiftToFence(mappings: SourceMapSegment[][], { block }: Fence): SourceMapSegment[][] {
-  const { line, details } = block;
   return mappings.map((segments) =>
     segments.map((segment) => {
       if (segment.length === 1) return segment;
       const [column, source, sourceLine, sourceColumn] = segment;
-      return [column, source, sourceLine + line, sourceColumn + details.indent];
+      const { line, column: fileColumn } = block.zeroBasedPositionAt(sourceLine, sourceColumn);
+      return [column, source, line, fileColumn];
     }),
   );
 }
@@ -56,7 +56,8 @@ export function docModule(
   for (const [i, { block }] of fences.entries()) {
     const name = JSON.stringify(`${block.details.file}:${block.line}`);
     lines.push(`test(${name}, fences[${i}]);`);
-    mappings.push([[0, 0, block.line - 1, block.details.indent]]);
+    const { line, column } = block.zeroBasedStart;
+    mappings.push([[0, 0, line, column]]);
   }
   const map = new SourceMap({
     file: doc,
