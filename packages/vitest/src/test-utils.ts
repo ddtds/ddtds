@@ -82,7 +82,9 @@ export async function collect(
 type Failure = { error: string; diff?: string; frames: string[] };
 
 function frame(root: string, { file, line, column }: ParsedStack): string {
-  return `${relative(root, file).replace(/__ddtds__-\w+/, "__ddtds__")}:${line}:${column}`;
+  // Drop the content hash from generated fence paths so snapshots stay stable.
+  const name = relative(root, file).replace(/_[0-9a-f]{8}(?=\.\w+$)/, "");
+  return `${name}:${line}:${column}`;
 }
 
 /** The first error of each failed test, with only the stack frames inside the fixture */

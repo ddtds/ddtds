@@ -75,21 +75,14 @@ export function ddtPlugin({ logLevel, ...docs }: DdtPluginOptions = {}): Plugin 
       vite.attach(config.logger);
       logger.info("Total: {size} tests", { size: session.index.size });
     },
-    configureVitest({ defineCacheKeyGenerator }) {
-      // opt out of caching markdown fences and files
-      // they are cheap and imports are still cached
-      // the file system module cache is on by default > v5.0.4
-      //
-      // oxlint-disable-next-line typescript/no-unnecessary-condition vitest 4 interop
-      defineCacheKeyGenerator?.(({ id }) =>
-        session.index.hasDoc(id) || session.index.fence(id) ? false : undefined,
-      );
-    },
     watchChange(id) {
       session.refresh(id);
     },
     resolveId(source, importer, resolveOptions) {
-      if (session.index.fence(source)) return source;
+      // A cached doc module carries the fence imports Vite rewrote to
+      // root-relative urls, so accept those too, not just absolute ids.
+      const fence = session.index.fence(source) ? source : join(session.index.root, source);
+      if (session.index.fence(fence)) return fence;
       if (!importer || !session.index.hasDoc(importer)) return undefined;
       const fromRoot = join(session.index.root, "package.json");
       return this.resolve(source, fromRoot, { ...resolveOptions, skipSelf: true });
