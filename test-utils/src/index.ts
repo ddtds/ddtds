@@ -18,15 +18,11 @@ const message = v.strictObject({
   failures: v.record(v.string(), v.array(frame)),
 });
 
-export type Outcomes = v.InferOutput<typeof message>["outcomes"];
-export type Failures = v.InferOutput<typeof message>["failures"];
-export type Report = { outcomes: Outcomes; failures: Failures };
+export type Report = Omit<v.InferOutput<typeof message>, "type">;
+export type Outcomes = Report["outcomes"];
+export type Failures = Report["failures"];
 
-const decoded = v.fallback(v.pipe(v.string(), v.parseJson(), message), {
-  type: "outcomes",
-  outcomes: {},
-  failures: {},
-});
+const decoded = v.pipe(v.string(), v.parseJson(), message);
 
 export class Lines extends EventEmitter {
   #completed = 0;
