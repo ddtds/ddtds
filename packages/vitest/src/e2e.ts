@@ -1,4 +1,4 @@
-import type { Report, Runner, Watcher } from "@ddtds/test-utils";
+import { emptyReport, type Report, type Runner, type Watcher } from "@ddtds/test-utils";
 import type { ViteUserConfig } from "vitest/config";
 import type { Reporter, TestModule } from "vitest/node";
 import { create, failureFrames, outcomes } from "./test-utils.ts";
@@ -46,7 +46,7 @@ export function vitest(options: VitestRunnerOptions = {}): Runner {
           if (runs.length === 0) {
             await new Promise<void>((resolve) => (waiting = resolve));
           }
-          return runs.shift() ?? { outcomes: {}, failures: {} };
+          return runs.shift() ?? emptyReport;
         },
         async close(): Promise<void> {
           await instance.close();
