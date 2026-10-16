@@ -2,12 +2,17 @@ import { CodeBlock } from "../fences/blocks.ts";
 import { DdtCompileError } from "../fences/compile-error.ts";
 import type { Annotation, Lang } from "../constants.ts";
 import type { Fence } from "../docs/docs.ts";
-import type { TestAdapter } from "./adapter.ts";
+import { typedImports, type TestAdapter } from "./adapter.ts";
+
+const importFromTest = typedImports<{ test: unknown }>("test");
+export const importFromExpect: ReturnType<typeof typedImports<{ expect: unknown }>> = typedImports<{
+  expect: unknown;
+}>("expect");
 
 export const adapter: TestAdapter = {
   runtime: "@ddtds/test/runtime",
-  testImport: "import { test } from 'test';",
-  fenceImports: ["import { expect } from 'expect';"],
+  testImport: importFromTest("test"),
+  fenceImports: [importFromExpect("expect")],
 };
 
 export function fence(

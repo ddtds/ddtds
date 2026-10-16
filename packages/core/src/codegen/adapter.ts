@@ -47,14 +47,17 @@ const importers: Record<ModuleSystem, (module: string, name: string, alias?: str
 };
 
 /**
- * Typesafe `import { name } from 'module'`, or `import { name as local } from 'module'`. With
- * `type: "cjs"`, `const { name } = require('module')`
- *
- * @example
+ * @example esm
  * ```ts
  * const importFromVitest = typedImports<typeof import("vitest")>("vitest");
- * const statement = importFromVitest("test");
- * expect(statement).toBe("import { test } from 'vitest';");
+ * expect(importFromVitest("test")).toBe("import { test } from 'vitest';");
+ * ```
+ *
+ * @example cjs with alias
+ * ```ts
+ * const importFromAssert = typedImports<typeof import("node:assert")>("node:assert");
+ * const statement = importFromAssert("strict", { alias: "assert", type: "cjs" });
+ * expect(statement).toBe("const { strict: assert } = require('node:assert');");
  * ```
  */
 export const typedImports =
