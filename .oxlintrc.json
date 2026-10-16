@@ -21,7 +21,6 @@
     ],
     "no-shadow": "off",
     "no-await-in-loop": "off",
-    "typescript/no-unnecessary-type-parameters": "off",
     "@logtape/no-dynamic-message": "error",
     "@logtape/no-unrendered-properties": "error",
     "@logtape/no-message-interpolation": "error",
