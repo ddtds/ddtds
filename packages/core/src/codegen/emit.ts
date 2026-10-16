@@ -4,7 +4,7 @@ import { serialize } from "seroval";
 import { runtimeImport, type TestAdapter } from "./adapter.ts";
 import type { FenceOutcome, Fragment } from "./plan.ts";
 
-/** Generated code that fits on one line, or a block whose body keeps its fragments for source maps */
+/** One line of code, or a block whose body keeps fragments for source maps */
 export type Expression =
   | { tag: "inline"; code: string }
   | { tag: "block"; open: string; body: Fragment[]; close: string };

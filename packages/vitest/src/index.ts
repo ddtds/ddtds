@@ -78,7 +78,6 @@ export function ddtPlugin({ logLevel, ...docs }: DdtPluginOptions = {}): Plugin 
                 if (!session.tracks(file) || included.has(file)) return undefined;
                 session.refresh(file);
                 if (!project || session.index.fencesOf(file).length === 0) return undefined;
-                // a doc that gains its first fence becomes a test file from now on
                 included.add(file);
                 project.config.include.push(
                   relative(project.config.dir || project.config.root, file),
@@ -101,8 +100,7 @@ export function ddtPlugin({ logLevel, ...docs }: DdtPluginOptions = {}): Plugin 
       session.refresh(id);
     },
     resolveId(source, importer, resolveOptions) {
-      // Vite resolves a top-level request, such as the runner importing a test file, from the
-      // root's index.html. Run a doc there as its fence tests instead
+      // Vite resolves top-level requests, like test files, from the root's index.html
       if (!importer || importer === join(session.index.root, "index.html")) {
         const entry = session.entry(source);
         if (entry !== undefined) return entry;

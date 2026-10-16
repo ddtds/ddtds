@@ -190,12 +190,12 @@ export function fixture(files: Record<string, string>): AsyncDisposable & { root
   };
 }
 
-/** Where a doc's markdown lives: in a markdown file, or in a JSDoc comment of a source file */
+/** Where a doc's markdown lives: a markdown file or a JSDoc comment */
 export type Kind = {
-  /** The runner's file for a markdown file */
+  /** Runner file for a markdown file */
   file(markdown: string): string;
   content(markdown: string): string;
-  /** The id the runner reports for a fence on `line` of a markdown file */
+  /** Reported id for a fence on `line` of a markdown file */
   id(markdown: string, line: number): string;
 };
 
@@ -205,10 +205,7 @@ export const markdown: Kind = {
   id: (name, line) => `${name}:${line}`,
 };
 
-/**
- * JSDoc in a source file with `extension`, whose code after the comment is `code`. A CommonJS file
- * needs code that is not an ES module
- */
+/** JSDoc in a `.extension` file followed by `code`, which CommonJS files need to change */
 export function jsdocIn(extension: string, code = "export {};"): Kind {
   const file = (name: string): string => name.replace(/\.mdx?$/, `.${extension}`);
   return {
@@ -220,7 +217,7 @@ export function jsdocIn(extension: string, code = "export {};"): Kind {
         .map((line) => (line === "" ? " *" : ` * ${line}`));
       return ["/**", ...lines, " */", code, ""].join("\n");
     },
-    // the comment opens one line above the markdown
+    // `/**` sits one line above the markdown
     id: (name, line) => `${file(name)}:${line + 1}`,
   };
 }
@@ -230,10 +227,8 @@ export const jsdoc: Kind = jsdocIn("ts");
 const isMarkdown = (file: string): boolean => /\.mdx?$/.test(file);
 
 /**
- * Creates a project from `files` and a session to run or watch it. A `kind` other than markdown
- * moves the markdown files into that kind of source file, and the session still takes markdown
- * file names. `docs` are the paths or globs handed to the runner, and default to
- * the markdown files.
+ * Project from `files` plus a session to run or watch it. `kind` places markdown files, which the
+ * session still names as markdown. `docs` go to the runner, defaulting to the markdown files
  */
 export function spawn(
   runner: Runner,

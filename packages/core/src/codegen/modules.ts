@@ -61,7 +61,7 @@ export function docModule(
   fences: readonly Fence[],
   { source }: { source?: string } = {},
 ): GeneratedModule {
-  // a source doc still runs as itself, before its fences import it again by package name
+  // load the file before its fences import it by package name
   const self = isSourceFile(doc) ? [`import ${JSON.stringify(doc)};`] : [];
   const header = [...self, adapter.testImport, runtimeImport(adapter), ...loadFences(fences)];
   const lines = [...header, ...fences.map((fence, i) => `test(${testName(fence)}, fences[${i}]);`)];
@@ -92,7 +92,7 @@ export function moduleFiles(adapter: TestAdapter, index: DocIndex): Map<string, 
   return files;
 }
 
-/** The module a host serves for an entry or fence id, or `undefined` when the id is neither. */
+/** Module for an entry or fence id */
 export function moduleFor(
   adapter: TestAdapter,
   index: DocIndex,

@@ -110,7 +110,7 @@ export function conformance(name: string, runner: Runner, dialect: Dialect): voi
     ],
   ];
 
-  /** Cases that only exercise the markdown parser, which every kind of doc shares */
+  /** Parser-only cases, the same for every doc kind */
   const parsing: [title: string, doc: string, expected: Verdicts][] = [
     [
       "an unclosed fence, which takes the rest of the doc as code",

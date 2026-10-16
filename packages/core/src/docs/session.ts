@@ -8,7 +8,7 @@ import { DocIndex } from "./docs.ts";
 
 export class DdtSession {
   readonly #adapter: TestAdapter;
-  /** The docs this session tracks, or `"all"` for hosts that only learn their docs while running */
+  /** `"all"` tracks any doc a host asks about */
   readonly #tracked: Set<string> | "all";
   public index: DocIndex;
 
@@ -18,7 +18,6 @@ export class DdtSession {
     this.index = index;
   }
 
-  /** A session that indexes each doc the first time a host asks about it */
   public static open(adapter: TestAdapter, root: string): DdtSession {
     const index = DocIndex.fromSources(new Map(), { root, moduleDir: join(root, "__ddtds__") });
     return new DdtSession(adapter, index, "all");
@@ -60,7 +59,7 @@ export class DdtSession {
     this.index = this.index.withDoc(doc, source);
   }
 
-  /** The id a host runs in place of the doc at `path`, when the doc has fences */
+  /** Id to run in place of a doc with fences */
   public entry(path: string): string | undefined {
     const doc = resolve(this.index.root, path);
     if (!this.tracks(doc)) return undefined;
@@ -68,7 +67,7 @@ export class DdtSession {
     return this.index.fencesOf(doc).length > 0 ? this.index.entryId(doc) : undefined;
   }
 
-  /** The module for an entry or fence id. An entry's doc is read again first */
+  /** Module for an entry or fence id, rereading an entry's doc */
   public load(id: string): GeneratedModule | undefined {
     const doc = this.index.docOfEntry(id);
     if (doc !== undefined) this.refresh(doc);

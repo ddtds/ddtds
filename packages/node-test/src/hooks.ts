@@ -14,7 +14,7 @@ export function ddtHooks(root: string): RegisterHooksOptions {
     resolve(specifier, context, next) {
       // load ddtds runtime
       if (specifier === nodeTestAdapter.runtime) return { url: runtimeUrl, shortCircuit: true };
-      // the file node starts runs as its doc's tests, which import the file itself
+      // node's entry file runs as its doc module
       if (context.parentURL === undefined) {
         const entry = session.entry(fileURLToPath(new URL(specifier, pathToFileURL(root + "/"))));
         if (entry !== undefined) return { url: fileUrl(entry), shortCircuit: true };
@@ -39,7 +39,6 @@ export function ddtHooks(root: string): RegisterHooksOptions {
   };
 }
 
-/** A file url for an id, keeping its query */
 function fileUrl(id: string): string {
   const [path = id, query] = id.split("?");
   const url = pathToFileURL(path);
