@@ -8,7 +8,7 @@ import { setTimeout as delay } from "node:timers/promises";
 import * as v from "valibot";
 import { frame } from "./frames.ts";
 
-export { framesOf, projectFrame, projectFrames, type Frame } from "./frames.ts";
+export { framesOf, projectFrames, type Frame } from "./frames.ts";
 
 export type Mode = "run" | "watch";
 

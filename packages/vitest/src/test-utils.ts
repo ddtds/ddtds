@@ -11,12 +11,7 @@ import {
   type TestUserConfig,
   type Vitest,
 } from "vitest/node";
-import {
-  projectFrames as inRoot,
-  type Failures,
-  type Frame,
-  type Outcomes,
-} from "@ddtds/test-utils";
+import { projectFrames, type Failures, type Outcomes } from "@ddtds/test-utils";
 import { ddtPlugin, type DdtPluginOptions } from "@ddtds/vitest";
 
 export const vitestVersion: { full: string; major: number } = {
@@ -118,16 +113,12 @@ function frame(root: string, { file, line, column }: ParsedStack): string {
   return `${name}:${line}:${column}`;
 }
 
-function projectFrames(root: string, stacks: ParsedStack[] | undefined): Frame[] {
-  return inRoot(root, stacks ?? []);
-}
-
 export function failureFrames(modules: readonly TestModule[], root: string): Failures {
   const results: Failures = {};
   for (const module of modules) {
     for (const testCase of module.children.allTests()) {
       const [error] = testCase.result().errors ?? [];
-      if (error) results[testCase.name] = projectFrames(root, error.stacks);
+      if (error) results[testCase.name] = projectFrames(root, error.stacks ?? []);
     }
   }
   return results;

@@ -13,22 +13,20 @@ export type Frame = v.InferOutput<typeof frame>;
 
 const parser = new StackUtils({ cwd: "/" });
 
-export function projectFrame(root: string, { file, line, column }: Frame): Frame | undefined {
-  if (!isAbsolute(file)) return undefined;
-  const path = relative(root, file);
-  if (path.startsWith("..") || isAbsolute(path)) return undefined;
-  return { file: path, line, column };
-}
-
 export function projectFrames(root: string, frames: readonly Frame[]): Frame[] {
-  return frames.flatMap((candidate) => projectFrame(root, candidate) ?? []);
+  return frames.flatMap(({ file, line, column }) => {
+    if (!isAbsolute(file)) return [];
+    const path = relative(root, file);
+    return path.startsWith("..") || isAbsolute(path) ? [] : [{ file: path, line, column }];
+  });
 }
 
 export function framesOf(stack: string | undefined, root: string): Frame[] {
   const frames = (stack ?? "").split("\n").flatMap((text): Frame[] => {
     const parsed = parser.parseLine(text);
     if (!parsed?.file || parsed.line === undefined || parsed.column === undefined) return [];
-    const file = parsed.file.startsWith("file://") ? fileURLToPath(parsed.file) : parsed.file;
+    const url = URL.parse(parsed.file);
+    const file = url?.protocol === "file:" ? fileURLToPath(url) : parsed.file;
     return [{ file, line: parsed.line, column: parsed.column }];
   });
   return projectFrames(root, frames);
