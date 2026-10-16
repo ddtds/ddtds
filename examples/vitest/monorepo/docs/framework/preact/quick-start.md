@@ -1,11 +1,10 @@
 # Preact Quick Start
 
 ```tsx run
-import { render } from "preact";
+import { render, screen } from "@testing-library/preact";
 import { Greeting } from "@ddtds/preact-greet";
 
-const container = document.createElement("div");
-render(<Greeting name="Ada" />, container);
+render(<Greeting name="Ada" />);
 
-expect(container.textContent).toBe("Hello, Ada!");
+expect(screen.getByText("Hello, Ada!")).toBeInTheDocument();
 ```

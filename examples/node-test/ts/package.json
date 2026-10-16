@@ -7,7 +7,7 @@
     ".": "./src/index.ts"
   },
   "scripts": {
-    "test": "node --test --import @ddtds/node-test/register \"*.md\""
+    "test": "node --test --import @ddtds/node-test/register \"*.md\" \"src/*.ts\""
   },
   "devDependencies": {
     "@ddtds/node-test": "workspace:*"

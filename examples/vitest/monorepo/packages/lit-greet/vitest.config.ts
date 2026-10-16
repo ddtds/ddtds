@@ -2,6 +2,10 @@ import { defineConfig } from "vitest/config";
 import { ddtPlugin } from "@ddtds/vitest";
 
 export default defineConfig({
-  plugins: [ddtPlugin({ include: ["../../docs/framework/lit/**/*.md"] })],
-  test: { dir: "./tests", environment: "happy-dom" },
+  plugins: [ddtPlugin({ include: ["../../docs/framework/lit/**/*.md", "src/*.ts"] })],
+  test: {
+    dir: "./tests",
+    environment: "happy-dom",
+    setupFiles: ["@testing-library/jest-dom/vitest", "./tests/setup.ts"],
+  },
 });

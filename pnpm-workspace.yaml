@@ -30,12 +30,19 @@ catalogs:
     "@angular/compiler": ^22.2.1
     "@angular/core": ^22.2.1
     "@angular/platform-browser": ^22.2.1
+    "@angular/router": ^22.2.1
     "@oxc-project/runtime": ^0.153.0
     "@preact/preset-vite": ^2.10.6
+    "@solidjs/testing-library": ^0.8.10
     "@sveltejs/vite-plugin-svelte": ^7.3.1
+    "@testing-library/angular": ^19.5.0
+    "@testing-library/dom": ^10.4.2
     "@testing-library/jest-dom": ^7.0.1
+    "@testing-library/preact": ^3.2.4
     "@testing-library/react": ^16.3.3
+    "@testing-library/svelte": ^5.4.2
     "@testing-library/user-event": ^14.6.7
+    "@testing-library/vue": ^8.1.0
     "@types/react": ^19.3.0
     "@types/react-dom": ^19.3.0
     "@vitejs/plugin-react": ^6.1.2
@@ -47,6 +54,7 @@ catalogs:
     react: ^19.3.0
     react-dom: ^19.3.0
     rxjs: ^7.8.2
+    shadow-dom-testing-library: ^1.14.2
     solid-js: ^1.9.16
     svelte: ^5.57.2
     vite-plugin-solid: ^2.11.14
@@ -54,6 +62,8 @@ catalogs:
   prod:
     "@logtape/logtape": ^2.4.0
   peer: {}
+
+ignoreWorkspaceCycles: true
 
 minimumReleaseAge: 4320 # 3 days
 minimumReleaseAgeExclude:

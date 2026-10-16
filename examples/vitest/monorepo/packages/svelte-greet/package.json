@@ -16,6 +16,9 @@
   "devDependencies": {
     "@ddtds/vitest": "workspace:*",
     "@sveltejs/vite-plugin-svelte": "catalog:examples",
+    "@testing-library/dom": "catalog:examples",
+    "@testing-library/jest-dom": "catalog:examples",
+    "@testing-library/svelte": "catalog:examples",
     "happy-dom": "catalog:examples",
     "vitest": "catalog:dev"
   }
