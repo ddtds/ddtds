@@ -37,25 +37,6 @@ export function loadModule(index: DocIndex, id: string): GeneratedModule | undef
 
 const logger = getLogger(["ddtds", "vitest"]);
 
-/** Without an `include`, every markdown file, so one created while watching is found */
-function includeSourceGlobs({ include }: DocsOptions): string[] {
-  return include?.length ? include : ["**/*.{md,mdx}"];
-}
-
-/**
- * Source files scanned for JSDoc that have no fences yet, so one that gains its first fence while
- * watching can run. A file that already holds in-source tests is left alone: listing it would
- * start running tests the user had not enabled.
- */
-function sourcesWithoutTests(session: DdtSession): string[] {
-  return session
-    .trackedDocs()
-    .filter(
-      (doc) => isSourceFile(doc) && !session.index.sourceOf(doc)?.includes("import.meta.vitest"),
-    )
-    .map((doc) => relative(session.index.root, doc));
-}
-
 export type DdtPluginOptions = DocsOptions & {
   /**
    * Precedence (highest to lowest):
@@ -65,6 +46,22 @@ export type DdtPluginOptions = DocsOptions & {
    */
   logLevel?: LogLevel;
 };
+
+/**
+ * Docs without fences yet, which Vitest scans so one that gains its first fence while watching
+ * can run. A source file that holds in-source tests is left out: scanning it would start running
+ * tests the user had not enabled.
+ */
+function docsWithoutFences(session: DdtSession): string[] {
+  return session
+    .trackedDocs()
+    .filter(
+      (doc) =>
+        session.index.fencesOf(doc).length === 0 &&
+        !(isSourceFile(doc) && session.index.sourceOf(doc)?.includes("import.meta.vitest")),
+    )
+    .map((doc) => relative(session.index.root, doc));
+}
 
 export function ddtPlugin({ logLevel, ...docs }: DdtPluginOptions = {}): Plugin {
   const vite = createViteSink();
@@ -92,7 +89,7 @@ export function ddtPlugin({ logLevel, ...docs }: DdtPluginOptions = {}): Plugin 
         test: {
           include: [...(config.test?.include ? [] : defaultInclude), ...docFiles],
           exclude: [...(config.test?.exclude ? [] : defaultExclude), buildOutput],
-          includeSource: [...includeSourceGlobs(docs), ...sourcesWithoutTests(session)],
+          includeSource: docsWithoutFences(session),
           watchTriggerPatterns: [
             {
               pattern: /\.(?:mdx?|[cm]?[jt]sx?)$/,
