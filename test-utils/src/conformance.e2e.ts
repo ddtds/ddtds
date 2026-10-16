@@ -345,6 +345,7 @@ export function conformance(name: string, runner: Runner, dialect: Dialect): voi
         await ddt.watch();
         expect(ddt.failures).toEqual(placed(kind, expected));
         for (const [next, nextExpected] of rest) {
+          // oxlint-disable-next-line no-await-in-loop
           await ddt.edit("guide.md", next);
           expect(ddt.failures).toEqual(placed(kind, nextExpected));
         }
