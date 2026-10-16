@@ -325,11 +325,6 @@ export function conformance(name: string, runner: Runner, dialect: Dialect): voi
       });
       expect(await ddt.run()).toEqual({ "doc.mdx:5": PASSED });
     });
-
-    test.each(parsing)("runs %s", async (_title, doc, expected) => {
-      await using ddt = openProject(markdown, { "doc.md": doc });
-      expect(await ddt.run()).toEqual(expected);
-    });
   });
 
   describe.each([
@@ -361,6 +356,11 @@ export function conformance(name: string, runner: Runner, dialect: Dialect): voi
     ["markdown", markdown],
     ["JSDoc", jsdocKind],
   ])(`${name} %s conformance`, (_, kind) => {
+    test.each(parsing)("runs %s", async (_title, doc, expected) => {
+      await using ddt = openProject(kind, { "doc.md": doc });
+      expect(await ddt.run()).toEqual(located(kind, expected));
+    });
+
     test.each(docs)("runs %s", async (_title, doc, expected) => {
       await using ddt = openProject(kind, { "doc.md": doc });
       expect(await ddt.run()).toEqual(located(kind, expected));
