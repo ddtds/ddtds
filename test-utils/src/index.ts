@@ -215,11 +215,11 @@ export const markdown: Kind = {
   frame: (name, line, column) => ({ file: name, line, column }),
 };
 
-/** JSDoc in a `.extension` file followed by `code`, which CommonJS files need to change */
-export function jsdocIn(extension: string, code = "export {};"): Kind {
+/** JSDoc indented by `indent` in a `.extension` file followed by `code`, which CommonJS files need to change */
+export function jsdocIn(extension: string, code = "export {};", indent = ""): Kind {
   const file = (name: string): string => name.replace(/\.mdx?$/, `.${extension}`);
-  const opening = ["/**"];
-  const prefix = " * ";
+  const opening = [`${indent}/**`];
+  const prefix = `${indent} * `;
   return {
     file,
     content(text) {
@@ -227,7 +227,7 @@ export function jsdocIn(extension: string, code = "export {};"): Kind {
         .replace(/\n$/, "")
         .split("\n")
         .map((line) => (line === "" ? prefix.trimEnd() : `${prefix}${line}`));
-      return [...opening, ...lines, " */", code, ""].join("\n");
+      return [...opening, ...lines, `${indent} */`, code, ""].join("\n");
     },
     id: (name, line) => `${file(name)}:${line + opening.length}`,
     frame: (name, line, column) => ({
