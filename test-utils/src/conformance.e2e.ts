@@ -85,12 +85,7 @@ function open(runner: Runner, kind: Kind, files: Record<string, string>): Opened
 
 const missingPackage = 'import { x } from "missing-package";\nx;';
 
-export function conformance(
-  name: string,
-  runner: Runner,
-  dialect: Dialect,
-  { jsdoc: runsJsDoc = true }: { jsdoc?: boolean } = {},
-): void {
+export function conformance(name: string, runner: Runner, dialect: Dialect): void {
   const passing = dialect.equal("1", "1");
   const failing = dialect.equal("1", "2");
 
@@ -266,56 +261,53 @@ export function conformance(
     });
   });
 
-  describe.each(runsJsDoc ? [markdown, jsdoc] : [markdown])(
-    `${name} $title conformance`,
-    (kind) => {
-      test.each(docs)("runs %s", async (_title, doc, expected) => {
-        await using ddt = open(runner, kind, { "doc.md": doc });
-        expect(await ddt.run()).toEqual(expected);
-      });
+  describe.each([markdown, jsdoc])(`${name} $title conformance`, (kind) => {
+    test.each(docs)("runs %s", async (_title, doc, expected) => {
+      await using ddt = open(runner, kind, { "doc.md": doc });
+      expect(await ddt.run()).toEqual(expected);
+    });
 
-      test.each(projects)("runs %s", async (_title, files, expected) => {
-        await using ddt = open(runner, kind, files);
-        expect(await ddt.run()).toEqual(expected);
-      });
+    test.each(projects)("runs %s", async (_title, files, expected) => {
+      await using ddt = open(runner, kind, files);
+      expect(await ddt.run()).toEqual(expected);
+    });
 
-      test("imports packages from the project", async () => {
-        await using ddt = open(runner, kind, {
-          "node_modules/calc/package.json":
-            '{ "name": "calc", "type": "module", "main": "index.js" }',
-          "node_modules/calc/index.js": "export const add = (a, b) => a + b;",
-          "README.md": fence(`import { add } from "calc";\n\n${dialect.equal("add(1, 2)", "3")}`),
-        });
-        expect(await ddt.run()).toEqual({ "README.md:1": PASSED });
+    test("imports packages from the project", async () => {
+      await using ddt = open(runner, kind, {
+        "node_modules/calc/package.json":
+          '{ "name": "calc", "type": "module", "main": "index.js" }',
+        "node_modules/calc/index.js": "export const add = (a, b) => a + b;",
+        "README.md": fence(`import { add } from "calc";\n\n${dialect.equal("add(1, 2)", "3")}`),
       });
+      expect(await ddt.run()).toEqual({ "README.md:1": PASSED });
+    });
 
-      test.each(edits)("reruns %s in watch mode", async (_title, [[doc, expected], ...rest]) => {
-        await using ddt = open(runner, kind, { "guide.md": doc });
-        expect(await ddt.watch()).toEqual(expected);
-        for (const [next, outcomes] of rest) {
-          // oxlint-disable-next-line no-await-in-loop
-          expect(await ddt.edit("guide.md", next)).toEqual(outcomes);
-        }
-      });
+    test.each(edits)("reruns %s in watch mode", async (_title, [[doc, expected], ...rest]) => {
+      await using ddt = open(runner, kind, { "guide.md": doc });
+      expect(await ddt.watch()).toEqual(expected);
+      for (const [next, outcomes] of rest) {
+        // oxlint-disable-next-line no-await-in-loop
+        expect(await ddt.edit("guide.md", next)).toEqual(outcomes);
+      }
+    });
 
-      test("runs a doc once it gains its first fence in watch mode", async () => {
-        await using ddt = open(runner, kind, {
-          "guide.md": "# Guide\n",
-          "other.md": fence(passing),
-        });
-        expect(await ddt.watch()).toEqual({ "other.md:1": PASSED });
-        expect(await ddt.edit("guide.md", fence(passing))).toEqual({ "guide.md:1": PASSED });
-        expect(await ddt.edit("guide.md", fence(failing))).toEqual({ "guide.md:1": FAILED });
+    test("runs a doc once it gains its first fence in watch mode", async () => {
+      await using ddt = open(runner, kind, {
+        "guide.md": "# Guide\n",
+        "other.md": fence(passing),
       });
+      expect(await ddt.watch()).toEqual({ "other.md:1": PASSED });
+      expect(await ddt.edit("guide.md", fence(passing))).toEqual({ "guide.md:1": PASSED });
+      expect(await ddt.edit("guide.md", fence(failing))).toEqual({ "guide.md:1": FAILED });
+    });
 
-      test("stops running a doc once it loses its last fence in watch mode", async () => {
-        await using ddt = open(runner, kind, {
-          "guide.md": fence(passing),
-          "other.md": fence(passing),
-        });
-        expect(await ddt.watch()).toEqual({ "guide.md:1": PASSED, "other.md:1": PASSED });
-        expect(await ddt.edit("guide.md", "# Guide\n")).toEqual({});
+    test("stops running a doc once it loses its last fence in watch mode", async () => {
+      await using ddt = open(runner, kind, {
+        "guide.md": fence(passing),
+        "other.md": fence(passing),
       });
-    },
-  );
+      expect(await ddt.watch()).toEqual({ "guide.md:1": PASSED, "other.md:1": PASSED });
+      expect(await ddt.edit("guide.md", "# Guide\n")).toEqual({});
+    });
+  });
 }
