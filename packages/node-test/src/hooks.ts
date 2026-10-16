@@ -9,7 +9,6 @@ import { nodeTestAdapter } from "./adapter.ts";
 const runtimeUrl = new URL(`./runtime${extname(import.meta.filename)}`, import.meta.url).href;
 
 export function ddtHooks(root: string): RegisterHooksOptions {
-  // Node only maps stacks to the markdown when source maps are on
   setSourceMapsSupport(true);
   const adapter = nodeTestAdapter(moduleSystem(root));
   const session = DdtSession.open(adapter, root);
