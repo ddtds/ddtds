@@ -8,6 +8,7 @@ export {
   moduleFor,
   typedImports,
   type GeneratedModule,
+  type ModuleSystem,
   type TestAdapter,
 } from "./codegen/index.ts";
 export { DdtSession } from "./docs/session.ts";

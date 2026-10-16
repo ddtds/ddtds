@@ -1,3 +1,5 @@
+export type ModuleSystem = "import" | "require";
+
 /** Controls runtime function path and imports */
 export type TestAdapter = Readonly<{
   /**
@@ -19,7 +21,7 @@ export type TestAdapter = Readonly<{
    * ```
    */
   testImport: string;
-  /** Imports for fences, e.g. `expect`
+  /** Imports for fences, e.g. `expect`, per module system
    *
    * @example typesafe
    * ```ts
@@ -29,14 +31,26 @@ export type TestAdapter = Readonly<{
    *
    * @example raw string
    * ```ts
-   * ["import { expect } from 'vitest'"]
+   * { import: ["import { expect } from 'vitest'"] }
    * ```
    */
-  fenceImports: readonly string[];
+  fenceImports: Readonly<{ import: readonly string[]; require?: readonly string[] }>;
+  /** How fence modules load their imports: ESM `import` or CommonJS `require` */
+  moduleType: ModuleSystem;
 }>;
 
+type ImportSpec = Readonly<{ module: string; name: string; alias?: string }>;
+
+const formatters: Record<ModuleSystem, (spec: ImportSpec) => string> = {
+  import: ({ module, name, alias }) =>
+    `import { ${name}${alias ? ` as ${alias}` : ""} } from '${module}';`,
+  require: ({ module, name, alias }) =>
+    `const { ${name}${alias ? `: ${alias}` : ""} } = require('${module}');`,
+};
+
 /**
- * Typesafe `import { name } from 'module'`, or `import { name as local } from 'module'`
+ * Typesafe `import { name } from 'module'`, or `import { name as local } from 'module'`. With
+ * `type: "require"`, `const { name } = require('module')`
  *
  * @example
  * ```ts
@@ -48,9 +62,12 @@ export type TestAdapter = Readonly<{
 export const typedImports =
   // oxlint-disable-next-line typescript/no-unnecessary-type-parameters this is fine and needed to make the function type safe
   <Module>(module: string) =>
-    (name: keyof Module, alias?: string): string =>
-      `import { ${String(name)}${alias ? ` as ${alias}` : ""} } from '${module}';`;
+    (
+      name: keyof Module,
+      { alias, type = "import" }: { alias?: string; type?: ModuleSystem } = {},
+    ): string =>
+      formatters[type]({ module, name: String(name), alias });
 
-export function runtimeImport(adapter: TestAdapter): string {
-  return `import { runtime } from '${adapter.runtime}';`;
+export function runtimeImport(adapter: TestAdapter, system: ModuleSystem): string {
+  return formatters[system]({ module: adapter.runtime, name: "runtime" });
 }

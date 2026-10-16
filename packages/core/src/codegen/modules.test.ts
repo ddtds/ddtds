@@ -2,6 +2,7 @@ import { expect, test } from "vitest";
 import { TraceMap, generatedPositionFor, originalPositionFor } from "@jridgewell/trace-mapping";
 import { docModule, fenceModule } from "./modules.ts";
 import { parseJsDocFences } from "../fences/jsdoc.ts";
+import type { TestAdapter } from "./adapter.ts";
 import { adapter, fence } from "./test-utils.ts";
 
 /** The 1-based line and text of the first generated line matching `matches` */
@@ -13,6 +14,15 @@ function generatedLine(code: string, matches: (line: string) => boolean) {
   return { line: index + 1, text };
 }
 
+const cjs: TestAdapter = {
+  ...adapter,
+  fenceImports: {
+    import: ["import { expect } from 'expect';"],
+    require: ["const { expect } = require('expect');"],
+  },
+  moduleType: "require",
+};
+
 test("a fence module default-exports its function after the imports", () => {
   expect(fenceModule(adapter, fence("import { a } from './a';\na();")).code).toBe(
     [
@@ -22,6 +32,24 @@ test("a fence module default-exports its function after the imports", () => {
       "  a();",
       "};",
     ].join("\n"),
+  );
+});
+
+test("a fence module is CommonJS when the adapter's module type is require", () => {
+  expect(fenceModule(cjs, fence("const { a } = require('./a');\na();")).code).toBe(
+    [
+      "const { expect } = require('expect');",
+      "module.exports = async () => {",
+      "  const { a } = require('./a');",
+      "  a();",
+      "};",
+    ].join("\n"),
+  );
+});
+
+test("a doc module imports even when the adapter's module type is require", () => {
+  expect(docModule(cjs, "/repo/docs/t.md", [fence("a();")]).code).toContain(
+    "import { runtime } from '@ddtds/test/runtime';",
   );
 });
 
