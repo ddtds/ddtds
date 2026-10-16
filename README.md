@@ -66,6 +66,10 @@ Can extract and run these languages
 - tsx
 - tsrx
 
+## Vitest
+
+Note: `fsModuleCache` saves several seconds on warm transform times. vitest v5+ has `fsModuleCache` and v5.0.4 turns it on by default
+
 ## Packages
 
 - `./packages` has ddtdts library and cli code
