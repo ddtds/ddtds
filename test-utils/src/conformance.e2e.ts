@@ -42,11 +42,24 @@ type Opened = AsyncDisposable & {
   edit(file: string, content: string): Promise<Verdicts>;
 };
 
+const splitId = (id: string): [name: string, line: number] => {
+  const colon = id.lastIndexOf(":");
+  return [id.slice(0, colon), Number(id.slice(colon + 1))];
+};
+
 const located = (kind: Kind, expected: Verdicts): Verdicts =>
   Object.fromEntries(
-    Object.entries(expected).map(([id, verdict]) => {
-      const colon = id.lastIndexOf(":");
-      return [kind.id(id.slice(0, colon), Number(id.slice(colon + 1))), verdict];
+    Object.entries(expected).map(([id, verdict]) => [kind.id(...splitId(id)), verdict]),
+  );
+
+type Where = readonly [line: number, column: number];
+type Wheres = Record<string, Where[]>;
+
+const placed = (kind: Kind, expected: Wheres): Failures =>
+  Object.fromEntries(
+    Object.entries(expected).map(([id, wheres]) => {
+      const [name, line] = splitId(id);
+      return [kind.id(name, line), wheres.map(([at, column]) => kind.frame(name, at, column))];
     }),
   );
 
@@ -84,6 +97,7 @@ export function conformance(name: string, runner: Runner, dialect: Dialect): voi
       };
   // a CommonJS entry cannot hold `export`, which `jsdoc` appends
   const jsdocKind = commonjs ? jsdocIn("ts", "1;") : jsdoc;
+  const indentedKind = jsdocIn("ts", commonjs ? "1;" : undefined, "    ");
   const openProject = (kind: Kind, files: Record<string, string>, docs?: string[]): Opened =>
     open(runner, kind, { ...project, ...files }, docs);
   const missingPackage = `${importNames("x", "missing-package")}\nx;`;
@@ -139,6 +153,53 @@ export function conformance(name: string, runner: Runner, dialect: Dialect): voi
   ];
 
   /** Parser-only cases, the same for every doc kind */
+  const throwing = 'throw new TypeError("boom");';
+  const locations: [title: string, doc: string, expected: Wheres][] = [
+    ["a passing fence", fence(passing), {}],
+    ["a throw", fence(`const a = 1;\n${throwing}`), { "doc.md:1": [[3, 7]] }],
+    ["a syntax error", fence("const ok = 1;\nconst = 1;"), { "doc.md:1": [[3, 7]] }],
+    [
+      "a throw after an await",
+      fence(`await Promise.resolve();\n${throwing}`),
+      { "doc.md:1": [[3, 7]] },
+    ],
+    [
+      "a throw in a called function",
+      fence(`function boom() {\n  ${throwing}\n}\nboom();`),
+      {
+        "doc.md:1": [
+          [3, 9],
+          [5, 1],
+        ],
+      },
+    ],
+    [
+      "a throw in the second fence",
+      `${fence(passing)}${fence(throwing)}`,
+      { "doc.md:5": [[6, 7]] },
+    ],
+  ];
+
+  const relocations: [
+    title: string,
+    versions: [[doc: string, expected: Wheres], ...[doc: string, expected: Wheres][]],
+  ][] = [
+    [
+      "a failing fence moves down",
+      [
+        [fence(throwing), { "guide.md:1": [[2, 7]] }],
+        [fence(`const a = 1;\n${throwing}`), { "guide.md:1": [[3, 7]] }],
+      ],
+    ],
+    [
+      "a failing fence is fixed",
+      [
+        [fence(throwing), { "guide.md:1": [[2, 7]] }],
+        [fence(passing), {}],
+      ],
+    ],
+  ];
+
   const parsing: [title: string, doc: string, expected: Verdicts][] = [
     [
       "an unclosed fence, which takes the rest of the doc as code",
@@ -258,37 +319,43 @@ export function conformance(name: string, runner: Runner, dialect: Dialect): voi
   ];
 
   describe(`${name} conformance`, () => {
-    test("points a failure at the line that threw", async () => {
-      await using ddt = openProject(markdown, {
-        "doc.md": fence('const a = 1;\nthrow new TypeError("boom");'),
-      });
-      await ddt.run();
-      expect(ddt.failures).toEqual({ "doc.md:1": [{ file: "doc.md", line: 3, column: 7 }] });
-    });
-
-    test("points a syntax error at the line that has it", async () => {
-      await using ddt = openProject(markdown, { "doc.md": fence("const ok = 1;\nconst = 1;") });
-      await ddt.run();
-      expect(ddt.failures).toEqual({ "doc.md:1": [{ file: "doc.md", line: 3, column: 7 }] });
-    });
-
     test("runs an mdx doc", async () => {
       await using ddt = openProject(markdown, {
         "doc.mdx": `# Guide\n\n{/* a comment */}\n\n${fence(passing)}`,
       });
       expect(await ddt.run()).toEqual({ "doc.mdx:5": PASSED });
     });
-
-    test.each(parsing)("runs %s", async (_title, doc, expected) => {
-      await using ddt = openProject(markdown, { "doc.md": doc });
-      expect(await ddt.run()).toEqual(expected);
-    });
   });
 
   describe.each([
     ["markdown", markdown],
     ["JSDoc", jsdocKind],
+    ["indented JSDoc", indentedKind],
   ])(`${name} %s conformance`, (_, kind) => {
+    test.each(locations)("points %s at its line", async (_title, doc, expected) => {
+      await using ddt = openProject(kind, { "doc.md": doc });
+      await ddt.run();
+      expect(ddt.failures).toEqual(placed(kind, expected));
+    });
+
+    test.each(relocations)(
+      "updates failure locations when %s in watch mode",
+      async (_title, [[doc, expected], ...rest]) => {
+        await using ddt = openProject(kind, { "guide.md": doc });
+        await ddt.watch();
+        expect(ddt.failures).toEqual(placed(kind, expected));
+        for (const [next, nextExpected] of rest) {
+          await ddt.edit("guide.md", next);
+          expect(ddt.failures).toEqual(placed(kind, nextExpected));
+        }
+      },
+    );
+
+    test.each(parsing)("runs %s", async (_title, doc, expected) => {
+      await using ddt = openProject(kind, { "doc.md": doc });
+      expect(await ddt.run()).toEqual(located(kind, expected));
+    });
+
     test.each(docs)("runs %s", async (_title, doc, expected) => {
       await using ddt = openProject(kind, { "doc.md": doc });
       expect(await ddt.run()).toEqual(located(kind, expected));
@@ -311,7 +378,6 @@ export function conformance(name: string, runner: Runner, dialect: Dialect): voi
       await using ddt = openProject(kind, { "guide.md": doc });
       expect(await ddt.watch()).toEqual(located(kind, expected));
       for (const [next, outcomes] of rest) {
-        // oxlint-disable-next-line no-await-in-loop
         expect(await ddt.edit("guide.md", next)).toEqual(located(kind, outcomes));
       }
     });

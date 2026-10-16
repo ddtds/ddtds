@@ -39,6 +39,11 @@ export type TestAdapter = Readonly<{
   module?: ModuleSystem;
 }>;
 
+type TypedImporter<Module> = (
+  name: keyof Module,
+  options?: { alias?: string; type?: ModuleSystem },
+) => string;
+
 const importers: Record<ModuleSystem, (module: string, name: string, alias?: string) => string> = {
   esm: (module, name, alias) =>
     `import { ${name}${alias ? ` as ${alias}` : ""} } from '${module}';`,
@@ -60,14 +65,9 @@ const importers: Record<ModuleSystem, (module: string, name: string, alias?: str
  * expect(statement).toBe("const { strict: assert } = require('node:assert');");
  * ```
  */
-export const typedImports =
-  // oxlint-disable-next-line typescript/no-unnecessary-type-parameters this is fine and needed to make the function type safe
-  <Module>(module: string) =>
-    (
-      name: keyof Module,
-      { alias, type = "esm" }: { alias?: string; type?: ModuleSystem } = {},
-    ): string =>
-      importers[type](module, String(name), alias);
+export function typedImports<Module>(module: string): TypedImporter<Module> {
+  return (name, { alias, type = "esm" } = {}) => importers[type](module, String(name), alias);
+}
 
 /** Doc modules always `import`; fence modules follow the adapter's module system */
 export function runtimeImport(

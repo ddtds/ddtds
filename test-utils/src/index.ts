@@ -6,9 +6,11 @@ import { createInterface } from "node:readline";
 import type { Readable } from "node:stream";
 import { setTimeout as delay } from "node:timers/promises";
 import * as v from "valibot";
-import { frame } from "./frames.ts";
+import { frame, type Frame } from "./frames.ts";
 
 export { framesOf, projectFrames, type Frame } from "./frames.ts";
+
+export const emptyReport: Report = { outcomes: {}, failures: {} };
 
 export type Mode = "run" | "watch";
 
@@ -202,28 +204,37 @@ export type Kind = {
   content(markdown: string): string;
   /** Reported id for a fence on `line` of a markdown file */
   id(markdown: string, line: number): string;
+  /** Reported location of `line` and `column` of a markdown file */
+  frame(markdown: string, line: number, column: number): Frame;
 };
 
 export const markdown: Kind = {
   file: (name) => name,
   content: (text) => text,
   id: (name, line) => `${name}:${line}`,
+  frame: (name, line, column) => ({ file: name, line, column }),
 };
 
-/** JSDoc in a `.extension` file followed by `code`, which CommonJS files need to change */
-export function jsdocIn(extension: string, code = "export {};"): Kind {
+/** JSDoc indented by `indent` in a `.extension` file followed by `code`, which CommonJS files need to change */
+export function jsdocIn(extension: string, code = "export {};", indent = ""): Kind {
   const file = (name: string): string => name.replace(/\.mdx?$/, `.${extension}`);
+  const opening = [`${indent}/**`];
+  const prefix = `${indent} * `;
   return {
     file,
     content(text) {
       const lines = text
         .replace(/\n$/, "")
         .split("\n")
-        .map((line) => (line === "" ? " *" : ` * ${line}`));
-      return ["/**", ...lines, " */", code, ""].join("\n");
+        .map((line) => (line === "" ? prefix.trimEnd() : `${prefix}${line}`));
+      return [...opening, ...lines, `${indent} */`, code, ""].join("\n");
     },
-    // `/**` sits one line above the markdown
-    id: (name, line) => `${file(name)}:${line + 1}`,
+    id: (name, line) => `${file(name)}:${line + opening.length}`,
+    frame: (name, line, column) => ({
+      file: file(name),
+      line: line + opening.length,
+      column: column + prefix.length,
+    }),
   };
 }
 
@@ -251,7 +262,7 @@ export function spawn(
   runner.prepare?.(root);
   let watching: Watcher | undefined;
 
-  let latest: Report = { outcomes: {}, failures: {} };
+  let latest: Report = emptyReport;
   const recorded = async (report: Promise<Report>): Promise<Outcomes> => {
     latest = await report;
     return latest.outcomes;
