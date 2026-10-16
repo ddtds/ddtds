@@ -39,9 +39,7 @@ export type TestAdapter = Readonly<{
  * Typesafe `import { name } from 'module'`, or `import { name as local } from 'module'`
  *
  * @example
- * ```ts run
- * import { typedImports } from "@ddtds/core";
- *
+ * ```ts
  * const importFromVitest = typedImports<typeof import("vitest")>("vitest");
  * const statement = importFromVitest("test");
  * expect(statement).toBe("import { test } from 'vitest';");

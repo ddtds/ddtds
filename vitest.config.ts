@@ -1,4 +1,3 @@
-import { fileURLToPath } from "node:url";
 import { defineConfig } from "vitest/config";
 import { ddtPlugin } from "@ddtds/vitest";
 
@@ -11,18 +10,6 @@ export default defineConfig({
       "examples/vitest/{js,ts,react}",
       "examples/vitest/monorepo/packages/*",
       "examples/vitest/monorepo/packages/*/vitest.server.config.ts",
-      {
-        plugins: [ddtPlugin({ include: ["packages/core/src/**/*.ts"], exclude: ["**/*.test.ts"] })],
-        resolve: {
-          alias: [
-            {
-              find: /^@ddtds\/core$/,
-              replacement: fileURLToPath(new URL("packages/core/src/index.ts", import.meta.url)),
-            },
-          ],
-        },
-        test: { name: "source docs", include: [], environment: "node" },
-      },
       {
         plugins: [ddtPlugin({ include: ["README.md"] })],
         test: { name: "readme", include: ["README.md"], environment: "happy-dom" },

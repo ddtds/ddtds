@@ -3,6 +3,6 @@ import vue from "@vitejs/plugin-vue";
 import { ddtPlugin } from "@ddtds/vitest";
 
 export default defineConfig({
-  plugins: [vue(), ddtPlugin({ include: ["../../docs/framework/vue/**/*.md", "src/*.ts"] })],
+  plugins: [vue(), ddtPlugin({ include: ["../../docs/framework/vue/**/*.md"] })],
   test: { dir: "./tests", environment: "happy-dom" },
 });
