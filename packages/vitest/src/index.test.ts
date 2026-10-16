@@ -67,9 +67,8 @@ test("resolves packages from the root for docs outside it", async () => {
     "pkg/node_modules/local-dep/index.js": "export const one = 1;",
     "docs/guide.md": fence('import { one } from "local-dep";\nexpect(one).toBe(1);'),
   });
-  expect(await vitest().run(join(dir.root, "pkg"), ["../docs/guide.md"])).toEqual({
-    "../docs/guide.md:1": "passed",
-  });
+  const { outcomes } = await vitest().run(join(dir.root, "pkg"), ["../docs/guide.md"]);
+  expect(outcomes).toEqual({ "../docs/guide.md:1": "passed" });
 });
 
 test("refreshes a changed doc before loading its test module again", async () => {

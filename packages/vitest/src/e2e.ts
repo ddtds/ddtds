@@ -1,7 +1,7 @@
-import type { Outcomes, Runner, Watcher } from "@ddtds/test-utils";
+import type { Report, Runner, Watcher } from "@ddtds/test-utils";
 import type { ViteUserConfig } from "vitest/config";
-import type { Reporter } from "vitest/node";
-import { create, outcomes } from "./test-utils.ts";
+import type { Reporter, TestModule } from "vitest/node";
+import { create, failureFrames, outcomes } from "./test-utils.ts";
 import type { DdtPluginOptions } from "./index.ts";
 
 export type VitestRunnerOptions = {
@@ -10,22 +10,27 @@ export type VitestRunnerOptions = {
   test?: ViteUserConfig["test"] & Record<string, unknown>;
 };
 
+const reportOf = (root: string, modules: readonly TestModule[]): Report => ({
+  outcomes: outcomes(modules),
+  failures: failureFrames(modules, root),
+});
+
 export function vitest(options: VitestRunnerOptions = {}): Runner {
   const plugin = (docs: string[]): DdtPluginOptions => ({ ...options.plugin, include: docs });
 
   return {
     name: "vitest",
-    async run(root, docs): Promise<Outcomes> {
+    async run(root, docs): Promise<Report> {
       await using instance = await create(root, { plugin: plugin(docs), test: options.test });
       await instance.start();
-      return outcomes(instance.state.getTestModules());
+      return reportOf(root, instance.state.getTestModules());
     },
     async watch(root, docs): Promise<Watcher> {
-      const runs: Outcomes[] = [];
+      const runs: Report[] = [];
       let waiting: (() => void) | undefined;
       const reporter: Reporter = {
         onTestRunEnd(modules): void {
-          runs.push(outcomes(modules));
+          runs.push(reportOf(root, modules));
           waiting?.();
         },
       };
@@ -37,11 +42,11 @@ export function vitest(options: VitestRunnerOptions = {}): Runner {
       });
       await instance.start();
       return {
-        async next(): Promise<Outcomes> {
+        async next(): Promise<Report> {
           if (runs.length === 0) {
             await new Promise<void>((resolve) => (waiting = resolve));
           }
-          return runs.shift() ?? {};
+          return runs.shift() ?? { outcomes: {}, failures: {} };
         },
         async close(): Promise<void> {
           await instance.close();

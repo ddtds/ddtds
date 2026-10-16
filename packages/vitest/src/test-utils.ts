@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { join, relative } from "node:path";
 import { Writable } from "node:stream";
-import type { ParsedStack } from "vitest";
+import type { TestError } from "vitest";
 import type { ViteUserConfig } from "vitest/config";
 import {
   createVitest,
@@ -11,7 +11,7 @@ import {
   type TestUserConfig,
   type Vitest,
 } from "vitest/node";
-import type { Outcomes } from "@ddtds/test-utils";
+import { projectFrames, type Failures, type Outcomes } from "@ddtds/test-utils";
 import { ddtPlugin, type DdtPluginOptions } from "@ddtds/vitest";
 
 export const vitestVersion: { full: string; major: number } = {
@@ -107,10 +107,19 @@ export async function collect(
 
 type Failure = { error: string; diff?: string; frames: string[] };
 
-function frame(root: string, { file, line, column }: ParsedStack): string {
-  // Drop the content hash from generated fence paths so snapshots stay stable.
-  const name = relative(root, file).replace(/_[0-9a-f]{8}(?=\.\w+$)/, "");
-  return `${name}:${line}:${column}`;
+function* firstErrors(modules: readonly TestModule[]): Generator<[string, TestError]> {
+  for (const module of modules) {
+    for (const testCase of module.children.allTests()) {
+      const [error] = testCase.result().errors ?? [];
+      if (error) yield [testCase.name, error];
+    }
+  }
+}
+
+export function failureFrames(modules: readonly TestModule[], root: string): Failures {
+  return Object.fromEntries(
+    firstErrors(modules).map(([name, error]) => [name, projectFrames(root, error.stacks ?? [])]),
+  );
 }
 
 /** The first error of each failed test, with only the stack frames inside the fixture */
@@ -120,22 +129,19 @@ export async function failures(
 ): Promise<Record<string, Failure>> {
   await using instance = await create(root, { plugin });
   await instance.start();
-  const results: Record<string, Failure> = {};
-  for (const module of instance.state.getTestModules()) {
-    for (const testCase of module.children.allTests()) {
-      const [error] = testCase.result().errors ?? [];
-      if (!error) continue;
-      const frames = (error.stacks ?? [])
-        .filter(({ file }) => file.startsWith(root))
-        .map((stack) => frame(root, stack));
-      results[testCase.name] = {
+  const modules = instance.state.getTestModules();
+  return Object.fromEntries(
+    firstErrors(modules).map(([name, error]) => [
+      name,
+      {
         error: `${error.name}: ${error.message}`,
         diff: error.diff,
-        frames,
-      };
-    }
-  }
-  return results;
+        frames: projectFrames(root, error.stacks ?? []).map(
+          ({ file, line, column }) => `${file}:${line}:${column}`,
+        ),
+      },
+    ]),
+  );
 }
 
 /** Where each test is declared, as Vitest reports it to editors */

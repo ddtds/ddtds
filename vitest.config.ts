@@ -7,6 +7,7 @@ export default defineConfig({
     env: { NO_COLOR: "1" },
     projects: [
       "packages/*/vitest.config.ts",
+      "test-utils/vitest.config.ts",
       "examples/vitest/{js,ts,react}",
       "examples/vitest/monorepo/packages/*",
       "examples/vitest/monorepo/packages/*/vitest.server.config.ts",

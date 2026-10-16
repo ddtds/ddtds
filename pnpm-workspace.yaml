@@ -23,6 +23,8 @@ catalogs:
     "@logtape/testing": 2.4.0
     "@tsrx/oxc": 0.20.0
     "@types/node": 24.19.1
+    "@types/stack-utils": ^2.0.3
+    stack-utils: ^2.0.6
     typescript: ^7.0.2
     vitest: ^5.0.3
     "@vitest/coverage-v8": ^5.0.3
