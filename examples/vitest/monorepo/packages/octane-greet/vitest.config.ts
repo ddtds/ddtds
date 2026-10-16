@@ -7,5 +7,9 @@ export default defineConfig({
     octane({ ssr: false }),
     ddtPlugin({ include: ["../../docs/framework/octane/**/*.md"] }),
   ],
-  test: { dir: "./tests", environment: "happy-dom" },
+  test: {
+    dir: "./tests",
+    environment: "happy-dom",
+    setupFiles: ["@testing-library/jest-dom/vitest", "./tests/setup.ts"],
+  },
 });

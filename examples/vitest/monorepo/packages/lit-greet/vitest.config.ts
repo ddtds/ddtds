@@ -3,5 +3,9 @@ import { ddtPlugin } from "@ddtds/vitest";
 
 export default defineConfig({
   plugins: [ddtPlugin({ include: ["../../docs/framework/lit/**/*.md"] })],
-  test: { dir: "./tests", environment: "happy-dom" },
+  test: {
+    dir: "./tests",
+    environment: "happy-dom",
+    setupFiles: ["@testing-library/jest-dom/vitest", "./tests/setup.ts"],
+  },
 });

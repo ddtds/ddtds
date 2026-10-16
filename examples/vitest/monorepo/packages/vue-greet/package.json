@@ -15,6 +15,9 @@
   },
   "devDependencies": {
     "@ddtds/vitest": "workspace:*",
+    "@testing-library/dom": "catalog:examples",
+    "@testing-library/jest-dom": "catalog:examples",
+    "@testing-library/vue": "catalog:examples",
     "@vitejs/plugin-vue": "catalog:examples",
     "happy-dom": "catalog:examples",
     "vitest": "catalog:dev"
