@@ -21,8 +21,8 @@ import { configureLogging, createViteSink } from "./logging.ts";
 export type { CodeBlock, DocIndex, DocsOptions, Fence, LogLevel } from "@ddtds/core";
 export {
   DdtCompileError,
-  defaultDocsExclude,
   defaultDocsInclude,
+  defaultDocsExclude,
   defaultOutDir,
 } from "@ddtds/core";
 
@@ -145,12 +145,12 @@ export function ddtPlugin({ logLevel, ...docs }: DdtPluginOptions = {}): Plugin 
     },
     load(id) {
       const doc = resolve(session.index.root, id);
-      // a source file is reindexed in `transform`, from the code Vite read
-      if (session.index.hasDoc(doc) && !isSourceFile(doc)) session.refresh(doc);
+      const isDoc = session.index.hasDoc(doc);
+      // a source file loads from disk; `transform` indexes it and adds its tests
+      if (isDoc && isSourceFile(doc)) return undefined;
+      if (isDoc) session.refresh(doc);
       const fence = session.index.fence(id);
       if (fence) this.addWatchFile(fence.doc);
-      // a source file loads from disk; `transform` adds its tests
-      if (session.index.hasDoc(doc) && isSourceFile(doc)) return undefined;
       return session.module(id);
     },
   };

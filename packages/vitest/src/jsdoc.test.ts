@@ -39,19 +39,6 @@ const calc = {
   ].join("\n"),
 };
 
-test("runs code fences in JSDoc comments as tests", async () => {
-  await using dir = fixture(calc);
-  await using instance = await create(dir.root, { plugin: { include: ["src/**/*.ts"] } });
-  await instance.start();
-  expect(outcomes(instance.state.getTestModules())).toMatchInlineSnapshot(`
-    {
-      "adds": "passed",
-      "src/math.ts:16": "AssertionError",
-      "src/math.ts:5": "passed",
-    }
-  `);
-});
-
 test("failures point at the source file line that failed", async () => {
   await using dir = fixture(calc);
   expect(await failures(dir.root, { include: ["src/**/*.ts"] })).toMatchInlineSnapshot(`
