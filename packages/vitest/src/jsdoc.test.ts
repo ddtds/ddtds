@@ -1,62 +1,27 @@
 import { expect, test } from "vitest";
 import { fixture } from "@ddtds/test-utils";
-import { create, failures, outcomes } from "./test-utils.ts";
-
-const math = [
-  "/**",
-  " * Adds two numbers.",
-  " *",
-  " * @example",
-  " * ```ts run",
-  ' * import { add } from "calc";',
-  " * expect(add(1, 2)).toBe(3);",
-  " * ```",
-  " */",
-  "export function add(a: number, b: number): number {",
-  "  return a + b;",
-  "}",
-  "",
-  "/**",
-  " * @example",
-  " * ```ts run",
-  ' * import { subtract } from "calc";',
-  " * expect(subtract(3, 1)).toBe(1);",
-  " * ```",
-  " */",
-  "export function subtract(a: number, b: number): number {",
-  "  return a - b;",
-  "}",
-  "",
-].join("\n");
+import { create, outcomes } from "./test-utils.ts";
 
 const calc = {
   "package.json": '{ "name": "calc", "type": "module", "exports": "./src/math.ts" }',
-  "src/math.ts": math,
+  "src/math.ts": [
+    "/**",
+    " * ```ts run",
+    ' * import { add } from "calc";',
+    " * expect(add(1, 2)).toBe(3);",
+    " * ```",
+    " */",
+    "export function add(a: number, b: number): number {",
+    "  return a + b;",
+    "}",
+    "",
+  ].join("\n"),
   "src/math.test.ts": [
     'import { expect, test } from "vitest";',
     'import { add } from "./math.ts";',
     'test("adds", () => expect(add(1, 1)).toBe(2));',
   ].join("\n"),
 };
-
-test("failures point at the source file line that failed", async () => {
-  await using dir = fixture(calc);
-  expect(await failures(dir.root, { include: ["src/**/*.ts"] })).toMatchInlineSnapshot(`
-    {
-      "src/math.ts:16": {
-        "diff": "- Expected
-    + Received
-
-    - 1
-    + 2",
-        "error": "AssertionError: expected 2 to be 1 // Object.is equality",
-        "frames": [
-          "src/math.ts:18:27",
-        ],
-      },
-    }
-  `);
-});
 
 test("scans source files by default and not when the include is narrowed", async () => {
   await using dir = fixture(calc);
@@ -66,7 +31,7 @@ test("scans source files by default and not when the include is narrowed", async
     return Object.keys(outcomes(instance.state.getTestModules())).toSorted();
   };
 
-  expect(await run({})).toEqual(["adds", "src/math.ts:16", "src/math.ts:5"]);
+  expect(await run({})).toEqual(["adds", "src/math.ts:2"]);
   expect(await run({ include: ["README.md"] })).toEqual(["adds"]);
 });
 

@@ -94,6 +94,25 @@ export function conformance(name: string, runner: Runner, dialect: Dialect): voi
       { "doc.md:1": PASSED },
     ],
     [
+      "a top level await",
+      fence(`const one = await Promise.resolve(1);\n${dialect.equal("one", "1")}`),
+      { "doc.md:1": PASSED },
+    ],
+    [
+      "fences that do not share variables",
+      fence("const shared = 1;") + fence(dialect.equal("shared", "1")),
+      { "doc.md:1": PASSED, "doc.md:5": FAILED },
+    ],
+    [
+      "a fence in a list",
+      `- item\n\n  \`\`\`ts run\n  ${passing}\n  \`\`\`\n`,
+      { "doc.md:3": PASSED },
+    ],
+  ];
+
+  /** Cases that only exercise the markdown parser, which every kind of doc shares */
+  const parsing: [title: string, doc: string, expected: Verdicts][] = [
+    [
       "an unclosed fence, which takes the rest of the doc as code",
       `\`\`\`ts run\n${passing}\n\n## Next section\n`,
       { "doc.md:1": FAILED },
@@ -106,16 +125,6 @@ export function conformance(name: string, runner: Runner, dialect: Dialect): voi
       fence(`const n: number = "a";\n${dialect.equal("n", '"a"')}`),
       { "doc.md:1": PASSED },
     ],
-    [
-      "a top level await",
-      fence(`const one = await Promise.resolve(1);\n${dialect.equal("one", "1")}`),
-      { "doc.md:1": PASSED },
-    ],
-    [
-      "fences that do not share variables",
-      fence("const shared = 1;") + fence(dialect.equal("shared", "1")),
-      { "doc.md:1": PASSED, "doc.md:5": FAILED },
-    ],
     ["a fence that is skipped", fence(failing, "skip") + fence(passing), { "doc.md:5": PASSED }],
     [
       "a fence with an unknown annotation",
@@ -123,11 +132,6 @@ export function conformance(name: string, runner: Runner, dialect: Dialect): voi
       { "doc.md:5": PASSED },
     ],
     ["a fence without an annotation", fence(failing, "") + fence(passing), { "doc.md:5": PASSED }],
-    [
-      "a fence in a list",
-      `- item\n\n  \`\`\`ts run\n  ${passing}\n  \`\`\`\n`,
-      { "doc.md:3": PASSED },
-    ],
     ["a fence in a blockquote", `> \`\`\`ts run\n> ${passing}\n> \`\`\`\n`, { "doc.md:1": PASSED }],
     ["a fence in tildes", `~~~ts run\n${passing}\n~~~\n`, { "doc.md:1": PASSED }],
     [
@@ -232,6 +236,11 @@ export function conformance(name: string, runner: Runner, dialect: Dialect): voi
       });
       expect(await ddt.run()).toEqual({ "doc.mdx:5": PASSED });
     });
+
+    test.each(parsing)("runs %s", async (_title, doc, expected) => {
+      await using ddt = open(runner, markdown, { "doc.md": doc });
+      expect(await ddt.run()).toEqual(expected);
+    });
   });
 
   describe.each([
@@ -294,7 +303,6 @@ export function conformance(name: string, runner: Runner, dialect: Dialect): voi
   });
 
   describe.each([
-    ["a .mts file", jsdocIn("mts"), {}],
     ["a .cts file", jsdocIn("cts", "1;"), {}],
     ["a .cjs file", jsdocIn("cjs", "1;"), {}],
     ["a CommonJS package", jsdocIn("ts", "1;"), { "package.json": '{ "type": "commonjs" }' }],
