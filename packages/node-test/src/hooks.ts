@@ -1,5 +1,5 @@
 import { readFileSync } from "node:fs";
-import { findPackageJSON, type RegisterHooksOptions } from "node:module";
+import { findPackageJSON, setSourceMapsSupport, type RegisterHooksOptions } from "node:module";
 import { extname } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { DdtSession, type ModuleSystem } from "@ddtds/core";
@@ -9,6 +9,8 @@ import { nodeTestAdapter } from "./adapter.ts";
 const runtimeUrl = new URL(`./runtime${extname(import.meta.filename)}`, import.meta.url).href;
 
 export function ddtHooks(root: string): RegisterHooksOptions {
+  // Node only maps stacks to the markdown when source maps are on
+  setSourceMapsSupport(true);
   const adapter = nodeTestAdapter(moduleSystem(root));
   const session = DdtSession.open(adapter, root);
 
@@ -36,7 +38,7 @@ export function ddtHooks(root: string): RegisterHooksOptions {
       const commonjs = adapter.module === "cjs" && !session.isEntry(id);
       return {
         format: commonjs ? "commonjs-typescript" : "module-typescript",
-        source: module.code,
+        source: `${module.code}\n//# sourceMappingURL=${module.map.toUrl()}`,
         shortCircuit: true,
       };
     },
