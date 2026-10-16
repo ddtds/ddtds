@@ -102,15 +102,16 @@ describe("DdtSession.refresh", () => {
     const session = sessionOver(root);
     const path = join(root, "guide.md");
     expect(session.index.size).toBe(0);
-    expect(session.tracks(path)).toBe(true);
 
-    session.update(path, doc("expect(1).toBe(1);"));
+    writeFileSync(path, doc("expect(1).toBe(1);"));
+    expect(session.entry(path)).toBe(`${path}?ddtds`);
     expect(session.index.size).toBe(1);
   });
 
-  test("does not track a doc it was never given", () => {
-    const session = DdtSession.fromSources(adapter, new Map(), fixture({}));
-    expect(session.tracks("guide.md")).toBe(false);
+  test("does not run a doc it was never given", () => {
+    const root = fixture({ "guide.md": doc("expect(1).toBe(1);") });
+    const session = DdtSession.fromSources(adapter, new Map(), root);
+    expect(session.entry("guide.md")).toBeUndefined();
   });
 
   test("indexes a doc it has not seen yet", () => {
@@ -136,23 +137,14 @@ describe("DdtSession.refresh", () => {
   });
 });
 
-describe("DdtSession.tracks", () => {
-  test("tracks docs found at startup even when they have no fences", () => {
-    const root = fixture({
-      "empty.md": "# Nothing to run\n",
-      "guide.md": doc("expect(1).toBe(1);"),
-    });
-    const session = sessionOver(root);
-
-    expect(session.tracks(join(root, "empty.md"))).toBe(true);
-    expect(session.tracks("empty.md")).toBe(true);
-    expect(session.tracks(join(root, "guide.md"))).toBe(true);
-  });
-
-  test("does not track a doc it was not given", () => {
+describe("DdtSession.resolve", () => {
+  test("resolves absolute and root-relative fence ids", () => {
     const root = fixture({ "guide.md": doc("expect(1).toBe(1);") });
     const session = sessionOver(root);
+    const [fence] = session.index.fences();
 
-    expect(session.tracks(join(root, "other.md"))).toBe(false);
+    expect(session.resolve(fence!.id)).toBe(fence!.id);
+    expect(session.resolve(fence!.id.slice(root.length))).toBe(fence!.id);
+    expect(session.resolve("guide.md")).toBeUndefined();
   });
 });

@@ -75,9 +75,7 @@ export function ddtPlugin({ logLevel, ...docs }: DdtPluginOptions = {}): Plugin 
             {
               pattern: /\.(?:mdx?|[cm]?[jt]sx?)$/,
               testsToRun(file: string): string[] | undefined {
-                if (!session.tracks(file) || included.has(file)) return undefined;
-                session.refresh(file);
-                if (!project || session.index.fencesOf(file).length === 0) return undefined;
+                if (!project || included.has(file) || !session.entry(file)) return undefined;
                 included.add(file);
                 project.config.include.push(
                   relative(project.config.dir || project.config.root, file),
@@ -101,16 +99,15 @@ export function ddtPlugin({ logLevel, ...docs }: DdtPluginOptions = {}): Plugin 
     },
     resolveId(source, importer, resolveOptions) {
       // Vite resolves top-level requests, like test files, from the root's index.html
-      if (!importer || importer === join(session.index.root, "index.html")) {
+      if (!importer || importer === join(session.root, "index.html")) {
         const entry = session.entry(source);
         if (entry !== undefined) return entry;
       }
-      // A cached doc module carries the fence imports Vite rewrote to
-      // root-relative urls, so accept those too, not just absolute ids.
-      const fence = session.index.fence(source) ? source : join(session.index.root, source);
-      if (session.index.fence(fence)) return fence;
-      if (!importer || !session.index.docOfEntry(importer)) return undefined;
-      const fromRoot = join(session.index.root, "package.json");
+      // a cached doc module imports fences by root-relative urls
+      const fence = session.resolve(source);
+      if (fence !== undefined) return fence;
+      if (!importer || !session.isEntry(importer)) return undefined;
+      const fromRoot = join(session.root, "package.json");
       return this.resolve(source, fromRoot, { ...resolveOptions, skipSelf: true });
     },
     load(id) {

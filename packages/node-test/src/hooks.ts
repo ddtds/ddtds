@@ -19,10 +19,9 @@ export function ddtHooks(root: string): RegisterHooksOptions {
         const entry = session.entry(fileURLToPath(new URL(specifier, pathToFileURL(root + "/"))));
         if (entry !== undefined) return { url: fileUrl(entry), shortCircuit: true };
       }
-      // hand off to node if not a relevent fence
-      if (!session.index.fence(specifier)) return next(specifier, context);
-      // if its a fence, map to markdown source instead of passing to node resolver
-      return { url: fileUrl(specifier), shortCircuit: true };
+      const fence = session.resolve(specifier);
+      if (fence === undefined) return next(specifier, context);
+      return { url: fileUrl(fence), shortCircuit: true };
     },
     load(url, context, next) {
       const parsed = URL.parse(url);

@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { cli, command } from "cleye";
 import {
@@ -7,13 +8,18 @@ import {
   defaultOutDir,
   readDocs,
   resolveDocsOptions,
-  writeFiles,
 } from "@ddtds/core";
 import { getLogger } from "@logtape/logtape";
 import { moduleFiles } from "@ddtds/vitest";
 import { configureLogging } from "./logging.ts";
 
 const logger = getLogger(["ddtds", "cli"]);
+
+function writeFiles(dir: string, files: ReadonlyMap<string, string>): void {
+  rmSync(dir, { recursive: true, force: true });
+  mkdirSync(dir, { recursive: true });
+  for (const [path, content] of files) writeFileSync(path, content);
+}
 
 const buildCmd = command(
   {
