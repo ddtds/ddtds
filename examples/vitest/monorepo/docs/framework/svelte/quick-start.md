@@ -1,12 +1,10 @@
 # Svelte Quick Start
 
 ```ts run
-import { mount, unmount } from "svelte";
+import { render, screen } from "@testing-library/svelte";
 import { Greeting } from "@ddtds/svelte-greet";
 
-const target = document.createElement("div");
-const component = mount(Greeting, { target, props: { name: "Ada" } });
+render(Greeting, { props: { name: "Ada" } });
 
-expect(target.textContent).toBe("Hello, Ada!");
-unmount(component);
+expect(screen.getByText("Hello, Ada!")).toBeInTheDocument();
 ```

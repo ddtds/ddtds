@@ -1,12 +1,10 @@
 # React Quick Start
 
 ```tsx run
-import { createRoot } from "react-dom/client";
-import { flushSync } from "react-dom";
+import { render, screen } from "@testing-library/react";
 import { Greeting } from "@ddtds/react-greet";
 
-const container = document.createElement("div");
-flushSync(() => createRoot(container).render(<Greeting name="Ada" />));
+render(<Greeting name="Ada" />);
 
-expect(container.textContent).toBe("Hello, Ada!");
+expect(screen.getByText("Hello, Ada!")).toBeInTheDocument();
 ```
