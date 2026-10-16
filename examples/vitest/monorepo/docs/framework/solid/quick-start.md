@@ -1,12 +1,10 @@
 # Solid Quick Start
 
 ```tsx run
-import { render } from "solid-js/web";
+import { render, screen } from "@solidjs/testing-library";
 import { Greeting } from "@ddtds/solid-greet";
 
-const container = document.createElement("div");
-const dispose = render(() => <Greeting name="Ada" />, container);
+render(() => <Greeting name="Ada" />);
 
-expect(container.textContent).toBe("Hello, Ada!");
-dispose();
+expect(screen.getByText("Hello, Ada!")).toBeInTheDocument();
 ```

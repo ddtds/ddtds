@@ -16,6 +16,9 @@
   "devDependencies": {
     "@ddtds/vitest": "workspace:*",
     "@preact/preset-vite": "catalog:examples",
+    "@testing-library/dom": "catalog:examples",
+    "@testing-library/jest-dom": "catalog:examples",
+    "@testing-library/preact": "catalog:examples",
     "happy-dom": "catalog:examples",
     "vitest": "catalog:dev"
   }

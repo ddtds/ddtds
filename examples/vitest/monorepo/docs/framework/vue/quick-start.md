@@ -1,13 +1,10 @@
 # Vue Quick Start
 
 ```ts run
-import { createApp } from "vue";
+import { render, screen } from "@testing-library/vue";
 import { Greeting } from "@ddtds/vue-greet";
 
-const container = document.createElement("div");
-const app = createApp(Greeting, { name: "Ada" });
-app.mount(container);
+render(Greeting, { props: { name: "Ada" } });
 
-expect(container.textContent).toBe("Hello, Ada!");
-app.unmount();
+expect(screen.getByText("Hello, Ada!")).toBeInTheDocument();
 ```
