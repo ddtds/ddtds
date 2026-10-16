@@ -6,19 +6,26 @@ import { createInterface } from "node:readline";
 import type { Readable } from "node:stream";
 import { setTimeout as delay } from "node:timers/promises";
 import * as v from "valibot";
+import { frame } from "./frames.ts";
+
+export { framesOf, projectFrame, projectFrames, type Frame } from "./frames.ts";
 
 export type Mode = "run" | "watch";
 
-const message = v.object({
+const message = v.strictObject({
   type: v.literal("outcomes"),
   outcomes: v.record(v.string(), v.string()),
+  failures: v.record(v.string(), v.array(frame)),
 });
 
 export type Outcomes = v.InferOutput<typeof message>["outcomes"];
+export type Failures = v.InferOutput<typeof message>["failures"];
+export type Report = { outcomes: Outcomes; failures: Failures };
 
 const decoded = v.fallback(v.pipe(v.string(), v.parseJson(), message), {
   type: "outcomes",
   outcomes: {},
+  failures: {},
 });
 
 export class Lines extends EventEmitter {
@@ -45,19 +52,20 @@ export class Lines extends EventEmitter {
 }
 
 export type Watcher = {
-  next(): Promise<Outcomes>;
+  next(): Promise<Report>;
   close(): Promise<void>;
 };
 
 export type Runner = {
   name: string;
   prepare?(root: string): void;
-  run(root: string, docs: string[]): Promise<Outcomes>;
+  run(root: string, docs: string[]): Promise<Report>;
   watch?(root: string, docs: string[]): Promise<Watcher>;
 };
 
 export type Session = AsyncDisposable & {
   root: string;
+  readonly failures: Failures;
   run(): Promise<Outcomes>;
   watch(): Promise<Outcomes>;
   edit(file: string, content: string): Promise<Outcomes>;
@@ -69,8 +77,8 @@ export function fence(code: string, annotation = "run", lang = "ts"): string {
   return `\`\`\`${lang} ${annotation}\n${code}\n\`\`\`\n\n`;
 }
 
-export function encode(outcomes: Outcomes): string {
-  return `${JSON.stringify({ type: "outcomes", outcomes })}\n`;
+export function encode(outcomes: Outcomes, failures: Failures): string {
+  return `${JSON.stringify({ type: "outcomes", outcomes, failures })}\n`;
 }
 
 function environment(env?: NodeJS.ProcessEnv): NodeJS.ProcessEnv {
@@ -81,8 +89,9 @@ function environment(env?: NodeJS.ProcessEnv): NodeJS.ProcessEnv {
   return result;
 }
 
-function outcomesOf(stdout: Lines): Outcomes {
-  return v.parse(decoded, stdout.last).outcomes;
+function reportOf(stdout: Lines): Report {
+  const { outcomes, failures } = v.parse(decoded, stdout.last);
+  return { outcomes, failures };
 }
 
 function watcher(
@@ -125,10 +134,10 @@ function watcher(
   }
 
   return {
-    async next(): Promise<Outcomes> {
+    async next(): Promise<Report> {
       await until(() => stdout.completed > seen);
       seen = stdout.completed;
-      return outcomesOf(stdout);
+      return reportOf(stdout);
     },
     async close(): Promise<void> {
       if (exited()) return;
@@ -144,7 +153,7 @@ async function execute(
   env: NodeJS.ProcessEnv | undefined,
   root: string,
   docs: string[],
-): Promise<Outcomes> {
+): Promise<Report> {
   const [bin, ...args] = command(docs, "run");
   const child = launch(bin, args, {
     cwd: root,
@@ -154,7 +163,7 @@ async function execute(
   const stdout = new Lines(child.stdout);
   child.stderr.resume();
   await once(child, "close");
-  return outcomesOf(stdout);
+  return reportOf(stdout);
 }
 
 export function cli(spec: {
@@ -246,11 +255,20 @@ export function spawn(
   runner.prepare?.(root);
   let watching: Watcher | undefined;
 
-  const rerun = (): Promise<Outcomes> => (watching ? watching.next() : runner.run(root, handed));
+  let latest: Report = { outcomes: {}, failures: {} };
+  const recorded = async (report: Promise<Report>): Promise<Outcomes> => {
+    latest = await report;
+    return latest.outcomes;
+  };
+  const rerun = (): Promise<Outcomes> =>
+    recorded(watching ? watching.next() : runner.run(root, handed));
 
-  return {
+  const session: Session = {
     root,
-    run: () => runner.run(root, handed),
+    get failures(): Failures {
+      return latest.failures;
+    },
+    run: () => recorded(runner.run(root, handed)),
     async watch(): Promise<Outcomes> {
       watching = await runner.watch?.(root, handed);
       return rerun();
@@ -265,4 +283,5 @@ export function spawn(
       rmSync(root, { recursive: true, force: true });
     },
   };
+  return session;
 }

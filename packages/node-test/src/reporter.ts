@@ -1,7 +1,12 @@
 import { resolve } from "node:path";
-import { encode, type Outcomes } from "@ddtds/test-utils";
+import { encode, framesOf, type Failures, type Outcomes } from "@ddtds/test-utils";
 
-type Failure = { name?: string; code?: string; cause?: { name?: string; code?: string } };
+type Failure = {
+  name?: string;
+  code?: string;
+  stack?: string;
+  cause?: { name?: string; code?: string; stack?: string };
+};
 type TestData = {
   name?: string;
   file?: string;
@@ -23,10 +28,12 @@ function status(error?: Failure): string {
 
 export default async function* reporter(source: AsyncIterable<TestEvent>): AsyncGenerator<string> {
   let outcomes: Outcomes = {};
+  let failures: Failures = {};
   for await (const event of source) {
     if (event.type === "test:plan") {
-      yield encode(outcomes);
+      yield encode(outcomes, failures);
       outcomes = {};
+      failures = {};
       continue;
     }
     const data = event.data;
@@ -34,7 +41,9 @@ export default async function* reporter(source: AsyncIterable<TestEvent>): Async
     if (event.type === "test:pass") {
       if (!isEmptyFile(data)) outcomes[data.name] = "passed";
     } else if (event.type === "test:fail") {
-      outcomes[data.name] = status(data.details?.error);
+      const error = data.details?.error;
+      outcomes[data.name] = status(error);
+      failures[data.name] = framesOf((error?.cause ?? error)?.stack, process.cwd());
     }
   }
 }

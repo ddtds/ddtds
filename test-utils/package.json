@@ -14,13 +14,16 @@
     }
   },
   "scripts": {
+    "test": "vitest run",
     "typecheck": "tsc"
   },
   "dependencies": {
+    "stack-utils": "catalog:dev",
     "valibot": "^1.5.0"
   },
   "devDependencies": {
     "@types/node": "catalog:dev",
+    "@types/stack-utils": "catalog:dev",
     "vitest": "catalog:dev"
   }
 }

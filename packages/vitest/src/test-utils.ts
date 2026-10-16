@@ -11,7 +11,12 @@ import {
   type TestUserConfig,
   type Vitest,
 } from "vitest/node";
-import type { Outcomes } from "@ddtds/test-utils";
+import {
+  projectFrames as inRoot,
+  type Failures,
+  type Frame,
+  type Outcomes,
+} from "@ddtds/test-utils";
 import { ddtPlugin, type DdtPluginOptions } from "@ddtds/vitest";
 
 export const vitestVersion: { full: string; major: number } = {
@@ -113,6 +118,21 @@ function frame(root: string, { file, line, column }: ParsedStack): string {
   return `${name}:${line}:${column}`;
 }
 
+function projectFrames(root: string, stacks: ParsedStack[] | undefined): Frame[] {
+  return inRoot(root, stacks ?? []);
+}
+
+export function failureFrames(modules: readonly TestModule[], root: string): Failures {
+  const results: Failures = {};
+  for (const module of modules) {
+    for (const testCase of module.children.allTests()) {
+      const [error] = testCase.result().errors ?? [];
+      if (error) results[testCase.name] = projectFrames(root, error.stacks);
+    }
+  }
+  return results;
+}
+
 /** The first error of each failed test, with only the stack frames inside the fixture */
 export async function failures(
   root: string,
@@ -125,13 +145,12 @@ export async function failures(
     for (const testCase of module.children.allTests()) {
       const [error] = testCase.result().errors ?? [];
       if (!error) continue;
-      const frames = (error.stacks ?? [])
-        .filter(({ file }) => file.startsWith(root))
-        .map((stack) => frame(root, stack));
       results[testCase.name] = {
         error: `${error.name}: ${error.message}`,
         diff: error.diff,
-        frames,
+        frames: (error.stacks ?? [])
+          .filter(({ file }) => file.startsWith(root))
+          .map((stack) => frame(root, stack)),
       };
     }
   }

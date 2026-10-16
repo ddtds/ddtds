@@ -10,6 +10,7 @@ import {
   jsdocIn,
   markdown,
   spawn,
+  type Failures,
   type Kind,
   type Outcomes,
   type Runner,
@@ -35,6 +36,7 @@ const verdicts = (outcomes: Outcomes): Verdicts =>
   );
 
 type Opened = AsyncDisposable & {
+  readonly failures: Failures;
   run(): Promise<Verdicts>;
   watch(): Promise<Verdicts>;
   edit(file: string, content: string): Promise<Verdicts>;
@@ -51,6 +53,9 @@ const located = (kind: Kind, expected: Verdicts): Verdicts =>
 function open(runner: Runner, kind: Kind, files: Record<string, string>, docs?: string[]): Opened {
   const ddt = spawn(runner, files, { kind, docs });
   return {
+    get failures() {
+      return ddt.failures;
+    },
     run: async () => verdicts(await ddt.run()),
     watch: async () => verdicts(await ddt.watch()),
     edit: async (file, content) => verdicts(await ddt.edit(file, content)),
@@ -253,6 +258,20 @@ export function conformance(name: string, runner: Runner, dialect: Dialect): voi
   ];
 
   describe(`${name} conformance`, () => {
+    test("points a failure at the line that threw", async () => {
+      await using ddt = openProject(markdown, {
+        "doc.md": fence('const a = 1;\nthrow new TypeError("boom");'),
+      });
+      await ddt.run();
+      expect(ddt.failures).toEqual({ "doc.md:1": [{ file: "doc.md", line: 3, column: 7 }] });
+    });
+
+    test("points a syntax error at the line that has it", async () => {
+      await using ddt = openProject(markdown, { "doc.md": fence("const ok = 1;\nconst = 1;") });
+      await ddt.run();
+      expect(ddt.failures).toEqual({ "doc.md:1": [{ file: "doc.md", line: 3, column: 7 }] });
+    });
+
     test("runs an mdx doc", async () => {
       await using ddt = openProject(markdown, {
         "doc.mdx": `# Guide\n\n{/* a comment */}\n\n${fence(passing)}`,
