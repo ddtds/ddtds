@@ -36,7 +36,11 @@ function indent(fragment: Fragment): Fragment {
   return fragment instanceof MagicString ? fragment.indent("  ") : indentText(fragment);
 }
 
-export function wrap(expression: Expression, before: string, after: string): Expression {
+/** Places an expression in code around it: wrap`export default ${expression};` */
+export function wrap(
+  [before = "", after = ""]: TemplateStringsArray,
+  expression: Expression,
+): Expression {
   if (expression.tag === "inline")
     return { tag: "inline", code: `${before}${expression.code}${after}` };
   const { open, body, close } = expression;
@@ -54,7 +58,7 @@ function emitRun(adapter: TestAdapter, outcome: Extract<FenceOutcome, { tag: "ru
   if (!outcome.shouldFail) return { imports, ...run };
   return {
     imports: [...imports, runtimeImport(adapter)],
-    ...wrap(run, "runtime.expectFailure({ run: ", " })"),
+    ...wrap`runtime.expectFailure({ run: ${run} })`,
   };
 }
 
