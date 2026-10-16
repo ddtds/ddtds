@@ -45,7 +45,8 @@ export function ddtHooks(root: string, entry?: string): RegisterHooksOptions {
 
 function withFenceTests(session: DdtSession, path: string, loaded: LoadFnOutput): LoadFnOutput {
   if (!loaded.format || !loaded.source) return loaded;
-  const source = session.withSourceTests(path, sourceText(loaded.source));
+  const kind = loaded.format.startsWith("commonjs") ? "cjs" : "esm";
+  const source = session.withSourceTests(path, sourceText(loaded.source), kind);
   return source === undefined ? loaded : { ...loaded, source };
 }
 

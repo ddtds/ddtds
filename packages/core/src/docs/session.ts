@@ -57,13 +57,18 @@ export class DdtSession {
   }
 
   /** Indexes a source file the host loaded and returns it with its fence tests appended */
-  public withSourceTests(id: string, code: string): string | undefined {
+  public withSourceTests(
+    id: string,
+    code: string,
+    kind: "esm" | "cjs" = "esm",
+  ): string | undefined {
     const inSource = this.#adapter.inSource;
     if (inSource === undefined) return undefined;
     this.update(id, code);
     const fences = this.index.fencesOf(id);
     if (fences.length === 0) return undefined;
-    return `${code}\n${inSource.wrap(sourceTests(this.#adapter, fences, inSource.test, inSource.suite))}`;
+    const tests = inSource.wrap(sourceTests(this.#adapter, fences, inSource.test, inSource.suite));
+    return [code, inSource.imports?.(kind), tests].filter((part) => part !== undefined).join("\n");
   }
 
   public module(id: string): GeneratedModule | undefined {

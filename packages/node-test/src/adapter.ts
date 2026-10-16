@@ -8,7 +8,11 @@ export const nodeTestAdapter: TestAdapter = {
   testImport: importFromNodeTest("test"),
   fenceImports: [importFromNodeAssert("strict", "assert")],
   inSource: {
-    test: '(await import("node:test")).test',
+    imports: (kind) =>
+      kind === "cjs"
+        ? "const { test: ddtTest } = require('node:test');"
+        : importFromNodeTest("test", "ddtTest"),
+    test: "ddtTest",
     wrap: (tests) => `;(async () => ${tests})();`,
   },
 };
