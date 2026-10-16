@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import type { TestAdapter } from "../codegen/adapter.ts";
-import { moduleFor, type GeneratedModule } from "../codegen/modules.ts";
+import { moduleFor, sourceTests, type GeneratedModule } from "../codegen/modules.ts";
 import { type DocsConfig, readDocs, resolveDocsOptions } from "./discovery.ts";
 import { isMarkdownFile } from "../fences/doc-kinds.ts";
 import { DocIndex } from "./docs.ts";
@@ -54,6 +54,16 @@ export class DdtSession {
     const doc = resolve(this.index.root, id);
     this.#known.add(doc);
     this.index = this.index.withDoc(doc, source);
+  }
+
+  /** Indexes a source file the host loaded and returns it with its fence tests appended */
+  public withSourceTests(id: string, code: string): string | undefined {
+    const inSource = this.#adapter.inSource;
+    if (inSource === undefined) return undefined;
+    this.update(id, code);
+    const fences = this.index.fencesOf(id);
+    if (fences.length === 0) return undefined;
+    return `${code}\n${inSource.wrap(sourceTests(this.#adapter, fences, inSource.test, inSource.suite))}`;
   }
 
   public module(id: string): GeneratedModule | undefined {

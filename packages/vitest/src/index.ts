@@ -9,7 +9,6 @@ import {
   moduleFiles as generateModuleFiles,
   moduleFor,
   resolveLogLevel,
-  sourceTests,
   type DocsOptions,
   type GeneratedModule,
   type LogLevel,
@@ -127,18 +126,8 @@ export function ddtPlugin({ logLevel, ...docs }: DdtPluginOptions = {}): Plugin 
     },
     transform(code, id) {
       if (!isSourceFile(id) || !session.tracks(id)) return undefined;
-      session.update(id, code);
-      const fences = session.index.fencesOf(id);
-      if (fences.length === 0) return undefined;
-      // Vitest only defines `import.meta.vitest` while it runs the file as a test. The tests go
-      // after the file's own code, so its source map is unchanged.
-      const tests = sourceTests(
-        vitestTestAdapter,
-        fences,
-        "import.meta.vitest.test",
-        "import.meta.vitest.describe",
-      );
-      return { code: `${code}\nif (import.meta.vitest) ${tests}`, map: null };
+      const withTests = session.withSourceTests(id, code);
+      return withTests === undefined ? undefined : { code: withTests, map: null };
     },
     load(id) {
       const doc = resolve(session.index.root, id);

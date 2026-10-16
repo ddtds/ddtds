@@ -7,4 +7,8 @@ export const nodeTestAdapter: TestAdapter = {
   runtime: "@ddtds/node-test/runtime",
   testImport: importFromNodeTest("test"),
   fenceImports: [importFromNodeAssert("strict", "assert")],
+  inSource: {
+    test: '(await import("node:test")).test',
+    wrap: (tests) => `;(async () => ${tests})();`,
+  },
 };
