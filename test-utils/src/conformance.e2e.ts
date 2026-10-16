@@ -258,20 +258,6 @@ export function conformance(name: string, runner: Runner, dialect: Dialect): voi
   ];
 
   describe(`${name} conformance`, () => {
-    test("points a failure at the line that threw", async () => {
-      await using ddt = openProject(markdown, {
-        "doc.md": fence('const a = 1;\nthrow new TypeError("boom");'),
-      });
-      await ddt.run();
-      expect(ddt.failures).toEqual({ "doc.md:1": [{ file: "doc.md", line: 3, column: 7 }] });
-    });
-
-    test("points a syntax error at the line that has it", async () => {
-      await using ddt = openProject(markdown, { "doc.md": fence("const ok = 1;\nconst = 1;") });
-      await ddt.run();
-      expect(ddt.failures).toEqual({ "doc.md:1": [{ file: "doc.md", line: 3, column: 7 }] });
-    });
-
     test("runs an mdx doc", async () => {
       await using ddt = openProject(markdown, {
         "doc.mdx": `# Guide\n\n{/* a comment */}\n\n${fence(passing)}`,
@@ -289,6 +275,24 @@ export function conformance(name: string, runner: Runner, dialect: Dialect): voi
     ["markdown", markdown],
     ["JSDoc", jsdocKind],
   ])(`${name} %s conformance`, (_, kind) => {
+    test("points a failure at the line that threw", async () => {
+      await using ddt = openProject(kind, {
+        "doc.md": fence('const a = 1;\nthrow new TypeError("boom");'),
+      });
+      await ddt.run();
+      expect(ddt.failures).toEqual({
+        [kind.id("doc.md", 1)]: [kind.frame("doc.md", 3, 7)],
+      });
+    });
+
+    test("points a syntax error at the line that has it", async () => {
+      await using ddt = openProject(kind, { "doc.md": fence("const ok = 1;\nconst = 1;") });
+      await ddt.run();
+      expect(ddt.failures).toEqual({
+        [kind.id("doc.md", 1)]: [kind.frame("doc.md", 3, 7)],
+      });
+    });
+
     test.each(docs)("runs %s", async (_title, doc, expected) => {
       await using ddt = openProject(kind, { "doc.md": doc });
       expect(await ddt.run()).toEqual(located(kind, expected));

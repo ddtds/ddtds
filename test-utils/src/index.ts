@@ -6,7 +6,7 @@ import { createInterface } from "node:readline";
 import type { Readable } from "node:stream";
 import { setTimeout as delay } from "node:timers/promises";
 import * as v from "valibot";
-import { frame } from "./frames.ts";
+import { frame, type Frame } from "./frames.ts";
 
 export { framesOf, projectFrames, type Frame } from "./frames.ts";
 
@@ -202,12 +202,15 @@ export type Kind = {
   content(markdown: string): string;
   /** Reported id for a fence on `line` of a markdown file */
   id(markdown: string, line: number): string;
+  /** Reported location of `line` and `column` of a markdown file */
+  frame(markdown: string, line: number, column: number): Frame;
 };
 
 export const markdown: Kind = {
   file: (name) => name,
   content: (text) => text,
   id: (name, line) => `${name}:${line}`,
+  frame: (name, line, column) => ({ file: name, line, column }),
 };
 
 /** JSDoc in a `.extension` file followed by `code`, which CommonJS files need to change */
@@ -224,6 +227,7 @@ export function jsdocIn(extension: string, code = "export {};"): Kind {
     },
     // `/**` sits one line above the markdown
     id: (name, line) => `${file(name)}:${line + 1}`,
+    frame: (name, line, column) => ({ file: file(name), line: line + 1, column: column + 3 }),
   };
 }
 
