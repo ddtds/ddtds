@@ -22,3 +22,5 @@ A `fail` fence passes only when it throws:
 ```ts fail
 assert.equal(1 + 1, 3);
 ```
+
+JSDoc comments in `src/index.ts` hold fences too.

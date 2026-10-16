@@ -18,6 +18,8 @@ import {
 export type Dialect = {
   /** An assertion that passes when `actual` equals `expected` */
   equal(actual: string, expected: string): string;
+  /** Module system of the project and its fences. Defaults to `"esm"` */
+  module?: "esm" | "cjs";
 };
 
 const PASSED = "passed";
@@ -56,9 +58,30 @@ function open(runner: Runner, kind: Kind, files: Record<string, string>, docs?: 
   };
 }
 
-const missingPackage = 'import { x } from "missing-package";\nx;';
-
 export function conformance(name: string, runner: Runner, dialect: Dialect): void {
+  const commonjs = dialect.module === "cjs";
+  const importNames = (names: string, from: string): string =>
+    commonjs ? `const { ${names} } = require("${from}");` : `import { ${names} } from "${from}";`;
+  const importOnly = (from: string): string =>
+    commonjs ? `require("${from}");` : `import "${from}";`;
+  const project: Record<string, string> = commonjs
+    ? { "package.json": '{ "type": "commonjs" }' }
+    : {};
+  const calc: Record<string, string> = commonjs
+    ? {
+        "node_modules/calc/package.json": '{ "name": "calc", "main": "index.js" }',
+        "node_modules/calc/index.js": "exports.add = (a, b) => a + b;",
+      }
+    : {
+        "node_modules/calc/package.json":
+          '{ "name": "calc", "type": "module", "main": "index.js" }',
+        "node_modules/calc/index.js": "export const add = (a, b) => a + b;",
+      };
+  // a CommonJS entry cannot hold `export`, which `jsdoc` appends
+  const jsdocKind = commonjs ? jsdocIn("ts", "1;") : jsdoc;
+  const openProject = (kind: Kind, files: Record<string, string>, docs?: string[]): Opened =>
+    open(runner, kind, { ...project, ...files }, docs);
+  const missingPackage = `${importNames("x", "missing-package")}\nx;`;
   const passing = dialect.equal("1", "1");
   const failing = dialect.equal("1", "2");
 
@@ -231,44 +254,42 @@ export function conformance(name: string, runner: Runner, dialect: Dialect): voi
 
   describe(`${name} conformance`, () => {
     test("runs an mdx doc", async () => {
-      await using ddt = open(runner, markdown, {
+      await using ddt = openProject(markdown, {
         "doc.mdx": `# Guide\n\n{/* a comment */}\n\n${fence(passing)}`,
       });
       expect(await ddt.run()).toEqual({ "doc.mdx:5": PASSED });
     });
 
     test.each(parsing)("runs %s", async (_title, doc, expected) => {
-      await using ddt = open(runner, markdown, { "doc.md": doc });
+      await using ddt = openProject(markdown, { "doc.md": doc });
       expect(await ddt.run()).toEqual(expected);
     });
   });
 
   describe.each([
     ["markdown", markdown],
-    ["JSDoc", jsdoc],
+    ["JSDoc", jsdocKind],
   ])(`${name} %s conformance`, (_, kind) => {
     test.each(docs)("runs %s", async (_title, doc, expected) => {
-      await using ddt = open(runner, kind, { "doc.md": doc });
+      await using ddt = openProject(kind, { "doc.md": doc });
       expect(await ddt.run()).toEqual(located(kind, expected));
     });
 
     test.each(projects)("runs %s", async (_title, files, expected) => {
-      await using ddt = open(runner, kind, files);
+      await using ddt = openProject(kind, files);
       expect(await ddt.run()).toEqual(located(kind, expected));
     });
 
     test("imports packages from the project", async () => {
-      await using ddt = open(runner, kind, {
-        "node_modules/calc/package.json":
-          '{ "name": "calc", "type": "module", "main": "index.js" }',
-        "node_modules/calc/index.js": "export const add = (a, b) => a + b;",
-        "README.md": fence(`import { add } from "calc";\n\n${dialect.equal("add(1, 2)", "3")}`),
+      await using ddt = openProject(kind, {
+        ...calc,
+        "README.md": fence(`${importNames("add", "calc")}\n\n${dialect.equal("add(1, 2)", "3")}`),
       });
       expect(await ddt.run()).toEqual(located(kind, { "README.md:1": PASSED }));
     });
 
     test.each(edits)("reruns %s in watch mode", async (_title, [[doc, expected], ...rest]) => {
-      await using ddt = open(runner, kind, { "guide.md": doc });
+      await using ddt = openProject(kind, { "guide.md": doc });
       expect(await ddt.watch()).toEqual(located(kind, expected));
       for (const [next, outcomes] of rest) {
         // oxlint-disable-next-line no-await-in-loop
@@ -277,7 +298,7 @@ export function conformance(name: string, runner: Runner, dialect: Dialect): voi
     });
 
     test("runs a doc once it gains its first fence in watch mode", async () => {
-      await using ddt = open(runner, kind, {
+      await using ddt = openProject(kind, {
         "guide.md": "# Guide\n",
         "other.md": fence(passing),
       });
@@ -291,7 +312,7 @@ export function conformance(name: string, runner: Runner, dialect: Dialect): voi
     });
 
     test("stops running a doc once it loses its last fence in watch mode", async () => {
-      await using ddt = open(runner, kind, {
+      await using ddt = openProject(kind, {
         "guide.md": fence(passing),
         "other.md": fence(passing),
       });
@@ -302,26 +323,31 @@ export function conformance(name: string, runner: Runner, dialect: Dialect): voi
     });
   });
 
-  describe.each([
+  const jsdocProjects: [title: string, kind: Kind, files: Record<string, string>][] = [
     ["a .cts file", jsdocIn("cts", "1;"), {}],
     ["a .cjs file", jsdocIn("cjs", "1;"), {}],
     ["a CommonJS package", jsdocIn("ts", "1;"), { "package.json": '{ "type": "commonjs" }' }],
-  ])(`${name} JSDoc in %s conformance`, (_, kind, files) => {
+  ];
+
+  describe.each(
+    // the CommonJS run is already a CommonJS package
+    jsdocProjects.filter(([title]) => !commonjs || title !== "a CommonJS package"),
+  )(`${name} JSDoc in %s conformance`, (_, kind, files) => {
     test.each(docs.slice(0, 2))("runs %s", async (_title, doc, expected) => {
-      await using ddt = open(runner, kind, { ...files, "doc.md": doc });
+      await using ddt = openProject(kind, { ...files, "doc.md": doc });
       expect(await ddt.run()).toEqual(located(kind, expected));
     });
   });
 
   describe(`${name} JSDoc entry conformance`, () => {
-    const documented = jsdoc.content(fence(passing));
+    const documented = jsdocKind.content(fence(passing));
 
     test("runs no fences of a documented file that the runner only imports", async () => {
       await using ddt = open(
         runner,
         markdown,
         {
-          "entry.ts": 'import "./imported.ts";\n',
+          "entry.ts": `${importOnly("./imported.ts")}\n`,
           "imported.ts": documented,
           "own.ts": documented,
         },
@@ -334,20 +360,20 @@ export function conformance(name: string, runner: Runner, dialect: Dialect): voi
       const math = [
         "/**",
         " * ```ts run",
-        ' * import { add } from "calc";',
+        ` * ${importNames("add", "calc")}`,
         ` * ${dialect.equal("add(1, 2)", "3")}`,
         " * ```",
         " */",
-        "export function add(a: number, b: number): number {",
-        "  return a + b;",
-        "}",
+        ...(commonjs
+          ? ["function add(a, b) {", "  return a + b;", "}", "module.exports = { add };"]
+          : ["export function add(a: number, b: number): number {", "  return a + b;", "}"]),
         "",
       ].join("\n");
       await using ddt = open(
         runner,
         markdown,
         {
-          "package.json": '{ "name": "calc", "type": "module", "exports": "./math.ts" }',
+          "package.json": `{ "name": "calc", "type": "${commonjs ? "commonjs" : "module"}", "exports": "./math.ts" }`,
           "math.ts": math,
         },
         ["math.ts"],

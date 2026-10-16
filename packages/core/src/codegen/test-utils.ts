@@ -4,6 +4,7 @@ import type { Annotation, Lang } from "../constants.ts";
 import type { Fence } from "../docs/docs.ts";
 import type { TestAdapter } from "./adapter.ts";
 
+// these are unit tests and don't need to resolve
 export const adapter: TestAdapter = {
   runtime: "@ddtds/test/runtime",
   testImport: "import { test } from 'test';",

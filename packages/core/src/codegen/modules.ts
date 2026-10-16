@@ -20,7 +20,10 @@ function shiftToFence(mappings: SourceMapSegment[][], { block }: Fence): SourceM
 
 export function fenceModule(adapter: TestAdapter, fence: Fence, source?: string): GeneratedModule {
   const { imports, ...expression } = emitFence(adapter, planFence(fence));
-  const exported = wrap`export default ${expression};`;
+  const exported =
+    adapter.module === "cjs"
+      ? wrap`module.exports = ${expression};`
+      : wrap`export default ${expression};`;
   const pieces =
     exported.tag === "inline"
       ? [...imports, exported.code]
@@ -63,7 +66,12 @@ export function docModule(
 ): GeneratedModule {
   // load the file before its fences import it by package name
   const self = isSourceFile(doc) ? [`import ${JSON.stringify(doc)};`] : [];
-  const header = [...self, adapter.testImport, runtimeImport(adapter), ...loadFences(fences)];
+  const header = [
+    ...self,
+    adapter.testImport,
+    runtimeImport(adapter, "esm"),
+    ...loadFences(fences),
+  ];
   const lines = [...header, ...fences.map((fence, i) => `test(${testName(fence)}, fences[${i}]);`)];
   const mappings: SourceMapSegment[][] = [
     ...header.map(() => []),
