@@ -331,7 +331,7 @@ export function conformance(name: string, runner: Runner, dialect: Dialect): voi
     ["markdown", markdown],
     ["JSDoc", jsdocKind],
     ["indented JSDoc", indentedKind],
-  ])(`${name} %s failure locations`, (_, kind) => {
+  ])(`${name} %s conformance`, (_, kind) => {
     test.each(locations)("points %s at its line", async (_title, doc, expected) => {
       await using ddt = openProject(kind, { "doc.md": doc });
       await ddt.run();
@@ -350,12 +350,7 @@ export function conformance(name: string, runner: Runner, dialect: Dialect): voi
         }
       },
     );
-  });
 
-  describe.each([
-    ["markdown", markdown],
-    ["JSDoc", jsdocKind],
-  ])(`${name} %s conformance`, (_, kind) => {
     test.each(parsing)("runs %s", async (_title, doc, expected) => {
       await using ddt = openProject(kind, { "doc.md": doc });
       expect(await ddt.run()).toEqual(located(kind, expected));
