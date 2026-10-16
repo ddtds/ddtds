@@ -16,11 +16,8 @@ function generatedLine(code: string, matches: (line: string) => boolean) {
 
 const cjs: TestAdapter = {
   ...adapter,
-  fenceImports: {
-    import: ["import { expect } from 'expect';"],
-    require: ["const { expect } = require('expect');"],
-  },
-  moduleType: "require",
+  fenceImports: ["const { expect } = require('expect');"],
+  module: "cjs",
 };
 
 test("a fence module default-exports its function after the imports", () => {

@@ -5,6 +5,5 @@ const importFromVitest = typedImports<typeof import("vitest")>("vitest");
 export const vitestTestAdapter: TestAdapter = {
   runtime: "@ddtds/vitest/runtime",
   testImport: importFromVitest("test"),
-  fenceImports: { import: [importFromVitest("expect")] },
-  moduleType: "import",
+  fenceImports: [importFromVitest("expect")],
 };

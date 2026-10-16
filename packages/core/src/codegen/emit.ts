@@ -19,7 +19,7 @@ function runtimeCall<Helper extends InlineHelper>(
   input: HelperInput<Helper>,
 ): FenceCode {
   return {
-    imports: [runtimeImport(adapter, adapter.moduleType)],
+    imports: [runtimeImport(adapter)],
     tag: "inline",
     code: `runtime.${helper}(${serialize(input)})`,
   };
@@ -53,11 +53,11 @@ function asyncFunction(body: readonly Fragment[]): Expression {
 }
 
 function emitRun(adapter: TestAdapter, outcome: Extract<FenceOutcome, { tag: "run" }>): FenceCode {
-  const imports = [...(adapter.fenceImports[adapter.moduleType] ?? []), ...outcome.imports];
+  const imports = [...adapter.fenceImports, ...outcome.imports];
   const run = asyncFunction(outcome.body);
   if (!outcome.shouldFail) return { imports, ...run };
   return {
-    imports: [...imports, runtimeImport(adapter, adapter.moduleType)],
+    imports: [...imports, runtimeImport(adapter)],
     ...wrap`runtime.expectFailure({ run: ${run} })`,
   };
 }

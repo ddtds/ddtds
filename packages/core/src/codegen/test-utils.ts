@@ -7,8 +7,7 @@ import type { TestAdapter } from "./adapter.ts";
 export const adapter: TestAdapter = {
   runtime: "@ddtds/test/runtime",
   testImport: "import { test } from 'test';",
-  fenceImports: { import: ["import { expect } from 'expect';"] },
-  moduleType: "import",
+  fenceImports: ["import { expect } from 'expect';"],
 };
 
 export function fence(

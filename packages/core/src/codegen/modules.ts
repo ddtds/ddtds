@@ -21,7 +21,7 @@ function shiftToFence(mappings: SourceMapSegment[][], { block }: Fence): SourceM
 export function fenceModule(adapter: TestAdapter, fence: Fence, source?: string): GeneratedModule {
   const { imports, ...expression } = emitFence(adapter, planFence(fence));
   const exported =
-    adapter.moduleType === "require"
+    adapter.module === "cjs"
       ? wrap`module.exports = ${expression};`
       : wrap`export default ${expression};`;
   const pieces =
@@ -69,7 +69,7 @@ export function docModule(
   const header = [
     ...self,
     adapter.testImport,
-    runtimeImport(adapter, "import"),
+    runtimeImport(adapter, "esm"),
     ...loadFences(fences),
   ];
   const lines = [...header, ...fences.map((fence, i) => `test(${testName(fence)}, fences[${i}]);`)];

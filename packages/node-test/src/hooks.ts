@@ -1,4 +1,4 @@
-import { existsSync, readFileSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import { findPackageJSON, type RegisterHooksOptions } from "node:module";
 import { extname } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
@@ -33,7 +33,7 @@ export function ddtHooks(root: string): RegisterHooksOptions {
       if (!module) return next(url, context);
 
       // doc modules always import; fence modules follow the package's module system
-      const commonjs = adapter.moduleType === "require" && !session.isEntry(id);
+      const commonjs = adapter.module === "cjs" && !session.isEntry(id);
       return {
         format: commonjs ? "commonjs-typescript" : "module-typescript",
         source: module.code,
@@ -43,14 +43,14 @@ export function ddtHooks(root: string): RegisterHooksOptions {
   };
 }
 
-/** Node reads `type` from the closest package.json to pick `require` or `import` */
+/** Node reads `type` from the closest package.json to pick CommonJS or ESM */
 function moduleSystem(root: string): ModuleSystem {
   const path = findPackageJSON(pathToFileURL(root + "/").href);
-  if (path === undefined || !existsSync(path)) return "import";
+  if (path === undefined) return "esm";
   const pkg: unknown = JSON.parse(readFileSync(path, "utf8"));
   const commonjs =
     typeof pkg === "object" && pkg !== null && "type" in pkg && pkg.type === "commonjs";
-  return commonjs ? "require" : "import";
+  return commonjs ? "cjs" : "esm";
 }
 
 function fileUrl(id: string): string {
