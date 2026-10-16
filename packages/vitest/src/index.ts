@@ -5,7 +5,6 @@ import {
   DdtSession,
   DocIndex,
   defaultOutDir,
-  isSourceFile,
   moduleFiles as generateModuleFiles,
   moduleFor,
   resolveLogLevel,
@@ -46,22 +45,6 @@ export type DdtPluginOptions = DocsOptions & {
   logLevel?: LogLevel;
 };
 
-/**
- * Docs without fences yet, which Vitest scans so one that gains its first fence while watching
- * can run. A source file that holds in-source tests is left out: scanning it would start running
- * tests the user had not enabled.
- */
-function docsWithoutFences(session: DdtSession): string[] {
-  return session
-    .trackedDocs()
-    .filter(
-      (doc) =>
-        session.index.fencesOf(doc).length === 0 &&
-        !(isSourceFile(doc) && session.index.sourceOf(doc)?.includes("import.meta.vitest")),
-    )
-    .map((doc) => relative(session.index.root, doc));
-}
-
 export function ddtPlugin({ logLevel, ...docs }: DdtPluginOptions = {}): Plugin {
   const vite = createViteSink();
   configureLogging(resolveLogLevel(logLevel), vite);
@@ -88,17 +71,19 @@ export function ddtPlugin({ logLevel, ...docs }: DdtPluginOptions = {}): Plugin 
         test: {
           include: [...(config.test?.include ? [] : defaultInclude), ...docFiles],
           exclude: [...(config.test?.exclude ? [] : defaultExclude), buildOutput],
-          includeSource: docsWithoutFences(session),
           watchTriggerPatterns: [
             {
               pattern: /\.(?:mdx?|[cm]?[jt]sx?)$/,
               testsToRun(file: string): string[] | undefined {
                 if (!session.tracks(file) || included.has(file)) return undefined;
                 session.refresh(file);
-                if (session.index.fencesOf(file).length === 0) return undefined;
-                return project?.matchesTestGlob(file, () => "import.meta.vitest")
-                  ? [file]
-                  : undefined;
+                if (!project || session.index.fencesOf(file).length === 0) return undefined;
+                // a doc that gains its first fence becomes a test file from now on
+                included.add(file);
+                project.config.include.push(
+                  relative(project.config.dir || project.config.root, file),
+                );
+                return project.matchesTestGlob(file) ? [file] : undefined;
               },
             },
           ],

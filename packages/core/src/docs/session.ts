@@ -42,11 +42,6 @@ export class DdtSession {
     return DdtSession.fromSources(adapter, readDocs(root, include, exclude), root);
   }
 
-  public trackedDocs(): string[] {
-    const known = this.#tracked === "all" ? [] : this.#tracked;
-    return [...new Set([...known, ...[...this.index.docs()].map(([doc]) => doc)])];
-  }
-
   public tracks(id: string): boolean {
     const doc = resolve(this.index.root, id);
     if (this.#tracked === "all") return isMarkdownFile(doc) || isSourceFile(doc);

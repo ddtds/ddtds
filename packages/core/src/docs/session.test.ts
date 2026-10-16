@@ -147,10 +147,6 @@ describe("DdtSession.tracks", () => {
     expect(session.tracks(join(root, "empty.md"))).toBe(true);
     expect(session.tracks("empty.md")).toBe(true);
     expect(session.tracks(join(root, "guide.md"))).toBe(true);
-    expect(session.trackedDocs().toSorted()).toEqual([
-      join(root, "empty.md"),
-      join(root, "guide.md"),
-    ]);
   });
 
   test("does not track a doc it was not given", () => {
