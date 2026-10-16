@@ -41,10 +41,11 @@ describe("DdtSession.fromFiles", () => {
     expect(session.index.size).toBe(1);
     expect([...session.index.docs()].map(([doc]) => doc)).toEqual([join(root, "guide.md")]);
     expect(session.index.hasDoc(join(root, "guide.md"))).toBe(true);
-    expect(session.module(join(root, "guide.md"))?.code).toContain('test("guide.md:1"');
-    expect(session.module(fence!.id)?.code).toContain("expect(1).toBe(1);");
-    expect(session.module(join(root, "missing.md"))).toBeUndefined();
     expect(session.index.fence(fence!.id)).toBe(fence);
+    expect(session.load(session.entry("guide.md")!)?.code).toContain('test("guide.md:1"');
+    expect(session.load(fence!.id)?.code).toContain("expect(1).toBe(1);");
+    expect(session.load(join(root, "guide.md"))).toBeUndefined();
+    expect(session.entry("missing.md")).toBeUndefined();
   });
 });
 
@@ -81,7 +82,7 @@ describe("DdtSession.refresh", () => {
     // the fence id is content-addressed, so the edit produces a new id
     const [after] = session.index.fences();
     expect(after!.id).not.toBe(fence!.id);
-    expect(session.module(after!.id)?.code).toContain("expect(2).toBe(2);");
+    expect(session.load(after!.id)?.code).toContain("expect(2).toBe(2);");
   });
 
   test("refreshes a doc when the watcher reports a root-relative id", () => {
@@ -92,7 +93,7 @@ describe("DdtSession.refresh", () => {
     session.refresh("guide.md");
 
     const [updated] = session.index.fences();
-    expect(session.module(updated!.id)?.code).toContain("expect(2).toBe(2);");
+    expect(session.load(updated!.id)?.code).toContain("expect(2).toBe(2);");
     expect([...session.index.docs()].map(([doc]) => doc)).toEqual([join(root, "guide.md")]);
   });
 
@@ -121,8 +122,8 @@ describe("DdtSession.refresh", () => {
     session.refresh(path);
     expect(session.index.hasDoc(path)).toBe(true);
     const [fence] = session.index.fences();
-    expect(session.module(path)?.code).toContain("test(");
-    expect(session.module(fence!.id)?.code).toContain("expect(1).toBe(1);");
+    expect(session.load(session.entry(path)!)?.code).toContain("test(");
+    expect(session.load(fence!.id)?.code).toContain("expect(1).toBe(1);");
   });
 
   test("leaves anything that is not a doc alone", () => {
@@ -131,7 +132,7 @@ describe("DdtSession.refresh", () => {
 
     expect(session.index.hasDoc(join(root, "src/index.ts"))).toBe(false);
     session.refresh(join(root, "src/index.ts"));
-    expect(session.module(join(root, "src/index.ts"))).toBeUndefined();
+    expect(session.entry(join(root, "src/index.ts"))).toBeUndefined();
   });
 });
 

@@ -1,37 +1,33 @@
-import type { LoadFnOutput, RegisterHooksOptions } from "node:module";
-import { extname, resolve } from "node:path";
+import type { RegisterHooksOptions } from "node:module";
+import { extname } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
-import { DdtSession, isSourceFile } from "@ddtds/core";
+import { DdtSession } from "@ddtds/core";
 import { nodeTestAdapter } from "./adapter.ts";
 
 // works with both built and source
 const runtimeUrl = new URL(`./runtime${extname(import.meta.filename)}`, import.meta.url).href;
 
-export function ddtHooks(root: string, entry?: string): RegisterHooksOptions {
-  const session = DdtSession.fromSources(nodeTestAdapter, new Map(), root);
-  const entryPath = entry === undefined ? undefined : resolve(root, entry);
+export function ddtHooks(root: string): RegisterHooksOptions {
+  const session = DdtSession.open(nodeTestAdapter, root);
 
   return {
     resolve(specifier, context, next) {
       // load ddtds runtime
       if (specifier === nodeTestAdapter.runtime) return { url: runtimeUrl, shortCircuit: true };
+      // the file node starts runs as its doc's tests, which import the file itself
+      if (context.parentURL === undefined) {
+        const entry = session.entry(fileURLToPath(new URL(specifier, pathToFileURL(root + "/"))));
+        if (entry !== undefined) return { url: fileUrl(entry), shortCircuit: true };
+      }
       // hand off to node if not a relevent fence
       if (!session.index.fence(specifier)) return next(specifier, context);
       // if its a fence, map to markdown source instead of passing to node resolver
-      return { url: pathToFileURL(specifier).href, shortCircuit: true };
+      return { url: fileUrl(specifier), shortCircuit: true };
     },
     load(url, context, next) {
-      const path = filePath(url);
-      // ignore if not a file
-      if (path === undefined) return next(url, context);
-
-      if (isSourceFile(path) && path === entryPath) {
-        return withFenceTests(session, path, next(url, context));
-      }
-
-      // load or reload doc
-      session.refresh(path);
-      const module = session.module(path);
+      const parsed = URL.parse(url);
+      if (parsed?.protocol !== "file:") return next(url, context);
+      const module = session.load(fileURLToPath(parsed) + parsed.search);
       if (!module) return next(url, context);
 
       return {
@@ -43,17 +39,8 @@ export function ddtHooks(root: string, entry?: string): RegisterHooksOptions {
   };
 }
 
-function withFenceTests(session: DdtSession, path: string, loaded: LoadFnOutput): LoadFnOutput {
-  if (!loaded.format || !loaded.source) return loaded;
-  const kind = loaded.format.startsWith("commonjs") ? "cjs" : "esm";
-  const source = session.withSourceTests(path, sourceText(loaded.source), kind);
-  return source === undefined ? loaded : { ...loaded, source };
-}
-
-function sourceText(source: string | ArrayBuffer | NodeJS.ArrayBufferView): string {
-  return typeof source === "string" ? source : new TextDecoder().decode(source);
-}
-
-function filePath(url: string): string | undefined {
-  return URL.parse(url)?.protocol === "file:" ? fileURLToPath(url) : undefined;
+/** A file url for an id, keeping its query */
+function fileUrl(id: string): string {
+  const [path = id, query] = id.split("?");
+  return pathToFileURL(path).href + (query === undefined ? "" : `?${query}`);
 }

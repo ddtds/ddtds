@@ -33,17 +33,6 @@ export type TestAdapter = Readonly<{
    * ```
    */
   fenceImports: readonly string[];
-  /** How a host appends fence tests to a source file it runs itself, when it does */
-  inSource?: Readonly<{
-    /** Statement placed before the tests that makes `test` available, per module kind */
-    imports?(kind: "esm" | "cjs"): string;
-    /** Expression for `test` inside the source file */
-    test: string;
-    /** Expression for `describe`, which loads fences inside the suite instead of up front */
-    suite?: string;
-    /** Wraps the generated tests so the host runs them only when it wants to */
-    wrap(tests: string): string;
-  }>;
 }>;
 
 /**

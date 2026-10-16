@@ -1,7 +1,8 @@
 import { Bundle, MagicString, SourceMap, type SourceMapSegment } from "magic-string";
 import type { DocIndex, Fence } from "../docs/docs.ts";
 import { runtimeImport, type TestAdapter } from "./adapter.ts";
-import { emitFence, indentText, wrap } from "./emit.ts";
+import { isSourceFile } from "../fences/doc-kinds.ts";
+import { emitFence, wrap } from "./emit.ts";
 import { planFence } from "./plan.ts";
 
 export type GeneratedModule = { code: string; map: SourceMap };
@@ -45,61 +46,11 @@ const testName = ({ block }: Fence): string =>
 const importFences = (fences: readonly Fence[]): string[] =>
   fences.map(({ id }) => `  () => import(${JSON.stringify(id)}),`);
 
-const loadRuntime = (adapter: TestAdapter): string =>
-  `const { runtime } = await import(${JSON.stringify(adapter.runtime)});`;
-
-const loadFences = (fences: readonly Fence[], wait: boolean): string[] => [
-  `const fences = ${wait ? "await " : ""}runtime.loadFences([`,
+const loadFences = (fences: readonly Fence[]): string[] => [
+  "const fences = await runtime.loadFences([",
   ...importFences(fences),
   "]);",
 ];
-
-function lazyRegistration(adapter: TestAdapter, fences: readonly Fence[]): string[] {
-  return [
-    loadRuntime(adapter),
-    ...loadFences(fences, false),
-    ...fences.map((fence, i) => `test(${testName(fence)}, runtime.fenceAt(fences, ${i}));`),
-  ];
-}
-
-function suiteRegistration(
-  adapter: TestAdapter,
-  fences: readonly Fence[],
-  suite: string,
-): string[] {
-  const body = [
-    loadRuntime(adapter),
-    ...loadFences(fences, true),
-    ...fences.map((fence, i) => `test(${testName(fence)}, fences[${i}]);`),
-  ];
-  const name = JSON.stringify(fences[0]?.block.details.file);
-  return [`${suite}(${name}, async () => {`, ...body.map(indentText), "});"];
-}
-
-/**
- * for most runners, jsdoc fences arent loaded if the
- * source file isnt imported int a test
- *
- * fences arent waited since jsdoc is very often
- * a self import and would cause a desdlock
- *
- * with a `suite`, the fences load inside the suite callback instead. the runner
- * waits for that callback after the file has loaded, so there is no deadlock and the
- * load time isnt charged to a test's timeout
- */
-export function sourceTests(
-  adapter: TestAdapter,
-  fences: readonly Fence[],
-  test: string,
-  suite?: string,
-): string {
-  const registration =
-    suite === undefined
-      ? lazyRegistration(adapter, fences)
-      : suiteRegistration(adapter, fences, suite);
-  const lines = [`const test = ${test};`, ...registration].map(indentText);
-  return ["{", ...lines, "}"].join("\n");
-}
 
 export function docModule(
   adapter: TestAdapter,
@@ -107,7 +58,9 @@ export function docModule(
   fences: readonly Fence[],
   { source }: { source?: string } = {},
 ): GeneratedModule {
-  const header = [adapter.testImport, runtimeImport(adapter), ...loadFences(fences, true)];
+  // a source doc still runs as itself, before its fences import it again by package name
+  const self = isSourceFile(doc) ? [`import ${JSON.stringify(doc)};`] : [];
+  const header = [...self, adapter.testImport, runtimeImport(adapter), ...loadFences(fences)];
   const lines = [...header, ...fences.map((fence, i) => `test(${testName(fence)}, fences[${i}]);`)];
   const mappings: SourceMapSegment[][] = [
     ...header.map(() => []),
@@ -136,14 +89,15 @@ export function moduleFiles(adapter: TestAdapter, index: DocIndex): Map<string, 
   return files;
 }
 
-/** The module a host serves for a doc or fence id, or `undefined` when the id is neither. */
+/** The module a host serves for an entry or fence id, or `undefined` when the id is neither. */
 export function moduleFor(
   adapter: TestAdapter,
   index: DocIndex,
   id: string,
 ): GeneratedModule | undefined {
-  if (index.hasDoc(id)) {
-    return docModule(adapter, id, index.fencesOf(id), { source: index.sourceOf(id) });
+  const doc = index.docOfEntry(id);
+  if (doc !== undefined) {
+    return docModule(adapter, doc, index.fencesOf(doc), { source: index.sourceOf(doc) });
   }
   const fence = index.fence(id);
   if (!fence) return undefined;

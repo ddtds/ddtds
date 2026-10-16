@@ -1,4 +1,4 @@
-import { join, relative, resolve } from "node:path";
+import { join, relative } from "node:path";
 import { defaultExclude, defaultInclude, type Plugin } from "vitest/config";
 import type { TestProject } from "vitest/node";
 import {
@@ -116,28 +116,24 @@ export function ddtPlugin({ logLevel, ...docs }: DdtPluginOptions = {}): Plugin 
       session.refresh(id);
     },
     resolveId(source, importer, resolveOptions) {
+      // Vite resolves a top-level request, such as the runner importing a test file, from the
+      // root's index.html. Run a doc there as its fence tests instead
+      if (!importer || importer === join(session.index.root, "index.html")) {
+        const entry = session.entry(source);
+        if (entry !== undefined) return entry;
+      }
       // A cached doc module carries the fence imports Vite rewrote to
       // root-relative urls, so accept those too, not just absolute ids.
       const fence = session.index.fence(source) ? source : join(session.index.root, source);
       if (session.index.fence(fence)) return fence;
-      if (!importer || !session.index.hasDoc(importer)) return undefined;
+      if (!importer || !session.index.docOfEntry(importer)) return undefined;
       const fromRoot = join(session.index.root, "package.json");
       return this.resolve(source, fromRoot, { ...resolveOptions, skipSelf: true });
     },
-    transform(code, id) {
-      if (!isSourceFile(id) || !session.tracks(id)) return undefined;
-      const withTests = session.withSourceTests(id, code);
-      return withTests === undefined ? undefined : { code: withTests, map: null };
-    },
     load(id) {
-      const doc = resolve(session.index.root, id);
-      const isDoc = session.index.hasDoc(doc);
-      // a source file loads from disk; `transform` indexes it and adds its tests
-      if (isDoc && isSourceFile(doc)) return undefined;
-      if (isDoc) session.refresh(doc);
       const fence = session.index.fence(id);
       if (fence) this.addWatchFile(fence.doc);
-      return session.module(id);
+      return session.load(id);
     },
   };
 }

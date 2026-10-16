@@ -29,24 +29,6 @@ describe("loadFences", () => {
   });
 });
 
-describe("fenceAt", () => {
-  test("runs the indexed fence once its load settles", async () => {
-    const ran: number[] = [];
-    const fences = runtime.loadFences([
-      async () => ({ default: async () => void ran.push(0) }),
-      async () => ({ default: async () => void ran.push(1) }),
-    ]);
-    await runtime.fenceAt(fences, 1)();
-    expect(ran).toEqual([1]);
-  });
-
-  test("rejects with the fence's load error", async () => {
-    const error = new Error("load failed");
-    const fences = runtime.loadFences([() => Promise.reject(error)]);
-    await expect(runtime.fenceAt(fences, 0)()).rejects.toBe(error);
-  });
-});
-
 describe("compileError", () => {
   test("rejects with the compile error", async () => {
     const error: unknown = await runtime

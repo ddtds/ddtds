@@ -23,7 +23,7 @@ function runtimeCall<Helper extends InlineHelper>(
   };
 }
 
-export function indentText(text: string): string {
+function indentText(text: string): string {
   return text
     .split("\n")
     .map((line) => `  ${line}`)

@@ -1,20 +1,34 @@
 import { readFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import type { TestAdapter } from "../codegen/adapter.ts";
-import { moduleFor, sourceTests, type GeneratedModule } from "../codegen/modules.ts";
+import { moduleFor, type GeneratedModule } from "../codegen/modules.ts";
 import { type DocsConfig, readDocs, resolveDocsOptions } from "./discovery.ts";
-import { isMarkdownFile } from "../fences/doc-kinds.ts";
+import { isMarkdownFile, isSourceFile } from "../fences/doc-kinds.ts";
 import { DocIndex } from "./docs.ts";
 
 export class DdtSession {
   readonly #adapter: TestAdapter;
   readonly #known: Set<string>;
+  /** Tracks every doc it is asked about, for hosts that only learn their docs while running */
+  readonly #open: boolean;
   public index: DocIndex;
 
-  private constructor(adapter: TestAdapter, index: DocIndex, known: Iterable<string>) {
+  private constructor(
+    adapter: TestAdapter,
+    index: DocIndex,
+    known: Iterable<string>,
+    open = false,
+  ) {
     this.#adapter = adapter;
     this.#known = new Set(known);
+    this.#open = open;
     this.index = index;
+  }
+
+  /** A session that indexes each doc the first time a host asks about it */
+  public static open(adapter: TestAdapter, root: string): DdtSession {
+    const index = DocIndex.fromSources(new Map(), { root, moduleDir: join(root, "__ddtds__") });
+    return new DdtSession(adapter, index, [], true);
   }
 
   public static fromSources(
@@ -41,6 +55,7 @@ export class DdtSession {
 
   public tracks(id: string): boolean {
     const doc = resolve(this.index.root, id);
+    if (this.#open) return isMarkdownFile(doc) || isSourceFile(doc);
     return this.#known.has(doc) || this.index.hasDoc(doc);
   }
 
@@ -56,22 +71,18 @@ export class DdtSession {
     this.index = this.index.withDoc(doc, source);
   }
 
-  /** Indexes a source file the host loaded and returns it with its fence tests appended */
-  public withSourceTests(
-    id: string,
-    code: string,
-    kind: "esm" | "cjs" = "esm",
-  ): string | undefined {
-    const inSource = this.#adapter.inSource;
-    if (inSource === undefined) return undefined;
-    this.update(id, code);
-    const fences = this.index.fencesOf(id);
-    if (fences.length === 0) return undefined;
-    const tests = inSource.wrap(sourceTests(this.#adapter, fences, inSource.test, inSource.suite));
-    return [code, inSource.imports?.(kind), tests].filter((part) => part !== undefined).join("\n");
+  /** The id a host runs in place of the doc at `path`, when the doc has fences */
+  public entry(path: string): string | undefined {
+    const doc = resolve(this.index.root, path);
+    if (!this.tracks(doc)) return undefined;
+    this.refresh(doc);
+    return this.index.fencesOf(doc).length > 0 ? this.index.entryId(doc) : undefined;
   }
 
-  public module(id: string): GeneratedModule | undefined {
+  /** The module for an entry or fence id. An entry's doc is read again first */
+  public load(id: string): GeneratedModule | undefined {
+    const doc = this.index.docOfEntry(id);
+    if (doc !== undefined) this.refresh(doc);
     return moduleFor(this.#adapter, this.index, id);
   }
 }
