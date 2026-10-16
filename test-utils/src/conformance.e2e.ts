@@ -4,7 +4,16 @@
  */
 
 import { describe, expect, test } from "vitest";
-import { fence, jsdoc, markdown, spawn, type Kind, type Outcomes, type Runner } from "./index.ts";
+import {
+  fence,
+  jsdoc,
+  jsdocIn,
+  markdown,
+  spawn,
+  type Kind,
+  type Outcomes,
+  type Runner,
+} from "./index.ts";
 
 export type Dialect = {
   /** An assertion that passes when `actual` equals `expected` */
@@ -37,8 +46,8 @@ const located = (kind: Kind, expected: Verdicts): Verdicts =>
     }),
   );
 
-function open(runner: Runner, kind: Kind, files: Record<string, string>): Opened {
-  const ddt = spawn(runner, files, { kind });
+function open(runner: Runner, kind: Kind, files: Record<string, string>, docs?: string[]): Opened {
+  const ddt = spawn(runner, files, { kind, docs });
   return {
     run: async () => verdicts(await ddt.run()),
     watch: async () => verdicts(await ddt.watch()),
@@ -281,6 +290,61 @@ export function conformance(name: string, runner: Runner, dialect: Dialect): voi
         located(kind, { "guide.md:1": PASSED, "other.md:1": PASSED }),
       );
       expect(await ddt.edit("guide.md", "# Guide\n")).toEqual({});
+    });
+  });
+
+  describe.each([
+    ["a .mts file", jsdocIn("mts"), {}],
+    ["a .cts file", jsdocIn("cts", "1;"), {}],
+    ["a .cjs file", jsdocIn("cjs", "1;"), {}],
+    ["a CommonJS package", jsdocIn("ts", "1;"), { "package.json": '{ "type": "commonjs" }' }],
+  ])(`${name} JSDoc in %s conformance`, (_, kind, files) => {
+    test.each(docs.slice(0, 2))("runs %s", async (_title, doc, expected) => {
+      await using ddt = open(runner, kind, { ...files, "doc.md": doc });
+      expect(await ddt.run()).toEqual(located(kind, expected));
+    });
+  });
+
+  describe(`${name} JSDoc entry conformance`, () => {
+    const documented = jsdoc.content(fence(passing));
+
+    test("runs no fences of a documented file that the runner only imports", async () => {
+      await using ddt = open(
+        runner,
+        markdown,
+        {
+          "entry.ts": 'import "./imported.ts";\n',
+          "imported.ts": documented,
+          "own.ts": documented,
+        },
+        ["entry.ts", "own.ts"],
+      );
+      expect(await ddt.run()).toEqual({ "own.ts:2": PASSED });
+    });
+
+    test("runs a fence that imports the documented file by its package name", async () => {
+      const math = [
+        "/**",
+        " * ```ts run",
+        ' * import { add } from "calc";',
+        ` * ${dialect.equal("add(1, 2)", "3")}`,
+        " * ```",
+        " */",
+        "export function add(a: number, b: number): number {",
+        "  return a + b;",
+        "}",
+        "",
+      ].join("\n");
+      await using ddt = open(
+        runner,
+        markdown,
+        {
+          "package.json": '{ "name": "calc", "type": "module", "exports": "./math.ts" }',
+          "math.ts": math,
+        },
+        ["math.ts"],
+      );
+      expect(await ddt.run()).toEqual({ "math.ts:2": PASSED });
     });
   });
 }

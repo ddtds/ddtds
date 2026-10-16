@@ -205,18 +205,27 @@ export const markdown: Kind = {
   id: (name, line) => `${name}:${line}`,
 };
 
-export const jsdoc: Kind = {
-  file: (name) => name.replace(/\.mdx?$/, ".ts"),
-  content(text) {
-    const lines = text
-      .replace(/\n$/, "")
-      .split("\n")
-      .map((line) => (line === "" ? " *" : ` * ${line}`));
-    return ["/**", ...lines, " */", "export {};", ""].join("\n");
-  },
-  // the comment opens one line above the markdown
-  id: (name, line) => `${jsdoc.file(name)}:${line + 1}`,
-};
+/**
+ * JSDoc in a source file with `extension`, whose code after the comment is `code`. A CommonJS file
+ * needs code that is not an ES module
+ */
+export function jsdocIn(extension: string, code = "export {};"): Kind {
+  const file = (name: string): string => name.replace(/\.mdx?$/, `.${extension}`);
+  return {
+    file,
+    content(text) {
+      const lines = text
+        .replace(/\n$/, "")
+        .split("\n")
+        .map((line) => (line === "" ? " *" : ` * ${line}`));
+      return ["/**", ...lines, " */", code, ""].join("\n");
+    },
+    // the comment opens one line above the markdown
+    id: (name, line) => `${file(name)}:${line + 1}`,
+  };
+}
+
+export const jsdoc: Kind = jsdocIn("ts");
 
 const isMarkdown = (file: string): boolean => /\.mdx?$/.test(file);
 
