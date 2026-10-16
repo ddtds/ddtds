@@ -61,13 +61,12 @@ const importers: Record<ModuleSystem, (module: string, name: string, alias?: str
  * ```
  */
 export const typedImports =
-  // oxlint-disable-next-line typescript/no-unnecessary-type-parameters this is fine and needed to make the function type safe
   <Module>(module: string) =>
-    (
-      name: keyof Module,
-      { alias, type = "esm" }: { alias?: string; type?: ModuleSystem } = {},
-    ): string =>
-      importers[type](module, String(name), alias);
+  (
+    name: keyof Module,
+    { alias, type = "esm" }: { alias?: string; type?: ModuleSystem } = {},
+  ): string =>
+    importers[type](module, String(name), alias);
 
 /** Doc modules always `import`; fence modules follow the adapter's module system */
 export function runtimeImport(
