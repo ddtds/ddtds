@@ -8,27 +8,20 @@ import { DocIndex } from "./docs.ts";
 
 export class DdtSession {
   readonly #adapter: TestAdapter;
-  readonly #known: Set<string>;
-  /** Tracks every doc it is asked about, for hosts that only learn their docs while running */
-  readonly #open: boolean;
+  /** The docs this session tracks, or `"all"` for hosts that only learn their docs while running */
+  readonly #tracked: Set<string> | "all";
   public index: DocIndex;
 
-  private constructor(
-    adapter: TestAdapter,
-    index: DocIndex,
-    known: Iterable<string>,
-    open = false,
-  ) {
+  private constructor(adapter: TestAdapter, index: DocIndex, tracked: Set<string> | "all") {
     this.#adapter = adapter;
-    this.#known = new Set(known);
-    this.#open = open;
+    this.#tracked = tracked;
     this.index = index;
   }
 
   /** A session that indexes each doc the first time a host asks about it */
   public static open(adapter: TestAdapter, root: string): DdtSession {
     const index = DocIndex.fromSources(new Map(), { root, moduleDir: join(root, "__ddtds__") });
-    return new DdtSession(adapter, index, [], true);
+    return new DdtSession(adapter, index, "all");
   }
 
   public static fromSources(
@@ -40,7 +33,7 @@ export class DdtSession {
     return new DdtSession(
       adapter,
       DocIndex.fromSources(sources, { root, moduleDir }),
-      sources.keys(),
+      new Set(sources.keys()),
     );
   }
 
@@ -50,13 +43,14 @@ export class DdtSession {
   }
 
   public trackedDocs(): string[] {
-    return [...new Set([...this.#known, ...[...this.index.docs()].map(([doc]) => doc)])];
+    const known = this.#tracked === "all" ? [] : this.#tracked;
+    return [...new Set([...known, ...[...this.index.docs()].map(([doc]) => doc)])];
   }
 
   public tracks(id: string): boolean {
     const doc = resolve(this.index.root, id);
-    if (this.#open) return isMarkdownFile(doc) || isSourceFile(doc);
-    return this.#known.has(doc) || this.index.hasDoc(doc);
+    if (this.#tracked === "all") return isMarkdownFile(doc) || isSourceFile(doc);
+    return this.#tracked.has(doc) || this.index.hasDoc(doc);
   }
 
   public refresh(id: string): void {
@@ -67,7 +61,7 @@ export class DdtSession {
   /** Reindexes a doc from source the host already read */
   public update(id: string, source: string): void {
     const doc = resolve(this.index.root, id);
-    this.#known.add(doc);
+    if (this.#tracked !== "all") this.#tracked.add(doc);
     this.index = this.index.withDoc(doc, source);
   }
 

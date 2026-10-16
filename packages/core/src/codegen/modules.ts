@@ -20,8 +20,11 @@ function shiftToFence(mappings: SourceMapSegment[][], { block }: Fence): SourceM
 
 export function fenceModule(adapter: TestAdapter, fence: Fence, source?: string): GeneratedModule {
   const { imports, ...expression } = emitFence(adapter, planFence(fence));
-  const { open, body, close } = wrap(expression, "export default ", ";");
-  const pieces = [...imports, open, ...body, ...(close === "" ? [] : [close])];
+  const exported = wrap(expression, "export default ", ";");
+  const pieces =
+    exported.tag === "inline"
+      ? [...imports, exported.code]
+      : [...imports, exported.open, ...exported.body, exported.close];
 
   const bundle = new Bundle({ separator: "\n" });
   for (const piece of pieces) {

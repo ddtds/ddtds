@@ -42,5 +42,7 @@ export function ddtHooks(root: string): RegisterHooksOptions {
 /** A file url for an id, keeping its query */
 function fileUrl(id: string): string {
   const [path = id, query] = id.split("?");
-  return pathToFileURL(path).href + (query === undefined ? "" : `?${query}`);
+  const url = pathToFileURL(path);
+  if (query !== undefined) url.search = query;
+  return url.href;
 }
