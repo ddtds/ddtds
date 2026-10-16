@@ -1,4 +1,4 @@
-import { join, relative, resolve } from "node:path";
+import { join, relative } from "node:path";
 import { defaultExclude, defaultInclude, type Plugin } from "vitest/config";
 import type { TestProject } from "vitest/node";
 import {
@@ -45,13 +45,6 @@ export type DdtPluginOptions = DocsOptions & {
   logLevel?: LogLevel;
 };
 
-function docsWithoutFences(session: DdtSession): string[] {
-  return session
-    .trackedDocs()
-    .filter((doc) => session.index.fencesOf(doc).length === 0)
-    .map((doc) => relative(session.index.root, doc));
-}
-
 export function ddtPlugin({ logLevel, ...docs }: DdtPluginOptions = {}): Plugin {
   const vite = createViteSink();
   configureLogging(resolveLogLevel(logLevel), vite);
@@ -78,17 +71,16 @@ export function ddtPlugin({ logLevel, ...docs }: DdtPluginOptions = {}): Plugin 
         test: {
           include: [...(config.test?.include ? [] : defaultInclude), ...docFiles],
           exclude: [...(config.test?.exclude ? [] : defaultExclude), buildOutput],
-          includeSource: docsWithoutFences(session),
           watchTriggerPatterns: [
             {
-              pattern: /\.mdx?$/,
+              pattern: /\.(?:mdx?|[cm]?[jt]sx?)$/,
               testsToRun(file: string): string[] | undefined {
-                if (!session.tracks(file) || included.has(file)) return undefined;
-                session.refresh(file);
-                if (session.index.fencesOf(file).length === 0) return undefined;
-                return project?.matchesTestGlob(file, () => "import.meta.vitest")
-                  ? [file]
-                  : undefined;
+                if (!project || included.has(file) || !session.entry(file)) return undefined;
+                included.add(file);
+                project.config.include.push(
+                  relative(project.config.dir || project.config.root, file),
+                );
+                return project.matchesTestGlob(file) ? [file] : undefined;
               },
             },
           ],
@@ -106,20 +98,22 @@ export function ddtPlugin({ logLevel, ...docs }: DdtPluginOptions = {}): Plugin 
       session.refresh(id);
     },
     resolveId(source, importer, resolveOptions) {
-      // A cached doc module carries the fence imports Vite rewrote to
-      // root-relative urls, so accept those too, not just absolute ids.
-      const fence = session.index.fence(source) ? source : join(session.index.root, source);
-      if (session.index.fence(fence)) return fence;
-      if (!importer || !session.index.hasDoc(importer)) return undefined;
-      const fromRoot = join(session.index.root, "package.json");
+      // Vite resolves top-level requests, like test files, from the root's index.html
+      if (!importer || importer === join(session.root, "index.html")) {
+        const entry = session.entry(source);
+        if (entry !== undefined) return entry;
+      }
+      // a cached doc module imports fences by root-relative urls
+      const fence = session.resolve(source);
+      if (fence !== undefined) return fence;
+      if (!importer || !session.isEntry(importer)) return undefined;
+      const fromRoot = join(session.root, "package.json");
       return this.resolve(source, fromRoot, { ...resolveOptions, skipSelf: true });
     },
     load(id) {
-      const doc = resolve(session.index.root, id);
-      if (session.index.hasDoc(doc)) session.refresh(doc);
       const fence = session.index.fence(id);
       if (fence) this.addWatchFile(fence.doc);
-      return session.module(id);
+      return session.load(id);
     },
   };
 }

@@ -114,8 +114,11 @@ function frame(root: string, { file, line, column }: ParsedStack): string {
 }
 
 /** The first error of each failed test, with only the stack frames inside the fixture */
-export async function failures(root: string): Promise<Record<string, Failure>> {
-  await using instance = await create(root);
+export async function failures(
+  root: string,
+  plugin: DdtPluginOptions = {},
+): Promise<Record<string, Failure>> {
+  await using instance = await create(root, { plugin });
   await instance.start();
   const results: Record<string, Failure> = {};
   for (const module of instance.state.getTestModules()) {

@@ -4,7 +4,10 @@ import { serialize } from "seroval";
 import { runtimeImport, type TestAdapter } from "./adapter.ts";
 import type { FenceOutcome, Fragment } from "./plan.ts";
 
-export type Expression = { open: string; body: Fragment[]; close: string };
+/** One line of code, or a block whose body keeps fragments for source maps */
+export type Expression =
+  | { tag: "inline"; code: string }
+  | { tag: "block"; open: string; body: Fragment[]; close: string };
 export type FenceCode = Expression & { imports: Fragment[] };
 
 type InlineHelper = Exclude<keyof FenceRuntime, "loadFences">;
@@ -17,29 +20,32 @@ function runtimeCall<Helper extends InlineHelper>(
 ): FenceCode {
   return {
     imports: [runtimeImport(adapter)],
-    open: `runtime.${helper}(${serialize(input)})`,
-    body: [],
-    close: "",
+    tag: "inline",
+    code: `runtime.${helper}(${serialize(input)})`,
   };
 }
 
-function indent(fragment: Fragment): Fragment {
-  if (fragment instanceof MagicString) return fragment.indent("  ");
-  return fragment
+function indentText(text: string): string {
+  return text
     .split("\n")
     .map((line) => `  ${line}`)
     .join("\n");
 }
 
+function indent(fragment: Fragment): Fragment {
+  return fragment instanceof MagicString ? fragment.indent("  ") : indentText(fragment);
+}
+
 export function wrap(expression: Expression, before: string, after: string): Expression {
+  if (expression.tag === "inline")
+    return { tag: "inline", code: `${before}${expression.code}${after}` };
   const { open, body, close } = expression;
-  if (body.length === 0 && close === "") return { open: `${before}${open}${after}`, body, close };
-  return { open: `${before}${open}`, body, close: `${close}${after}` };
+  return { tag: "block", open: `${before}${open}`, body, close: `${close}${after}` };
 }
 
 function asyncFunction(body: readonly Fragment[]): Expression {
-  if (body.length === 0) return { open: "async () => {}", body: [], close: "" };
-  return { open: "async () => {", body: body.map(indent), close: "}" };
+  if (body.length === 0) return { tag: "inline", code: "async () => {}" };
+  return { tag: "block", open: "async () => {", body: body.map(indent), close: "}" };
 }
 
 function emitRun(adapter: TestAdapter, outcome: Extract<FenceOutcome, { tag: "run" }>): FenceCode {

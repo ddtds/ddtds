@@ -76,9 +76,10 @@ test("refreshes a changed doc before loading its test module again", async () =>
   await using dir = fixture({ "guide.md": fence("expect(1).toBe(1);") });
   await using instance = await create(dir.root, { plugin: { include: ["guide.md"] } });
 
-  const id = join(dir.root, "guide.md");
+  const doc = join(dir.root, "guide.md");
+  const id = `${doc}?ddtds`;
   const before = await instance.vite.pluginContainer.load(id);
-  writeFileSync(id, fence("expect(1).toBe(2);"));
+  writeFileSync(doc, fence("expect(1).toBe(2);"));
 
   expect(await instance.vite.pluginContainer.load(id)).not.toEqual(before);
 });

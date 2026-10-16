@@ -25,6 +25,38 @@ const calc = {
   ].join("\n"),
 };
 
+const math = [
+  "/**",
+  " * Adds two numbers.",
+  " *",
+  " * @example",
+  " * ```ts run",
+  ' * import { add } from "calc";',
+  " * expect(add(1, 2)).toBe(3);",
+  " * ```",
+  " */",
+  "export function add(a: number, b: number): number {",
+  "  return a + b;",
+  "}",
+  "",
+  "/**",
+  " * @example",
+  " * ```ts run",
+  ' * import { subtract } from "calc";',
+  " * expect(subtract(3, 1)).toBe(1);",
+  " * ```",
+  " */",
+  "export function subtract(a: number, b: number): number {",
+  "  return a - b;",
+  "}",
+  "",
+].join("\n");
+
+const documented = {
+  "package.json": '{ "name": "calc", "type": "module", "exports": "./src/math.ts" }',
+  "src/math.ts": math,
+};
+
 test("failures point at the markdown line that failed", async () => {
   await using dir = fixture(calc);
   expect(await failures(dir.root)).toMatchInlineSnapshot(`
@@ -46,6 +78,25 @@ test("failures point at the markdown line that failed", async () => {
         "error": "AssertionError: expected -1 to be 3 // Object.is equality",
         "frames": [
           "README.md:7:13",
+        ],
+      },
+    }
+  `);
+});
+
+test("failures point at the source file line that failed", async () => {
+  await using dir = fixture(documented);
+  expect(await failures(dir.root)).toMatchInlineSnapshot(`
+    {
+      "src/math.ts:16": {
+        "diff": "- Expected
+    + Received
+
+    - 1
+    + 2",
+        "error": "AssertionError: expected 2 to be 1 // Object.is equality",
+        "frames": [
+          "src/math.ts:18:27",
         ],
       },
     }

@@ -1,6 +1,7 @@
 import { Bundle, MagicString, SourceMap, type SourceMapSegment } from "magic-string";
 import type { DocIndex, Fence } from "../docs/docs.ts";
 import { runtimeImport, type TestAdapter } from "./adapter.ts";
+import { isSourceFile } from "../fences/doc-kinds.ts";
 import { emitFence, wrap } from "./emit.ts";
 import { planFence } from "./plan.ts";
 
@@ -19,8 +20,11 @@ function shiftToFence(mappings: SourceMapSegment[][], { block }: Fence): SourceM
 
 export function fenceModule(adapter: TestAdapter, fence: Fence, source?: string): GeneratedModule {
   const { imports, ...expression } = emitFence(adapter, planFence(fence));
-  const { open, body, close } = wrap(expression, "export default ", ";");
-  const pieces = [...imports, open, ...body, ...(close === "" ? [] : [close])];
+  const exported = wrap(expression, "export default ", ";");
+  const pieces =
+    exported.tag === "inline"
+      ? [...imports, exported.code]
+      : [...imports, exported.open, ...exported.body, exported.close];
 
   const bundle = new Bundle({ separator: "\n" });
   for (const piece of pieces) {
@@ -45,24 +49,11 @@ const testName = ({ block }: Fence): string =>
 const importFences = (fences: readonly Fence[]): string[] =>
   fences.map(({ id }) => `  () => import(${JSON.stringify(id)}),`);
 
-/**
- * for most runners, jsdoc fences arent loaded if the
- * source file isnt imported int a test
- *
- * fences arent waited since jsdoc is very often
- * a self import and would cause a desdlock
- */
-export function sourceTests(adapter: TestAdapter, fences: readonly Fence[], test: string): string {
-  const lines = [
-    `const test = ${test};`,
-    `const { runtime } = await import(${JSON.stringify(adapter.runtime)});`,
-    "const fences = runtime.loadFences([",
-    ...importFences(fences),
-    "]);",
-    ...fences.map((fence, i) => `test(${testName(fence)}, runtime.fenceAt(fences, ${i}));`),
-  ];
-  return ["{", ...lines.map((line) => `  ${line}`), "}"].join("\n");
-}
+const loadFences = (fences: readonly Fence[]): string[] => [
+  "const fences = await runtime.loadFences([",
+  ...importFences(fences),
+  "]);",
+];
 
 export function docModule(
   adapter: TestAdapter,
@@ -70,13 +61,9 @@ export function docModule(
   fences: readonly Fence[],
   { source }: { source?: string } = {},
 ): GeneratedModule {
-  const header = [
-    adapter.testImport,
-    runtimeImport(adapter),
-    "const fences = await runtime.loadFences([",
-    ...importFences(fences),
-    "]);",
-  ];
+  // load the file before its fences import it by package name
+  const self = isSourceFile(doc) ? [`import ${JSON.stringify(doc)};`] : [];
+  const header = [...self, adapter.testImport, runtimeImport(adapter), ...loadFences(fences)];
   const lines = [...header, ...fences.map((fence, i) => `test(${testName(fence)}, fences[${i}]);`)];
   const mappings: SourceMapSegment[][] = [
     ...header.map(() => []),
@@ -105,14 +92,15 @@ export function moduleFiles(adapter: TestAdapter, index: DocIndex): Map<string, 
   return files;
 }
 
-/** The module a host serves for a doc or fence id, or `undefined` when the id is neither. */
+/** Module for an entry or fence id */
 export function moduleFor(
   adapter: TestAdapter,
   index: DocIndex,
   id: string,
 ): GeneratedModule | undefined {
-  if (index.hasDoc(id)) {
-    return docModule(adapter, id, index.fencesOf(id), { source: index.sourceOf(id) });
+  const doc = index.docOfEntry(id);
+  if (doc !== undefined) {
+    return docModule(adapter, doc, index.fencesOf(doc), { source: index.sourceOf(doc) });
   }
   const fence = index.fence(id);
   if (!fence) return undefined;

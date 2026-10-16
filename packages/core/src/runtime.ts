@@ -34,13 +34,6 @@ export const runtime = {
         ),
       ),
     ),
-  /** A test body that runs one of the fences from `loadFences` once it has loaded, so a test can be
-   * registered before its fences finish loading */
-  fenceAt:
-    (fences: Promise<FenceRun[]>, index: number): FenceRun =>
-    async () => {
-      await (await fences)[index]?.();
-    },
   /** builds a function to throw a compile error */
   compileError: ({
     fileName,

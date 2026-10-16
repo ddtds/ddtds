@@ -1,7 +1,18 @@
+import { resolve } from "node:path";
 import { encode, type Outcomes } from "@ddtds/test-utils";
 
 type Failure = { name?: string; code?: string; cause?: { name?: string; code?: string } };
-type TestEvent = { type: string; data?: { name?: string; details?: { error?: Failure } } };
+type TestData = {
+  name?: string;
+  file?: string;
+  nesting?: number;
+  details?: { error?: Failure };
+};
+type TestEvent = { type: string; data?: TestData };
+
+function isEmptyFile({ name, file, nesting }: TestData): boolean {
+  return nesting === 0 && name !== undefined && file !== undefined && resolve(name) === file;
+}
 
 function status(error?: Failure): string {
   if (!error) return "failed";
@@ -13,13 +24,17 @@ function status(error?: Failure): string {
 export default async function* reporter(source: AsyncIterable<TestEvent>): AsyncGenerator<string> {
   let outcomes: Outcomes = {};
   for await (const event of source) {
-    const name = event.data?.name;
-    if (name && event.type === "test:pass") outcomes[name] = "passed";
-    else if (name && event.type === "test:fail")
-      outcomes[name] = status(event.data?.details?.error);
-    else if (event.type === "test:plan") {
+    if (event.type === "test:plan") {
       yield encode(outcomes);
       outcomes = {};
+      continue;
+    }
+    const data = event.data;
+    if (!data?.name) continue;
+    if (event.type === "test:pass") {
+      if (!isEmptyFile(data)) outcomes[data.name] = "passed";
+    } else if (event.type === "test:fail") {
+      outcomes[data.name] = status(data.details?.error);
     }
   }
 }

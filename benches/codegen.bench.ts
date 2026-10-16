@@ -28,7 +28,7 @@ const index = DocIndex.fromSources(sources, {
 const fenceIds = [...index.fences()].map((fence) => fence.id);
 const docIds = index
   .docs()
-  .map(([doc]) => doc)
+  .map(([doc]) => index.entryId(doc))
   .toArray();
 
 /** What `ddtPlugin`'s `load` serves during a test run: one module per doc and fence. */

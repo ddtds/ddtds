@@ -17,6 +17,7 @@ describe("emitFence: run fences", () => {
       }),
     ).toEqual({
       imports: ["import { expect } from 'expect';", "import { a } from './a';"],
+      tag: "block",
       open: "async () => {",
       body: ["  a();"],
       close: "}",
@@ -28,6 +29,7 @@ describe("emitFence: run fences", () => {
       emitFence(adapter, { tag: "run", imports: [], body: ["throw 1;"], shouldFail: true }),
     ).toEqual({
       imports: ["import { expect } from 'expect';", runtimeImport],
+      tag: "block",
       open: "runtime.expectFailure({ run: async () => {",
       body: ["  throw 1;"],
       close: "} })",
@@ -39,9 +41,8 @@ describe("emitFence: other outcomes", () => {
   test("an empty pass is a no-op function with no imports", () => {
     expect(emitFence(adapter, { tag: "emptyPass" })).toEqual({
       imports: [],
-      open: "async () => {}",
-      body: [],
-      close: "",
+      tag: "inline",
+      code: "async () => {}",
     });
   });
 
@@ -54,21 +55,23 @@ describe("emitFence: other outcomes", () => {
       }),
     ).toEqual({
       imports: [runtimeImport],
-      open: 'runtime.missingCompileError(({fileName:"/repo/docs/t.md",position:{line:7,column:1}}))',
-      body: [],
-      close: "",
+      tag: "inline",
+      code: 'runtime.missingCompileError(({fileName:"/repo/docs/t.md",position:{line:7,column:1}}))',
     });
   });
 
   test("a compile error passes its details and serialized cause to the runtime helper", () => {
-    const { imports, open } = emitFence(adapter, {
+    const code = emitFence(adapter, {
       tag: "compileError",
       fileName: "/repo/docs/t.md",
       details,
       cause: { name: "Error", message: "crashed", code: undefined },
     });
-    expect(imports).toEqual([runtimeImport]);
-    expect(open).toMatch(/^runtime\.compileError\(\(\{fileName:"\/repo\/docs\/t\.md",details:/);
-    expect(open).toContain('cause:{name:"Error",message:"crashed",code:void 0}');
+    expect(code.imports).toEqual([runtimeImport]);
+    if (code.tag !== "inline") throw new Error("expected an inline runtime call");
+    expect(code.code).toMatch(
+      /^runtime\.compileError\(\(\{fileName:"\/repo\/docs\/t\.md",details:/,
+    );
+    expect(code.code).toContain('cause:{name:"Error",message:"crashed",code:void 0}');
   });
 });

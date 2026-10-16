@@ -10,6 +10,8 @@ export type Fence = Readonly<{
   block: CodeBlock;
 }>;
 
+const ENTRY_QUERY = "?ddtds";
+
 export type IndexOptions = Readonly<{ root: string; moduleDir: string }>;
 
 export class DocIndex {
@@ -81,6 +83,18 @@ export class DocIndex {
 
   public docModuleId(doc: string): string {
     return join(this.#options.moduleDir, `${flatName(this.#options.root, doc)}.test.ts`);
+  }
+
+  /** Doc path plus a query, so watchers see the doc and importers get the file */
+  public entryId(doc: string): string {
+    return `${doc}${ENTRY_QUERY}`;
+  }
+
+  /** Doc behind an entry id */
+  public docOfEntry(id: string): string | undefined {
+    if (!id.endsWith(ENTRY_QUERY)) return undefined;
+    const doc = id.slice(0, -ENTRY_QUERY.length);
+    return this.hasDoc(doc) ? doc : undefined;
   }
 }
 

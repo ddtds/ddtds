@@ -1,6 +1,6 @@
 import { expect, test } from "vitest";
 import { TraceMap, generatedPositionFor, originalPositionFor } from "@jridgewell/trace-mapping";
-import { docModule, fenceModule, sourceTests } from "./modules.ts";
+import { docModule, fenceModule } from "./modules.ts";
 import { parseJsDocFences } from "../fences/jsdoc.ts";
 import { adapter, fence } from "./test-utils.ts";
 
@@ -95,20 +95,13 @@ test("a doc module loads each fence before it registers one test per fence", () 
   );
 });
 
-test("source tests register each fence in a block that imports nothing into the file", () => {
-  const first = fence("1;", null, { line: 3 });
-  expect(sourceTests(adapter, [first], "host.test.run")).toBe(
-    [
-      "{",
-      "  const test = host.test.run;",
-      '  const { runtime } = await import("@ddtds/test/runtime");',
-      "  const fences = runtime.loadFences([",
-      '    () => import("/repo/__doctests__/t_md_3.ts"),',
-      "  ]);",
-      '  test("t.md:3", runtime.fenceAt(fences, 0));',
-      "}",
-    ].join("\n"),
-  );
+test("a doc module for a source file imports the file before its fences import it again", () => {
+  const first = { ...fence("1;", null, { line: 3 }), doc: "/repo/src/t.ts" };
+  const { code } = docModule(adapter, "/repo/src/t.ts", [first]);
+  expect(code.split("\n").slice(0, 2)).toEqual([
+    'import "/repo/src/t.ts";',
+    "import { test } from 'test';",
+  ]);
 });
 
 test("a doc module maps each test call to its fence in the markdown", () => {

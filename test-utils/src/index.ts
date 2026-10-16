@@ -190,22 +190,75 @@ export function fixture(files: Record<string, string>): AsyncDisposable & { root
   };
 }
 
-export function spawn(runner: Runner, files: Record<string, string>): Session {
-  const root = create(files);
+/** Where a doc's markdown lives: a markdown file or a JSDoc comment */
+export type Kind = {
+  /** Runner file for a markdown file */
+  file(markdown: string): string;
+  content(markdown: string): string;
+  /** Reported id for a fence on `line` of a markdown file */
+  id(markdown: string, line: number): string;
+};
+
+export const markdown: Kind = {
+  file: (name) => name,
+  content: (text) => text,
+  id: (name, line) => `${name}:${line}`,
+};
+
+/** JSDoc in a `.extension` file followed by `code`, which CommonJS files need to change */
+export function jsdocIn(extension: string, code = "export {};"): Kind {
+  const file = (name: string): string => name.replace(/\.mdx?$/, `.${extension}`);
+  return {
+    file,
+    content(text) {
+      const lines = text
+        .replace(/\n$/, "")
+        .split("\n")
+        .map((line) => (line === "" ? " *" : ` * ${line}`));
+      return ["/**", ...lines, " */", code, ""].join("\n");
+    },
+    // `/**` sits one line above the markdown
+    id: (name, line) => `${file(name)}:${line + 1}`,
+  };
+}
+
+export const jsdoc: Kind = jsdocIn("ts");
+
+const isMarkdown = (file: string): boolean => /\.mdx?$/.test(file);
+
+/**
+ * Project from `files` plus a session to run or watch it. `kind` places markdown files, which the
+ * session still names as markdown. `docs` go to the runner, defaulting to the markdown files
+ */
+export function spawn(
+  runner: Runner,
+  files: Record<string, string>,
+  { kind = markdown, docs }: { kind?: Kind; docs?: string[] } = {},
+): Session {
+  const placed = (file: string, text: string): [string, string] =>
+    isMarkdown(file) ? [kind.file(file), kind.content(text)] : [file, text];
+  const root = create(Object.fromEntries(Object.entries(files).map(([f, t]) => placed(f, t))));
+  const handed =
+    docs ??
+    Object.keys(files)
+      .filter(isMarkdown)
+      .map((file) => kind.file(file));
   runner.prepare?.(root);
-  const docs = Object.keys(files).filter((file) => /\.mdx?$/.test(file));
   let watching: Watcher | undefined;
+
+  const rerun = (): Promise<Outcomes> => (watching ? watching.next() : runner.run(root, handed));
 
   return {
     root,
-    run: () => runner.run(root, docs),
+    run: () => runner.run(root, handed),
     async watch(): Promise<Outcomes> {
-      watching = await runner.watch?.(root, docs);
-      return watching ? watching.next() : runner.run(root, docs);
+      watching = await runner.watch?.(root, handed);
+      return rerun();
     },
     async edit(file: string, content: string): Promise<Outcomes> {
-      writeFileSync(join(root, file), content);
-      return watching ? watching.next() : runner.run(root, docs);
+      const [path, text] = placed(file, content);
+      writeFileSync(join(root, path), text);
+      return rerun();
     },
     async [Symbol.asyncDispose](): Promise<void> {
       await watching?.close();
