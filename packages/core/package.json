@@ -34,7 +34,6 @@
     "oxc-parser": "^0.153.0",
     "satteri": "^0.10.5",
     "seroval": "^1.6.9",
-    "tinyglobby": "^0.2.16",
     "unist-util-visit": "^5.1.0"
   },
   "devDependencies": {

@@ -1,5 +1,5 @@
-import { readFileSync } from "node:fs";
-import { globSync } from "tinyglobby";
+import { globSync, readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { defaultDocsExclude, defaultDocsInclude } from "../constants.ts";
 
 export type DocsOptions = {
@@ -10,7 +10,7 @@ export type DocsOptions = {
 };
 
 export function findDocs(root: string, include: string[], exclude: string[]): string[] {
-  return globSync(include, { cwd: root, ignore: exclude, absolute: true });
+  return globSync(include, { cwd: root, exclude }).map((path) => resolve(root, path));
 }
 
 export type DocsConfig = DocsOptions & {
