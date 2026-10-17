@@ -749,9 +749,6 @@ importers:
       seroval:
         specifier: ^1.6.9
         version: 1.6.9
-      tinyglobby:
-        specifier: ^0.2.16
-        version: 0.2.17
       unist-util-visit:
         specifier: ^5.1.0
         version: 5.1.0
