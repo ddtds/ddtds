@@ -1,9 +1,14 @@
 import { defineConfig } from "vitest/config";
 import { svelte } from "@sveltejs/vite-plugin-svelte";
+import { svelteTesting } from "@testing-library/svelte/vite";
 import { ddtPlugin } from "@ddtds/vitest";
 
 export default defineConfig({
-  plugins: [svelte(), ddtPlugin({ include: ["../../docs/framework/svelte/**/*.md"] })],
+  plugins: [
+    svelte(),
+    svelteTesting(),
+    ddtPlugin({ include: ["../../docs/framework/svelte/**/*.md"] }),
+  ],
   resolve: { conditions: ["browser"] },
   test: {
     dir: "./tests",
