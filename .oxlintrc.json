@@ -20,6 +20,7 @@
       { "object": "process", "property": "stderr", "message": "Use the logger." }
     ],
     "no-shadow": "off",
+    "no-await-in-loop": "off",
     "@logtape/no-dynamic-message": "error",
     "@logtape/no-unrendered-properties": "error",
     "@logtape/no-message-interpolation": "error",
@@ -43,6 +44,13 @@
     "unicorn/prefer-array-some": "warn"
   },
   "overrides": [
+    {
+      "files": ["packages/node-test/src/hooks.ts"],
+      "rules": {
+        "no-restricted-properties": "off",
+        "typescript/no-extraneous-class": "off"
+      }
+    },
     {
       "files": ["**/*.test.ts"],
       "rules": {

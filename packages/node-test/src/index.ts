@@ -1,1 +1,1 @@
-export { ddtHooks } from "./hooks.ts";
+export { ddtHooks, type HookOptions } from "./hooks.ts";

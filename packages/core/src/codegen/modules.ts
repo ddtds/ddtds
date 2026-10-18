@@ -1,11 +1,12 @@
 import { Bundle, MagicString, SourceMap, type SourceMapSegment } from "magic-string";
 import type { DocIndex, Fence } from "../docs/docs.ts";
-import { runtimeImport, type TestAdapter } from "./adapter.ts";
+import { adapterFor, runtimeImport, type ModuleSystem, type TestAdapter } from "./adapter.ts";
 import { isSourceFile } from "../fences/doc-kinds.ts";
 import { emitFence, wrap } from "./emit.ts";
+import { resolveModule } from "./resolve-module.ts";
 import { planFence } from "./plan.ts";
 
-export type GeneratedModule = { code: string; map: SourceMap };
+export type GeneratedModule = { code: string; map: SourceMap; module: ModuleSystem };
 
 function shiftToFence(mappings: SourceMapSegment[][], { block }: Fence): SourceMapSegment[][] {
   return mappings.map((segments) =>
@@ -18,9 +19,22 @@ function shiftToFence(mappings: SourceMapSegment[][], { block }: Fence): SourceM
   );
 }
 
-export function fenceModule(adapter: TestAdapter, fence: Fence, source?: string): GeneratedModule {
-  const { imports, ...expression } = emitFence(adapter, planFence(fence));
-  const exported = wrap`export default ${expression};`;
+export function fenceModule(
+  defaultAdapter: TestAdapter,
+  fence: Fence,
+  source?: string,
+): GeneratedModule {
+  const outcome = planFence(fence);
+  const module = resolveModule(fence.block, {
+    esmSyntax: outcome.tag === "run" && outcome.esmSyntax,
+    fallback: defaultAdapter.module ?? "esm",
+  });
+  const adapter = adapterFor(defaultAdapter, module);
+  const { imports, ...expression } = emitFence(adapter, outcome);
+  const exported =
+    adapter.module === "cjs"
+      ? wrap`module.exports = ${expression};`
+      : wrap`export default ${expression};`;
   const pieces =
     exported.tag === "inline"
       ? [...imports, exported.code]
@@ -40,7 +54,7 @@ export function fenceModule(adapter: TestAdapter, fence: Fence, source?: string)
     names: [],
     mappings: shiftToFence(mappings, fence),
   });
-  return { code: bundle.toString(), map };
+  return { code: bundle.toString(), map, module: adapter.module ?? "esm" };
 }
 
 const testName = ({ block }: Fence): string =>
@@ -63,7 +77,12 @@ export function docModule(
 ): GeneratedModule {
   // load the file before its fences import it by package name
   const self = isSourceFile(doc) ? [`import ${JSON.stringify(doc)};`] : [];
-  const header = [...self, adapter.testImport, runtimeImport(adapter), ...loadFences(fences)];
+  const header = [
+    ...self,
+    adapter.testImport,
+    runtimeImport(adapter, "esm"),
+    ...loadFences(fences),
+  ];
   const lines = [...header, ...fences.map((fence, i) => `test(${testName(fence)}, fences[${i}]);`)];
   const mappings: SourceMapSegment[][] = [
     ...header.map(() => []),
@@ -79,7 +98,7 @@ export function docModule(
     names: [],
     mappings,
   });
-  return { code: lines.join("\n"), map };
+  return { code: lines.join("\n"), map, module: "esm" };
 }
 
 export function moduleFiles(adapter: TestAdapter, index: DocIndex): Map<string, string> {

@@ -1,3 +1,5 @@
+export type ModuleSystem = "esm" | "cjs";
+
 /** Controls runtime function path and imports */
 export type TestAdapter = Readonly<{
   /**
@@ -33,24 +35,50 @@ export type TestAdapter = Readonly<{
    * ```
    */
   fenceImports: readonly string[];
+  /** Module system fence modules are written in. Defaults to `"esm"` */
+  module?: ModuleSystem;
+  forModule?: (module: ModuleSystem) => TestAdapter;
 }>;
 
+type TypedImporter<Module> = (
+  name: keyof Module,
+  options?: { alias?: string; type?: ModuleSystem },
+) => string;
+
+const importers: Record<ModuleSystem, (module: string, name: string, alias?: string) => string> = {
+  esm: (module, name, alias) =>
+    `import { ${name}${alias ? ` as ${alias}` : ""} } from '${module}';`,
+  cjs: (module, name, alias) =>
+    `const { ${name}${alias ? `: ${alias}` : ""} } = require('${module}');`,
+};
+
 /**
- * Typesafe `import { name } from 'module'`, or `import { name as local } from 'module'`
- *
- * @example
+ * @example esm
  * ```ts
  * const importFromVitest = typedImports<typeof import("vitest")>("vitest");
- * const statement = importFromVitest("test");
- * expect(statement).toBe("import { test } from 'vitest';");
+ * expect(importFromVitest("test")).toBe("import { test } from 'vitest';");
+ * ```
+ *
+ * @example cjs with alias
+ * ```ts
+ * const importFromAssert = typedImports<typeof import("node:assert")>("node:assert");
+ * const statement = importFromAssert("strict", { alias: "assert", type: "cjs" });
+ * expect(statement).toBe("const { strict: assert } = require('node:assert');");
  * ```
  */
-export const typedImports =
-  // oxlint-disable-next-line typescript/no-unnecessary-type-parameters this is fine and needed to make the function type safe
-  <Module>(module: string) =>
-    (name: keyof Module, alias?: string): string =>
-      `import { ${String(name)}${alias ? ` as ${alias}` : ""} } from '${module}';`;
+export function typedImports<Module>(module: string): TypedImporter<Module> {
+  return (name, { alias, type = "esm" } = {}) => importers[type](module, String(name), alias);
+}
 
-export function runtimeImport(adapter: TestAdapter): string {
-  return `import { runtime } from '${adapter.runtime}';`;
+/** Doc modules always `import`; fence modules follow the adapter's module system */
+export function runtimeImport(
+  adapter: TestAdapter,
+  system: ModuleSystem = adapter.module ?? "esm",
+): string {
+  return importers[system](adapter.runtime, "runtime");
+}
+
+export function adapterFor(adapter: TestAdapter, module: ModuleSystem): TestAdapter {
+  if (module === (adapter.module ?? "esm")) return adapter;
+  return adapter.forModule?.(module) ?? adapter;
 }
