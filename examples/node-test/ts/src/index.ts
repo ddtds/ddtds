@@ -14,6 +14,14 @@
  *
  * assert.equal(slugify("Hello, World!"), "Hello, World!");
  * ```
+ *
+ * Setup comments work here too:
+ *
+ * <!-- ddt-setup import { slugify } from "@ddtds/example-node"; -->
+ *
+ * ```ts run
+ * assert.equal(slugify("In JSDoc"), "in-jsdoc");
+ * ```
  */
 export function slugify(title: string): string {
   return title

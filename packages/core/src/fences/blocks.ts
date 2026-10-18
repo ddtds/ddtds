@@ -12,6 +12,7 @@ import {
 } from "../constants.ts";
 import type { BlockDetails, Position, SourceRange } from "./compile-error.ts";
 import { columnsBeforeOffset, linesBeforeOffset, WHOLE_FILE, type Placement } from "./placement.ts";
+import { setupBefore, type SetupPiece } from "./hidden.ts";
 import { splitImportsAndBlock, type PreparedBlock } from "./parse.ts";
 
 const logger = getLogger(["ddtds", "blocks"]);
@@ -42,10 +43,16 @@ export type CodeBlockInit = {
   path: string;
   rangeInText: SourceRange;
   placement?: Placement;
+  /** Setup code from comments above the fence; it runs before `code` */
+  setup?: readonly SetupPiece[];
 };
+
+/** A run of lines of `CodeBlock.code` that starts at `textLine` of the text */
+type Segment = { codeLine: number; textLine: number; firstColumn: number; restColumn: number };
 
 export class CodeBlock {
   readonly #code: string;
+  readonly #segments: Segment[] = [];
   public readonly lang: Lang;
   public readonly details: BlockDetails;
   readonly #annotation: Annotation | null;
@@ -60,12 +67,32 @@ export class CodeBlock {
     path,
     rangeInText,
     placement = WHOLE_FILE,
+    setup = [],
   }: CodeBlockInit) {
-    this.#code = code;
     this.lang = lang;
     this.#annotation = annotation;
     this.#placement = placement;
     this.#fenceInText = zeroBased(rangeInText.start);
+    let codeLine = 0;
+    let setupCode = "";
+    for (const piece of setup) {
+      const start = zeroBased(piece.start);
+      this.#segments.push({
+        codeLine,
+        textLine: start.line,
+        firstColumn: start.column,
+        restColumn: 0,
+      });
+      setupCode += `${piece.code}\n`;
+      codeLine += piece.code.split("\n").length;
+    }
+    this.#segments.push({
+      codeLine,
+      textLine: this.#fenceInText.line + 1,
+      firstColumn: this.#fenceInText.column,
+      restColumn: this.#fenceInText.column,
+    });
+    this.#code = setupCode + code;
     const inFile = (position: Position): Position => ({
       line: position.line + placement.linesBefore,
       column: position.column + placement.columnsBeforeLine(position.line),
@@ -94,10 +121,14 @@ export class CodeBlock {
 
   /** `codeLine` and `codeColumn` are 0 indexed in the code, and so is the result in the file */
   public zeroBasedPositionAt(codeLine: number, codeColumn: number): Position {
-    const textLine = this.#fenceInText.line + 1 + codeLine;
+    const segment = this.#segments.findLast((candidate) => candidate.codeLine <= codeLine);
+    if (!segment) throw new Error(`no code at line ${codeLine}`);
+    const lineInSegment = codeLine - segment.codeLine;
+    const textLine = segment.textLine + lineInSegment;
+    const column = lineInSegment === 0 ? segment.firstColumn : segment.restColumn;
     return {
-      line: this.#fenceInFile.line + 1 + codeLine,
-      column: this.#fenceInText.column + this.#placement.columnsBeforeLine(textLine) + codeColumn,
+      line: textLine + this.#placement.linesBefore,
+      column: column + this.#placement.columnsBeforeLine(textLine) + codeColumn,
     };
   }
 
@@ -147,7 +178,7 @@ export function parseCodeFences(
   const tree = parseMarkdown(source, path);
   const blocks: CodeBlock[] = [];
 
-  visit(tree, "code", (node) => {
+  visit(tree, "code", (node, index, parent) => {
     const { lang, meta } = node;
     if (!meta || !lang || !isLang(lang)) return;
 
@@ -173,6 +204,7 @@ export function parseCodeFences(
           end: { line: end.line, column: end.column },
         },
         placement,
+        setup: parent && index !== undefined ? setupBefore(parent.children, index) : [],
       }),
     );
   });

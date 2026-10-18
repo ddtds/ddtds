@@ -153,6 +153,81 @@ export function conformance(name: string, runner: Runner, dialect: Dialect): voi
       `- item\n\n  \`\`\`ts run\n  ${passing}\n  \`\`\`\n`,
       { "doc.md:3": PASSED },
     ],
+    [
+      "a fence after a setup comment",
+      `<!-- ddt-setup const one = 1; -->\n\n${fence(dialect.equal("one", "1"))}`,
+      { "doc.md:3": PASSED },
+    ],
+    [
+      "a fence after a multi line setup comment with an import",
+      `<!-- ddt-setup\n${importNames("sep", "node:path")}\nconst one = 1;\n-->\n\n${fence(dialect.equal("typeof sep", '"string"') + "\n" + dialect.equal("one", "1"))}`,
+      { "doc.md:6": PASSED },
+    ],
+    [
+      "setup comments with other comments and blank lines between",
+      `<!-- ddt-setup const a = 1; -->\n\n<!-- note -->\n<!-- ddt-setup const b = a + 1; -->\n\n${fence(dialect.equal("b", "2"))}`,
+      { "doc.md:6": PASSED },
+    ],
+    [
+      "a setup comment that reaches only the next fence",
+      `<!-- ddt-setup const one = 1; -->\n\n${fence(dialect.equal("one", "1"))}${fence(dialect.equal("typeof one", '"undefined"'))}`,
+      { "doc.md:3": PASSED, "doc.md:7": PASSED },
+    ],
+    [
+      "a setup comment separated from the fence by text",
+      `<!-- ddt-setup const one = 1; -->\n\nText.\n\n${fence(dialect.equal("typeof one", '"undefined"'))}`,
+      { "doc.md:5": PASSED },
+    ],
+    [
+      "a comment without the setup marker",
+      `<!-- const one = 1; -->\n\n${fence(dialect.equal("typeof one", '"undefined"'))}`,
+      { "doc.md:3": PASSED },
+    ],
+    [
+      "a setup marker inside a fence",
+      fence(
+        `const text = "<!-- ddt-setup const one = 1; -->";\n${dialect.equal("typeof one", '"undefined"')}`,
+      ),
+      { "doc.md:1": PASSED },
+    ],
+    [
+      "a setup comment that throws",
+      `<!-- ddt-setup throw new Error("boom"); -->\n\n${fence(passing)}`,
+      { "doc.md:3": FAILED },
+    ],
+    [
+      "a setup comment above a fail fence",
+      `<!-- ddt-setup const boom = () => { throw new Error("boom"); }; -->\n\n${fence("boom();", "fail")}`,
+      { "doc.md:3": PASSED },
+    ],
+    [
+      "a setup comment above a skipped fence",
+      `<!-- ddt-setup throw new Error("boom"); -->\n\n${fence(failing, "skip")}${fence(passing)}`,
+      { "doc.md:7": PASSED },
+    ],
+    [
+      "a setup comment above a compile_fail fence that does not compile",
+      `<!-- ddt-setup const one = 1; -->\n\n${fence("const = 1;", "compile_fail")}`,
+      { "doc.md:3": PASSED },
+    ],
+    [
+      "a setup comment with CRLF line endings",
+      `<!-- ddt-setup\nconst one = 1;\n-->\n\n${fence(dialect.equal("one", "1"))}`.replaceAll(
+        "\n",
+        "\r\n",
+      ),
+      { "doc.md:5": PASSED },
+    ],
+    [
+      "a setup comment in a blockquote",
+      `> <!-- ddt-setup const one = 1; -->\n>\n> \`\`\`ts run\n> ${dialect.equal("one", "1")}\n> \`\`\`\n`,
+      { "doc.md:3": PASSED },
+    ],
+    [
+      "a setup comment above a fence in a list",
+      `<!-- ddt-setup const one = 1; -->\n\n- item\n\n  <!-- ddt-setup const two = 2; -->\n\n  \`\`\`ts run\n  ${dialect.equal("two", "2")}\n  \`\`\`\n`,
+      { "doc.md:7": PASSED },
+    ],
   ];
 
   /** Parser-only cases, the same for every doc kind */
@@ -180,6 +255,39 @@ export function conformance(name: string, runner: Runner, dialect: Dialect): voi
       "a throw in the second fence",
       `${fence(passing)}${fence(throwing)}`,
       { "doc.md:5": [[6, 7]] },
+    ],
+    [
+      "a throw in a setup comment",
+      `<!-- ddt-setup ${throwing} -->\n\n${fence(passing)}`,
+      { "doc.md:3": [[1, 22]] },
+    ],
+    [
+      "a throw on the second line of a setup comment",
+      `<!-- ddt-setup\nconst a = 1;\n${throwing}\n-->\n\n${fence(passing)}`,
+      { "doc.md:6": [[3, 7]] },
+    ],
+    [
+      "a throw in a setup comment in a list",
+      `- item\n\n  <!-- ddt-setup ${throwing} -->\n\n  \`\`\`ts run\n  ${passing}\n  \`\`\`\n`,
+      { "doc.md:5": [[3, 24]] },
+    ],
+    [
+      "a throw in a setup comment in a blockquote",
+      `> <!-- ddt-setup ${throwing} -->\n>\n> \`\`\`ts run\n> ${passing}\n> \`\`\`\n`,
+      { "doc.md:3": [[1, 24]] },
+    ],
+    [
+      "a throw in a setup comment with CRLF line endings",
+      `<!-- ddt-setup\nconst a = 1;\n${throwing}\n-->\n\n${fence(passing)}`.replaceAll(
+        "\n",
+        "\r\n",
+      ),
+      { "doc.md:6": [[3, 7]] },
+    ],
+    [
+      "a throw in the fence after a setup comment",
+      `<!-- ddt-setup const a = 1; -->\n\n${fence(`const b = 1;\n${throwing}`)}`,
+      { "doc.md:3": [[5, 7]] },
     ],
   ];
 
@@ -313,6 +421,34 @@ export function conformance(name: string, runner: Runner, dialect: Dialect): voi
       ],
     ],
     [
+      "a setup comment that is edited",
+      [
+        [
+          `<!-- ddt-setup const n = 1; -->\n\n${fence(dialect.equal("n", "1"))}`,
+          { "guide.md:3": PASSED },
+        ],
+        [
+          `<!-- ddt-setup const n = 2; -->\n\n${fence(dialect.equal("n", "1"))}`,
+          { "guide.md:3": FAILED },
+        ],
+        [
+          `<!-- ddt-setup const n = 1; -->\n\n${fence(dialect.equal("n", "1"))}`,
+          { "guide.md:3": PASSED },
+        ],
+      ],
+    ],
+    [
+      "a setup comment that is added and removed",
+      [
+        [fence(dialect.equal("typeof n", '"undefined"')), { "guide.md:1": PASSED }],
+        [
+          `<!-- ddt-setup const n = 1; -->\n\n${fence(dialect.equal("typeof n", '"undefined"'))}`,
+          { "guide.md:3": FAILED },
+        ],
+        [fence(dialect.equal("typeof n", '"undefined"')), { "guide.md:1": PASSED }],
+      ],
+    ],
+    [
       "one of two identical fences that is edited",
       [
         [fence(passing) + fence(passing), { "guide.md:1": PASSED, "guide.md:5": PASSED }],
@@ -327,6 +463,42 @@ export function conformance(name: string, runner: Runner, dialect: Dialect): voi
         "doc.mdx": `# Guide\n\n{/* a comment */}\n\n${fence(passing)}`,
       });
       expect(await ddt.run()).toEqual({ "doc.mdx:5": PASSED });
+    });
+
+    test("runs a fence after an mdx setup comment", async () => {
+      await using ddt = openProject(markdown, {
+        "doc.mdx": `{/* ddt-setup const one = 1; */}\n\n${fence(dialect.equal("one", "1"))}`,
+      });
+      expect(await ddt.run()).toEqual({ "doc.mdx:3": PASSED });
+    });
+
+    test("runs a fence after mdx setup comments with other comments between", async () => {
+      await using ddt = openProject(markdown, {
+        "doc.mdx": `{/* ddt-setup const a = 1; */}\n\n{/* note */}\n{/* ddt-setup\nconst b = a + 1;\n*/}\n\n${fence(dialect.equal("b", "2"))}`,
+      });
+      expect(await ddt.run()).toEqual({ "doc.mdx:8": PASSED });
+    });
+
+    test("limits an mdx setup comment to the next fence", async () => {
+      await using ddt = openProject(markdown, {
+        "doc.mdx": `{/* ddt-setup const one = 1; */}\n\n${fence(dialect.equal("one", "1"))}${fence(dialect.equal("typeof one", '"undefined"'))}`,
+      });
+      expect(await ddt.run()).toEqual({ "doc.mdx:3": PASSED, "doc.mdx:7": PASSED });
+    });
+
+    test("ignores an mdx comment without the setup marker", async () => {
+      await using ddt = openProject(markdown, {
+        "doc.mdx": `{/* const one = 1; */}\n\n${fence(dialect.equal("typeof one", '"undefined"'))}`,
+      });
+      expect(await ddt.run()).toEqual({ "doc.mdx:3": PASSED });
+    });
+
+    test("fails a fence whose mdx setup comment throws, at the comment", async () => {
+      await using ddt = openProject(markdown, {
+        "doc.mdx": `{/* ddt-setup throw new TypeError("boom"); */}\n\n${fence(passing)}`,
+      });
+      expect(await ddt.run()).toEqual({ "doc.mdx:3": FAILED });
+      expect(ddt.failures).toEqual(placed(markdown, { "doc.mdx:3": [[1, 21]] }));
     });
   });
 
@@ -375,6 +547,15 @@ export function conformance(name: string, runner: Runner, dialect: Dialect): voi
         "README.md": fence(`${importNames("add", "calc")}\n\n${dialect.equal("add(1, 2)", "3")}`),
       });
       expect(await ddt.run()).toEqual(located(kind, { "README.md:1": PASSED }));
+    });
+
+    test("runs setup next to a fence that imports from the project", async () => {
+      await using ddt = openProject(kind, {
+        ...calc,
+        "a.md": `<!-- ddt-setup const one = 1; -->\n\n${fence(`${importNames("add", "calc")}\n${dialect.equal("add(one, 2)", "3")}`)}`,
+        "b.md": `<!-- ddt-setup ${importNames("add", "calc")} -->\n\n${fence(`${importNames("sep", "node:path")}\n${dialect.equal("add(1, 2)", "3")}\n${dialect.equal("typeof sep", '"string"')}`)}`,
+      });
+      expect(await ddt.run()).toEqual(located(kind, { "a.md:3": PASSED, "b.md:3": PASSED }));
     });
 
     test.each(edits)("reruns %s in watch mode", async (_title, [[doc, expected], ...rest]) => {
