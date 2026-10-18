@@ -58,7 +58,10 @@ export class DdtSession {
     const doc = resolve(this.root, id);
     if (!isMarkdownFile(doc) && !this.#tracks(doc)) return;
     if (this.#tracked !== "all") this.#tracked.add(doc);
-    this.#index = this.#index.withDoc(doc, readFileSync(doc, "utf8"));
+    const source = readFileSync(doc, "utf8");
+    // indexing is pure in the source, so an unchanged doc needs no work
+    if (this.#index.sourceOf(doc) === source) return;
+    this.#index = this.#index.withDoc(doc, source);
   }
 
   /** Rereads a tracked doc and returns the id to run in its place, if it has fences */
