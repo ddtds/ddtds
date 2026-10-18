@@ -11,7 +11,10 @@
     "typeAware": true
   },
   "plugins": ["eslint", "typescript", "unicorn", "vitest", "import", "node", "promise", "oxc"],
-  "jsPlugins": [{ "name": "@logtape", "specifier": "@logtape/lint/eslint" }],
+  "jsPlugins": [
+    { "name": "@logtape", "specifier": "@logtape/lint/eslint" },
+    { "name": "e18e", "specifier": "@e18e/eslint-plugin" }
+  ],
   "rules": {
     "no-console": "error",
     "no-restricted-properties": [
@@ -27,6 +30,22 @@
     "@logtape/prefer-lazy-evaluation": "error",
     "@logtape/no-unawaited-log": "error",
     "@logtape/require-meta-sink": "error",
+    "e18e/ban-dependencies": "warn",
+    "e18e/prefer-array-at": "warn",
+    "e18e/prefer-array-fill": "warn",
+    "e18e/prefer-array-from-map": "warn",
+    "e18e/prefer-array-to-reversed": "warn",
+    "e18e/prefer-array-to-sorted": "warn",
+    "e18e/prefer-array-to-spliced": "warn",
+    "e18e/prefer-date-now": "warn",
+    "e18e/prefer-includes": "warn",
+    "e18e/prefer-object-has-own": "warn",
+    "e18e/prefer-regex-test": "warn",
+    "e18e/prefer-spread-syntax": "warn",
+    "e18e/prefer-static-regex": "warn",
+    "e18e/prefer-string-fromcharcode": "warn",
+    "e18e/prefer-timer-args": "warn",
+    "e18e/prefer-url-canparse": "warn",
     "typescript/no-non-null-assertion": "warn",
     "typescript/explicit-member-accessibility": "warn",
     "typescript/explicit-function-return-type": "warn",

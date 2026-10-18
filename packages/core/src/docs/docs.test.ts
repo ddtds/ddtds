@@ -13,7 +13,7 @@ function index(sources: Record<string, string>): DocIndex {
 
 function summary(index: DocIndex): Record<string, string[]> {
   return Object.fromEntries(
-    [...index.docs()].map(([doc, fences]) => [
+    Array.from(index.docs(), ([doc, fences]) => [
       doc,
       fences.map((fence) => `${fence.block.line} ${fence.id}`),
     ]),
