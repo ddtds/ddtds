@@ -33,6 +33,8 @@
     "@testing-library/react": "catalog:examples",
     "@testing-library/user-event": "catalog:examples",
     "@types/node": "catalog:dev",
+    "@types/react": "catalog:examples",
+    "@types/react-dom": "catalog:examples",
     "@vitest/coverage-v8": "catalog:dev",
     "happy-dom": "catalog:examples",
     "knip": "6.41.0",

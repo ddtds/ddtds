@@ -10,6 +10,7 @@
     "test": "node --test --import @ddtds/node-test/register \"*.md\" \"src/*.js\""
   },
   "devDependencies": {
-    "@ddtds/node-test": "workspace:*"
+    "@ddtds/node-test": "workspace:*",
+    "@types/node": "catalog:dev"
   }
 }

@@ -10,6 +10,8 @@
     "@ddtds/vitest": "workspace:*",
     "@testing-library/jest-dom": "catalog:examples",
     "@testing-library/react": "catalog:examples",
+    "@types/react": "catalog:examples",
+    "@types/react-dom": "catalog:examples",
     "happy-dom": "catalog:examples",
     "react": "catalog:examples",
     "react-dom": "catalog:examples",
