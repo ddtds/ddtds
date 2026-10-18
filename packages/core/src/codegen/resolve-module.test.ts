@@ -5,8 +5,8 @@ import { resolveModule } from "./resolve-module.ts";
 function resolve(lang: string, code: string, file = "doc.md", fallback: "esm" | "cjs" = "esm") {
   const [block] = parseCodeFences(`\`\`\`${lang} run\n${code}\n\`\`\`\n`, file);
   if (!block) throw new Error("no block");
-  const { esmSyntax } = block.splitImports();
-  return resolveModule(block, { esmSyntax, fallback });
+  const { syntax } = block.splitImports();
+  return resolveModule(block, { syntax, fallback });
 }
 
 describe("resolveModule", () => {

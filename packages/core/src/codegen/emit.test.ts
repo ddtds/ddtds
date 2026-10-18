@@ -17,7 +17,7 @@ describe("emitFence: run fences", () => {
         importedNames: ["a"],
         body: ["a();"],
         shouldFail: false,
-        esmSyntax: false,
+        syntax: "ambiguous",
       }),
     ).toEqual({
       imports: ["import { expect } from 'expect';", "import { a } from './a';"],
@@ -36,7 +36,7 @@ describe("emitFence: run fences", () => {
         importedNames: [],
         body: ["throw 1;"],
         shouldFail: true,
-        esmSyntax: false,
+        syntax: "ambiguous",
       }),
     ).toEqual({
       imports: ["import { expect } from 'expect';", runtimeImport],
@@ -57,7 +57,7 @@ describe("emitFence: injected imports", () => {
         importedNames: ["expect"],
         body: [],
         shouldFail: false,
-        esmSyntax: true,
+        syntax: "esm",
       }),
     ).toMatchObject({ imports: ["import { expect } from 'my-expect';"] });
   });

@@ -6,11 +6,11 @@ export { resolveLogLevel, type LogLevel } from "./log-level.ts";
 export {
   moduleFiles,
   moduleFor,
-  rawImport,
+  staticImport,
   typedImports,
   unshadowed,
   type GeneratedModule,
-  type Import,
+  type StaticImport,
   type ModuleSystem,
   type TestAdapter,
 } from "./codegen/index.ts";

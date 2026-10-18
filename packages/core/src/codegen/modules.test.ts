@@ -3,7 +3,7 @@ import { TraceMap, generatedPositionFor, originalPositionFor } from "@jridgewell
 import { docModule, fenceModule } from "./modules.ts";
 import { parseJsDocFences } from "../fences/jsdoc.ts";
 import type { TestAdapter } from "./adapter.ts";
-import { rawImport } from "./imports.ts";
+import { staticImport } from "./static-import.ts";
 import { adapter, fence } from "./test-utils.ts";
 
 /** The 1-based line and text of the first generated line matching `matches` */
@@ -17,7 +17,7 @@ function generatedLine(code: string, matches: (line: string) => boolean) {
 
 const cjs: TestAdapter = {
   ...adapter,
-  fenceImports: [rawImport("const { expect } = require('expect');", "expect")],
+  fenceImports: [staticImport("const { expect } = require('expect');", "expect")],
   module: "cjs",
 };
 

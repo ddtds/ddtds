@@ -1,8 +1,9 @@
 import { MagicString } from "magic-string";
 import type { FenceRuntime } from "../runtime.ts";
 import { serialize } from "seroval";
-import { runtimeImport, type TestAdapter } from "./adapter.ts";
-import { unshadowed } from "./imports.ts";
+import type { TestAdapter } from "./adapter.ts";
+import { runtimeImport } from "./module-system.ts";
+import { unshadowed } from "./static-import.ts";
 import type { FenceOutcome, Fragment } from "./plan.ts";
 
 /** One line of code, or a block whose body keeps fragments for source maps */
