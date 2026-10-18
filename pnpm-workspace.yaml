@@ -26,8 +26,8 @@ catalogs:
     "@types/stack-utils": ^2.0.3
     stack-utils: ^2.0.6
     typescript: ^7.0.2
-    vitest: ^5.0.3
-    "@vitest/coverage-v8": ^5.0.3
+    vitest: ^5.0.4
+    "@vitest/coverage-v8": ^5.0.4
   examples:
     "@angular/compiler": ^22.2.1
     "@angular/core": ^22.2.1
@@ -66,7 +66,3 @@ catalogs:
   peer: {}
 
 minimumReleaseAge: 4320 # 3 days
-minimumReleaseAgeExclude:
-  # todo: remove 10/16/2026
-  - "@codspeed/vitest-plugin"
-  - "@codspeed/core"

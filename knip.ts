@@ -42,10 +42,6 @@ const config: KnipConfig = {
       // used in generated tests
       ignoreDependencies: ["@solidjs/testing-library"],
     },
-    "examples/vitest/monorepo/packages/svelte-greet": {
-      // used in generated tests
-      ignoreDependencies: ["@testing-library/svelte"],
-    },
     "examples/vitest/monorepo/packages/vue-greet": {
       // used in generated tests
       ignoreDependencies: ["@testing-library/vue"],
