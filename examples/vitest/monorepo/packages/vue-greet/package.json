@@ -8,7 +8,7 @@
   },
   "scripts": {
     "test": "vitest run",
-    "typecheck": "tsc"
+    "typecheck": "vue-tsc"
   },
   "dependencies": {
     "@ddtds/greet": "workspace:*",
@@ -21,6 +21,8 @@
     "@testing-library/vue": "catalog:examples",
     "@vitejs/plugin-vue": "catalog:examples",
     "happy-dom": "catalog:examples",
-    "vitest": "catalog:dev"
+    "typescript": "catalog:examples",
+    "vitest": "catalog:dev",
+    "vue-tsc": "catalog:examples"
   }
 }

@@ -59,8 +59,11 @@ catalogs:
     shadow-dom-testing-library: ^1.14.2
     solid-js: ^1.9.16
     svelte: ^5.57.2
+    svelte-check: ^4.7.6
+    typescript: ~6.0.3
     vite-plugin-solid: ^2.11.14
     vue: ^3.5.43
+    vue-tsc: ^3.3.13
   prod:
     "@logtape/logtape": ^2.4.0
   peer: {}

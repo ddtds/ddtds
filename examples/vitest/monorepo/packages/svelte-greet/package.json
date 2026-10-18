@@ -8,7 +8,7 @@
   },
   "scripts": {
     "test": "vitest run",
-    "typecheck": "tsc"
+    "typecheck": "svelte-check --tsconfig ./tsconfig.json"
   },
   "dependencies": {
     "@ddtds/greet": "workspace:*",
@@ -21,6 +21,8 @@
     "@testing-library/jest-dom": "catalog:examples",
     "@testing-library/svelte": "catalog:examples",
     "happy-dom": "catalog:examples",
+    "svelte-check": "catalog:examples",
+    "typescript": "catalog:examples",
     "vitest": "catalog:dev"
   }
 }
