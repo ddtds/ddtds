@@ -39,6 +39,7 @@ jobs:
           - { name: vitest 4, script: test:vitest, vitest-version: 4 }
           - { name: vitest 5, script: test:vitest, vitest-version: 5 }
           - { name: node:test 24, script: test:node, node-version: 24 }
+          - { name: node:test 25, script: test:node, node-version: 25 }
           - { name: node:test 26, script: test:node, node-version: 26 }
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1

@@ -321,7 +321,7 @@ export function conformance(name: string, runner: Runner, dialect: Dialect): voi
     ],
   ];
 
-  describe(`${name} conformance`, () => {
+  describe.concurrent(`${name} conformance`, () => {
     test("runs an mdx doc", async () => {
       await using ddt = openProject(markdown, {
         "doc.mdx": `# Guide\n\n{/* a comment */}\n\n${fence(passing)}`,
@@ -330,7 +330,7 @@ export function conformance(name: string, runner: Runner, dialect: Dialect): voi
     });
   });
 
-  describe.each([
+  describe.concurrent.each([
     ["markdown", markdown],
     ["JSDoc", jsdocKind],
     ["indented JSDoc", indentedKind],
@@ -411,37 +411,40 @@ export function conformance(name: string, runner: Runner, dialect: Dialect): voi
     });
   });
 
-  describe.runIf(dialect.nativeModules !== false)(`${name} fence module system conformance`, () => {
-    const cases: [lang: string, code: string][] = [
-      ["cjs", isRequireDefined("function")],
-      ["cts", isRequireDefined("function")],
-      ["mjs", `import { sep } from "node:path";\n${isRequireDefined("undefined")}\nsep;`],
-      ["mts", `import { sep } from "node:path";\n${isRequireDefined("undefined")}\nsep;`],
-    ];
+  describe.concurrent.each(dialect.nativeModules === false ? [] : [name])(
+    "%s fence module system conformance",
+    () => {
+      const cases: [lang: string, code: string][] = [
+        ["cjs", isRequireDefined("function")],
+        ["cts", isRequireDefined("function")],
+        ["mjs", `import { sep } from "node:path";\n${isRequireDefined("undefined")}\nsep;`],
+        ["mts", `import { sep } from "node:path";\n${isRequireDefined("undefined")}\nsep;`],
+      ];
 
-    test.each(cases)("a %s fence names its module system", async (lang, code) => {
-      await using ddt = openProject(markdown, { "doc.md": fence(code, "run", lang) });
-      expect(await ddt.run()).toEqual({ "doc.md:1": PASSED });
-    });
+      test.each(cases)("a %s fence names its module system", async (lang, code) => {
+        await using ddt = openProject(markdown, { "doc.md": fence(code, "run", lang) });
+        expect(await ddt.run()).toEqual({ "doc.md:1": PASSED });
+      });
 
-    test("a ts fence with import syntax is ESM in any package", async () => {
-      const code = `import { sep } from "node:path";\n${isRequireDefined("undefined")}\nsep;`;
-      await using ddt = openProject(markdown, { "doc.md": fence(code) });
-      expect(await ddt.run()).toEqual({ "doc.md:1": PASSED });
-    });
+      test("a ts fence with import syntax is ESM in any package", async () => {
+        const code = `import { sep } from "node:path";\n${isRequireDefined("undefined")}\nsep;`;
+        await using ddt = openProject(markdown, { "doc.md": fence(code) });
+        expect(await ddt.run()).toEqual({ "doc.md:1": PASSED });
+      });
 
-    test("a type-only import does not make a ts fence ESM", async () => {
-      const code = `import type { Stats } from "node:fs";\n${isRequireDefined(commonjs ? "function" : "undefined")}`;
-      await using ddt = openProject(markdown, { "doc.md": fence(code) });
-      expect(await ddt.run()).toEqual({ "doc.md:1": PASSED });
-    });
+      test("a type-only import does not make a ts fence ESM", async () => {
+        const code = `import type { Stats } from "node:fs";\n${isRequireDefined(commonjs ? "function" : "undefined")}`;
+        await using ddt = openProject(markdown, { "doc.md": fence(code) });
+        expect(await ddt.run()).toEqual({ "doc.md:1": PASSED });
+      });
 
-    test("a ts fence follows the package", async () => {
-      const code = isRequireDefined(commonjs ? "function" : "undefined");
-      await using ddt = openProject(markdown, { "doc.md": fence(code) });
-      expect(await ddt.run()).toEqual({ "doc.md:1": PASSED });
-    });
-  });
+      test("a ts fence follows the package", async () => {
+        const code = isRequireDefined(commonjs ? "function" : "undefined");
+        await using ddt = openProject(markdown, { "doc.md": fence(code) });
+        expect(await ddt.run()).toEqual({ "doc.md:1": PASSED });
+      });
+    },
+  );
 
   const jsdocProjects: [title: string, kind: Kind, files: Record<string, string>][] = [
     ["a .cts file", jsdocIn("cts", "1;"), {}],
@@ -449,7 +452,7 @@ export function conformance(name: string, runner: Runner, dialect: Dialect): voi
     ["a CommonJS package", jsdocIn("ts", "1;"), { "package.json": '{ "type": "commonjs" }' }],
   ];
 
-  describe.each(
+  describe.concurrent.each(
     // the CommonJS run is already a CommonJS package
     jsdocProjects.filter(([title]) => !commonjs || title !== "a CommonJS package"),
   )(`${name} JSDoc in %s conformance`, (_, kind, files) => {
@@ -459,7 +462,7 @@ export function conformance(name: string, runner: Runner, dialect: Dialect): voi
     });
   });
 
-  describe(`${name} JSDoc entry conformance`, () => {
+  describe.concurrent(`${name} JSDoc entry conformance`, () => {
     const documented = jsdocKind.content(fence(passing));
 
     test("runs no fences of a documented file that the runner only imports", async () => {
