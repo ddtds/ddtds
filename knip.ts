@@ -13,7 +13,6 @@ const config: KnipConfig = {
         "@types/react",
         "@types/react-dom",
         "@testing-library/react",
-        "@testing-library/user-event",
       ],
     },
     "examples/vitest/react": {
