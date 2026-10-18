@@ -13,7 +13,7 @@ import {
   type LogLevel,
 } from "@ddtds/core";
 import { getLogger } from "@logtape/logtape";
-import { vitestTestAdapter } from "./adapter.ts";
+import { adapterFor, chooseGlobals, vitestTestAdapter } from "./adapter.ts";
 import { configureLogging, createViteSink } from "./logging.ts";
 
 export type { CodeBlock, DocIndex, DocsOptions, Fence, LogLevel } from "@ddtds/core";
@@ -45,9 +45,14 @@ export type DdtPluginOptions = DocsOptions & {
    *   3. `"info"` (default)
    */
   logLevel?: LogLevel;
+  /**
+   * Enable [vitest globals](https://vitest.dev/config/globals) only for doc tests.
+   * Does nothing if globals are enabled project wide
+   */
+  globals?: boolean;
 };
 
-export function ddtPlugin({ logLevel, ...docs }: DdtPluginOptions = {}): Plugin {
+export function ddtPlugin({ logLevel, globals = false, ...docs }: DdtPluginOptions = {}): Plugin {
   const vite = createViteSink();
   configureLogging(resolveLogLevel(logLevel), vite);
   let project: TestProject | undefined;
@@ -89,6 +94,11 @@ export function ddtPlugin({ logLevel, ...docs }: DdtPluginOptions = {}): Plugin 
     configureVitest(context) {
       project = context.project;
       const { config } = context.project;
+      const choice = chooseGlobals(globals, config.globals);
+      if (globals && choice === "project") {
+        logger.warn("`globals` has no effect, vitest `test.globals` is already enabled");
+      }
+      session.useAdapter(adapterFor(choice));
       config.include = [...config.include, ...docFiles()];
       config.exclude = [...config.exclude, join(session.root, defaultOutDir, "**")];
     },

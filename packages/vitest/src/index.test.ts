@@ -115,3 +115,34 @@ test("logs through Vite's logger, which Vitest keeps at warn unless configured",
     ]
   `);
 });
+
+const globalsFiles = {
+  "uses.md": fence("expect(typeof vi.fn).toBe('function');"),
+  "reimports.md": fence(
+    "import { expect, vi } from 'vitest';\nexpect(typeof vi.fn).toBe('function');",
+  ),
+};
+
+test.each([
+  { project: false, docs: false, uses: "ReferenceError", reimports: "passed" },
+  { project: false, docs: true, uses: "passed", reimports: "passed" },
+  { project: true, docs: false, uses: "passed", reimports: "passed" },
+  { project: true, docs: true, uses: "passed", reimports: "passed" },
+])("project globals $project, docs globals $docs", async ({ project, docs, uses, reimports }) => {
+  await using dir = fixture(globalsFiles);
+  const { outcomes } = await vitest({
+    plugin: { globals: docs },
+    test: { globals: project },
+  }).run(dir.root, Object.keys(globalsFiles));
+  expect(outcomes).toEqual({ "uses.md:1": uses, "reimports.md:1": reimports });
+});
+
+test("warns that docs globals are disabled when the project enables globals", async () => {
+  await using dir = fixture(globalsFiles);
+  const warnings = await logs(dir.root, { globals: true, logLevel: "info" }, undefined, {
+    globals: true,
+  });
+  expect(warnings).toEqual([
+    "stderr: [ddtds] `globals` has no effect, vitest `test.globals` is already enabled",
+  ]);
+});
