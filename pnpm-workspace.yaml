@@ -12,6 +12,10 @@ allowBuilds:
   protobufjs: false
   # optional native regex binding for renovate; falls back to RegExp fine
   re2: false
+  # optional native perf addons pulled in by @angular/build, fall back to JS
+  "@parcel/watcher": false
+  lmdb: false
+  msgpackr-extract: false
   # actually need these: esbuild downloads its binary, lefthook syncs git hooks
   esbuild: true
   lefthook: true
@@ -19,9 +23,9 @@ allowBuilds:
 catalogs:
   dev:
     "@jridgewell/trace-mapping": ^0.3.31
-    "@logtape/lint": 2.4.0
-    "@logtape/testing": 2.4.0
-    "@tsrx/oxc": 0.20.0
+    "@logtape/lint": 2.4.1
+    "@logtape/testing": 2.4.1
+    "@tsrx/oxc": 0.21.0
     "@types/node": 24.19.1
     "@types/stack-utils": ^2.0.3
     stack-utils: ^2.0.6
@@ -29,11 +33,14 @@ catalogs:
     vitest: ^5.0.4
     "@vitest/coverage-v8": ^5.0.4
   examples:
-    "@angular/compiler": ^22.2.1
-    "@angular/core": ^22.2.1
-    "@angular/platform-browser": ^22.2.1
-    "@angular/router": ^22.2.1
-    "@oxc-project/runtime": ^0.153.0
+    "@angular/build": ^22.2.2
+    "@angular/cli": ^22.2.2
+    "@angular/common": ^22.2.3
+    "@angular/compiler": ^22.2.3
+    "@angular/compiler-cli": ^22.2.3
+    "@angular/core": ^22.2.3
+    "@angular/platform-browser": ^22.2.3
+    "@angular/router": ^22.2.3
     "@preact/preset-vite": ^2.10.6
     "@solidjs/testing-library": ^0.8.10
     "@sveltejs/vite-plugin-svelte": ^7.3.1
@@ -43,24 +50,27 @@ catalogs:
     "@testing-library/preact": ^3.2.4
     "@testing-library/react": ^16.3.3
     "@testing-library/svelte": ^5.4.2
-    "@testing-library/user-event": ^14.6.7
+    "@testing-library/user-event": ^14.6.8
     "@testing-library/vue": ^8.1.0
     "@types/react": ^19.3.0
     "@types/react-dom": ^19.3.0
     "@vitejs/plugin-react": ^6.1.2
-    "@vitejs/plugin-vue": ^6.0.9
-    happy-dom: 20.14.6
+    "@vitejs/plugin-vue": ^6.0.10
+    happy-dom: 21.0.1
     lit: ^3.3.3
-    octane: ^0.10.0
+    octane: ^0.13.6
     preact: ^11.0.0
-    react: ^19.3.0
-    react-dom: ^19.3.0
+    react: ^19.3.1
+    react-dom: ^19.3.1
     rxjs: ^7.8.2
     shadow-dom-testing-library: ^1.14.2
     solid-js: ^1.9.16
     svelte: ^5.57.2
+    svelte-check: ^4.7.6
+    typescript: ~6.0.3
     vite-plugin-solid: ^2.11.14
-    vue: ^3.5.43
+    vue: ^3.5.44
+    vue-tsc: ^3.3.13
   prod:
     "@logtape/logtape": ^2.4.0
   peer: {}

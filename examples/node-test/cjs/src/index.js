@@ -14,6 +14,9 @@
  *
  * assert.equal(slugify("Hello, World!"), "Hello, World!");
  * ```
+ *
+ * @param {string} title
+ * @returns {string}
  */
 function slugify(title) {
   return title

@@ -9,7 +9,6 @@ export default defineConfig({
     svelteTesting(),
     ddtPlugin({ include: ["../../docs/framework/svelte/**/*.md"] }),
   ],
-  resolve: { conditions: ["browser"] },
   test: {
     dir: "./tests",
     environment: "happy-dom",

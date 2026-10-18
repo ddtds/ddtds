@@ -1,4 +1,8 @@
 {
   "extends": "../../../../../tsconfig.base.json",
-  "compilerOptions": { "experimentalDecorators": true }
+  "compilerOptions": {
+    "lib": ["es2023", "dom", "dom.iterable", "esnext.disposable", "esnext.iterator"],
+    "experimentalDecorators": true
+  },
+  "include": ["src", "tests", "*.ts"]
 }
