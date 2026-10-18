@@ -2,43 +2,48 @@
 
 ## performance
 
-Note: `fsModuleCache` saves several seconds on warm transform times. vitest v5+ has `fsModuleCache` and v5.0.4 turns it on by default
+`fsModuleCache` saves several seconds on warm transform times. vitest v5+ has `fsModuleCache` and v5.0.4 turns it on by default
 
 ## globals
 
-If globals are enabled in your main vitest config, they will be available in your doc tests. However, you may want globals on only for doc tests or additional globals and aliases
+By default, doc tests import `expect` and `vi`. Vitest globals are available in doc tests
 
-By default doc tests get `expect` and `vi` without importing them. To change that, provide a custom `globals` array. An empty array injects nothing
+Set `globals` to an empty array and turn off vitest flobals to avoid any default imports
 
 ```ts run
 import { defineConfig } from "vitest/config";
 import { ddtPlugin } from "@ddtds/vitest";
 
 export default defineConfig({
+  test: {
+    globals: false, // false by default
+  },
   plugins: [ddtPlugin({ globals: [] })],
 });
 ```
 
-If you’d like custom globals, you can type safely add them with `typedImports` like so
+To add to the defaults, spread `defaultGlobals`. `vitestImports` types names from vitest and `typedImports` can type ssfely import from any library!
 
 ```ts run
 import { defineConfig } from "vitest/config";
-import { ddtPlugin, defaultGlobals, typedImports } from "@ddtds/vitest";
+import { ddtPlugin, defaultGlobals, typedImports, vitestImports } from "@ddtds/vitest";
 
 const importFromUserEvent = typedImports<typeof import("@testing-library/user-event")>(
   "@testing-library/user-event",
 );
 
 export default defineConfig({
-  plugins: [ddtPlugin({ globals: [...defaultGlobals, importFromUserEvent("userEvent")] })],
+  plugins: [
+    ddtPlugin({
+      globals: [...defaultGlobals, vitestImports("describe"), importFromUserEvent("userEvent")],
+    }),
+  ],
 });
 ```
 
-```ts run
-const button = document.createElement("button");
-let clicked = false;
-button.addEventListener("click", () => (clicked = true));
+Tests can safely shadow variables
 
-await userEvent.click(button);
-expect(clicked).toBe(true);
+```ts run
+const vi = 5;
+expect(vi).toBe(5);
 ```

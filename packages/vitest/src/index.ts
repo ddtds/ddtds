@@ -48,11 +48,6 @@ export type DdtPluginOptions = DocsOptions & {
    *   3. `"info"` (default)
    */
   logLevel?: LogLevel;
-  /**
-   * Imports every doc test gets without writing them. Defaults to `defaultGlobals`.
-   * Spread it to add more, with `vitestImports` for vitest names or `typedImports` for
-   * other libraries. `[]` injects nothing
-   */
   globals?: readonly StaticImport[];
 };
 

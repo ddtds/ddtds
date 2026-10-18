@@ -1,9 +1,5 @@
 import { defineConfig } from "vitest/config";
-import { ddtPlugin, defaultGlobals, typedImports } from "@ddtds/vitest";
-
-const importFromUserEvent = typedImports<typeof import("@testing-library/user-event")>(
-  "@testing-library/user-event",
-);
+import { ddtPlugin } from "@ddtds/vitest";
 
 export default defineConfig({
   test: {
@@ -21,17 +17,8 @@ export default defineConfig({
         test: { name: "readme", include: ["README.md"], environment: "happy-dom" },
       },
       {
-        plugins: [
-          ddtPlugin({
-            include: ["packages/vitest/README.md"],
-            globals: [...defaultGlobals, importFromUserEvent("userEvent")],
-          }),
-        ],
-        test: {
-          name: "vitest-readme",
-          include: ["packages/vitest/README.md"],
-          environment: "happy-dom",
-        },
+        plugins: [ddtPlugin({ include: ["packages/vitest/README.md"] })],
+        test: { name: "vitest-readme", include: ["packages/vitest/README.md"] },
       },
       {
         plugins: [ddtPlugin({ include: ["packages/core/src/codegen/{adapter,static-import}.ts"] })],
