@@ -4,6 +4,7 @@ import { expect, test } from "vitest";
 import { fence, fixture } from "@ddtds/test-utils";
 import { collect, create, logs } from "./test-utils.ts";
 import { vitest } from "./e2e.ts";
+import { defaultGlobals, vitestImports } from "./adapter.ts";
 
 const files = {
   "guide.md": fence("1;"),
@@ -114,4 +115,56 @@ test("logs through Vite's logger, which Vitest keeps at warn unless configured",
       "stderr: [ddtds] unknown annotation in code block: "run fail"",
     ]
   `);
+});
+
+const globalsFiles = {
+  "expect.md": fence("expect(1).toBe(1);"),
+  "vi.md": fence("expect(typeof vi.fn).toBe('function');"),
+  "describe.md": fence("expect(typeof describe).toBe('function');"),
+  "reimports.md": fence(
+    "import { describe, expect, vi } from 'vitest';\nexpect(typeof describe).toBe('function');",
+  ),
+};
+
+test.each([
+  { name: "default", globals: undefined, project: false, describe: "AssertionError" },
+  {
+    name: "extended",
+    globals: [...defaultGlobals, vitestImports("describe")],
+    project: false,
+    describe: "passed",
+  },
+  { name: "project wide", globals: undefined, project: true, describe: "passed" },
+  {
+    name: "extended and project wide",
+    globals: [...defaultGlobals, vitestImports("describe")],
+    project: true,
+    describe: "passed",
+  },
+])("$name globals", async ({ globals, project, describe }) => {
+  await using dir = fixture(globalsFiles);
+  const { outcomes } = await vitest({ plugin: { globals }, test: { globals: project } }).run(
+    dir.root,
+    Object.keys(globalsFiles),
+  );
+  expect(outcomes).toEqual({
+    "expect.md:1": "passed",
+    "vi.md:1": "passed",
+    "describe.md:1": describe,
+    "reimports.md:1": "passed",
+  });
+});
+
+test("empty globals inject nothing", async () => {
+  await using dir = fixture(globalsFiles);
+  const { outcomes } = await vitest({ plugin: { globals: [] } }).run(
+    dir.root,
+    Object.keys(globalsFiles),
+  );
+  expect(outcomes).toEqual({
+    "expect.md:1": "ReferenceError",
+    "vi.md:1": "ReferenceError",
+    "describe.md:1": "ReferenceError",
+    "reimports.md:1": "passed",
+  });
 });

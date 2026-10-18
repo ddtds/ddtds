@@ -11,14 +11,17 @@ import {
   type DocsOptions,
   type GeneratedModule,
   type LogLevel,
+  type StaticImport,
 } from "@ddtds/core";
 import { getLogger } from "@logtape/logtape";
-import { vitestTestAdapter } from "./adapter.ts";
+import { defaultGlobals, vitestAdapter, vitestTestAdapter } from "./adapter.ts";
 import { configureLogging, createViteSink } from "./logging.ts";
 
-export type { CodeBlock, DocIndex, DocsOptions, Fence, LogLevel } from "@ddtds/core";
+export { defaultGlobals, vitestImports } from "./adapter.ts";
+export type { CodeBlock, DocIndex, DocsOptions, Fence, LogLevel, StaticImport } from "@ddtds/core";
 export {
   DdtCompileError,
+  typedImports,
   defaultDocsInclude,
   defaultDocsExclude,
   defaultOutDir,
@@ -45,13 +48,19 @@ export type DdtPluginOptions = DocsOptions & {
    *   3. `"info"` (default)
    */
   logLevel?: LogLevel;
+  globals?: readonly StaticImport[];
 };
 
-export function ddtPlugin({ logLevel, ...docs }: DdtPluginOptions = {}): Plugin {
+export function ddtPlugin({
+  logLevel,
+  globals = defaultGlobals,
+  ...docs
+}: DdtPluginOptions = {}): Plugin {
   const vite = createViteSink();
   configureLogging(resolveLogLevel(logLevel), vite);
   let project: TestProject | undefined;
-  let session = DdtSession.fromSources(vitestTestAdapter, new Map(), process.cwd());
+  const adapter = vitestAdapter(globals);
+  let session = DdtSession.fromSources(adapter, new Map(), process.cwd());
   const docFiles = (): string[] => Array.from(session.index.docs(), ([doc]) => doc);
 
   return {
@@ -59,7 +68,7 @@ export function ddtPlugin({ logLevel, ...docs }: DdtPluginOptions = {}): Plugin 
     enforce: "pre",
     config(config) {
       const root = config.test?.root ?? config.root ?? process.cwd();
-      session = DdtSession.fromFiles(vitestTestAdapter, { ...docs, root });
+      session = DdtSession.fromFiles(adapter, { ...docs, root });
       for (const { id, block } of session.index.fences()) {
         logger.debug("{file}:{line} -> {id}", () => ({
           file: block.details.file,

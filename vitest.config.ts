@@ -8,13 +8,17 @@ export default defineConfig({
     projects: [
       "packages/*/vitest.config.ts",
       "test-utils/vitest.config.ts",
-      "examples/vitest/{js,ts,react}",
+      "examples/vitest/{globals,js,ts,react}",
       "examples/vitest/monorepo/packages/*",
       "!examples/vitest/monorepo/packages/angular-greet",
       "examples/vitest/monorepo/packages/*/vitest.server.config.ts",
       {
         plugins: [ddtPlugin({ include: ["README.md"] })],
         test: { name: "readme", include: ["README.md"], environment: "happy-dom" },
+      },
+      {
+        plugins: [ddtPlugin({ include: ["packages/vitest/README.md"] })],
+        test: { name: "vitest-readme", include: ["packages/vitest/README.md"] },
       },
       {
         plugins: [ddtPlugin({ include: ["packages/core/src/codegen/{adapter,static-import}.ts"] })],

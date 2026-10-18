@@ -1,11 +1,16 @@
+import { brand, type Brand } from "../brand.ts";
 import type { ImportBinding } from "../fences/parse.ts";
 import type { ModuleSystem } from "./adapter.ts";
 import { importStatement } from "./module-system.ts";
 
-export type StaticImport = Readonly<{ statement: string; locals: readonly string[] }>;
+/** Only `typedImports` builds one for users, so the statement and its names always agree */
+export type StaticImport = Brand<
+  Readonly<{ statement: string; locals: readonly string[] }>,
+  "StaticImport"
+>;
 
-export function staticImport(statement: string, ...locals: string[]): StaticImport {
-  return { statement, locals };
+export function staticImport(statement: string, ...locals: readonly string[]): StaticImport {
+  return brand<StaticImport>({ statement, locals });
 }
 
 export function unshadowed(

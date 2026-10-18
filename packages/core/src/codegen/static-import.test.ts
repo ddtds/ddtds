@@ -1,5 +1,11 @@
 import { expect, test } from "vitest";
-import { runtimeNames, staticImport, typedImports, unshadowed } from "./static-import.ts";
+import {
+  runtimeNames,
+  staticImport,
+  typedImports,
+  unshadowed,
+  type StaticImport,
+} from "./static-import.ts";
 
 const expectImport = staticImport("import { expect } from 'x';", "expect");
 const testImport = staticImport("import { test } from 'x';", "test");
@@ -31,4 +37,10 @@ test("runtimeNames leaves out type-only bindings", () => {
       { local: "B", kind: "type" },
     ]),
   ).toEqual(["a"]);
+});
+
+test("a hand-written object is not a StaticImport", () => {
+  // @ts-expect-error only typedImports builds one for users
+  const handWritten: StaticImport = { statement: "import { a } from 'a';", locals: ["a"] };
+  expect(handWritten.locals).toEqual(["a"]);
 });
