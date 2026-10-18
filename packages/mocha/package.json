@@ -1,0 +1,52 @@
+{
+  "name": "@ddtds/mocha",
+  "version": "0.0.0",
+  "files": [
+    "dist"
+  ],
+  "type": "module",
+  "exports": {
+    ".": {
+      "@ddtds/source": "./src/index.ts",
+      "default": "./dist/index.mjs"
+    },
+    "./register": {
+      "@ddtds/source": "./src/register.ts",
+      "default": "./dist/register.mjs"
+    },
+    "./runtime": {
+      "@ddtds/source": "./src/runtime.ts",
+      "default": "./dist/runtime.mjs"
+    },
+    "./package.json": "./package.json"
+  },
+  "publishConfig": {
+    "exports": {
+      ".": "./dist/index.mjs",
+      "./register": "./dist/register.mjs",
+      "./runtime": "./dist/runtime.mjs",
+      "./package.json": "./package.json"
+    }
+  },
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc"
+  },
+  "dependencies": {
+    "@ddtds/core": "workspace:*",
+    "@ddtds/node-test": "workspace:*"
+  },
+  "devDependencies": {
+    "@ddtds/test-utils": "workspace:*",
+    "@types/mocha": "catalog:dev",
+    "@types/node": "catalog:dev",
+    "mocha": "catalog:dev",
+    "vitest": "catalog:dev"
+  },
+  "peerDependencies": {
+    "mocha": "^12.0.0"
+  },
+  "engines": {
+    "node": "24 - 26"
+  }
+}

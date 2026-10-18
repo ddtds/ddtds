@@ -9,5 +9,6 @@ export function nodeTestAdapter(module: ModuleSystem): TestAdapter {
     testImport: importFromNodeTest("test"),
     fenceImports: [importFromNodeAssert("strict", { alias: "assert", type: module })],
     module,
+    forModule: nodeTestAdapter,
   };
 }

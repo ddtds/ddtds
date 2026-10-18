@@ -21,6 +21,8 @@ export type Dialect = {
   equal(actual: string, expected: string): string;
   /** Module system of the project and its fences. Defaults to `"esm"` */
   module?: "esm" | "cjs";
+  /** Whether the host leaves a fence's module system to ddtds, not a transform. Defaults to `true` */
+  nativeModules?: boolean;
 };
 
 const PASSED = "passed";
@@ -103,6 +105,8 @@ export function conformance(name: string, runner: Runner, dialect: Dialect): voi
   const missingPackage = `${importNames("x", "missing-package")}\nx;`;
   const passing = dialect.equal("1", "1");
   const failing = dialect.equal("1", "2");
+  const isRequireDefined = (expected: "function" | "undefined"): string =>
+    dialect.equal("typeof require", JSON.stringify(expected));
 
   const docs: [title: string, doc: string, expected: Verdicts][] = [
     ["a passing fence", fence(passing), { "doc.md:1": PASSED }],
@@ -408,6 +412,38 @@ export function conformance(name: string, runner: Runner, dialect: Dialect): voi
     });
   });
 
+  describe.runIf(dialect.nativeModules !== false)(`${name} fence module system conformance`, () => {
+    const cases: [lang: string, code: string][] = [
+      ["cjs", isRequireDefined("function")],
+      ["cts", isRequireDefined("function")],
+      ["mjs", `import { sep } from "node:path";\n${isRequireDefined("undefined")}\nsep;`],
+      ["mts", `import { sep } from "node:path";\n${isRequireDefined("undefined")}\nsep;`],
+    ];
+
+    test.each(cases)("a %s fence names its module system", async (lang, code) => {
+      await using ddt = openProject(markdown, { "doc.md": fence(code, "run", lang) });
+      expect(await ddt.run()).toEqual({ "doc.md:1": PASSED });
+    });
+
+    test("a ts fence with import syntax is ESM in any package", async () => {
+      const code = `import { sep } from "node:path";\n${isRequireDefined("undefined")}\nsep;`;
+      await using ddt = openProject(markdown, { "doc.md": fence(code) });
+      expect(await ddt.run()).toEqual({ "doc.md:1": PASSED });
+    });
+
+    test("a type-only import does not make a ts fence ESM", async () => {
+      const code = `import type { Stats } from "node:fs";\n${isRequireDefined(commonjs ? "function" : "undefined")}`;
+      await using ddt = openProject(markdown, { "doc.md": fence(code) });
+      expect(await ddt.run()).toEqual({ "doc.md:1": PASSED });
+    });
+
+    test("a ts fence follows the package", async () => {
+      const code = isRequireDefined(commonjs ? "function" : "undefined");
+      await using ddt = openProject(markdown, { "doc.md": fence(code) });
+      expect(await ddt.run()).toEqual({ "doc.md:1": PASSED });
+    });
+  });
+
   const jsdocProjects: [title: string, kind: Kind, files: Record<string, string>][] = [
     ["a .cts file", jsdocIn("cts", "1;"), {}],
     ["a .cjs file", jsdocIn("cjs", "1;"), {}],
@@ -432,6 +468,7 @@ export function conformance(name: string, runner: Runner, dialect: Dialect): voi
         runner,
         markdown,
         {
+          ...project,
           "entry.ts": `${importOnly("./imported.ts")}\n`,
           "imported.ts": documented,
           "own.ts": documented,

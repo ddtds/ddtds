@@ -14,6 +14,7 @@ describe("emitFence: run fences", () => {
         imports: ["import { a } from './a';"],
         body: ["a();"],
         shouldFail: false,
+        esmSyntax: false,
       }),
     ).toEqual({
       imports: ["import { expect } from 'expect';", "import { a } from './a';"],
@@ -26,7 +27,13 @@ describe("emitFence: run fences", () => {
 
   test("a fail fence wraps the function in expectFailure and needs the runtime import", () => {
     expect(
-      emitFence(adapter, { tag: "run", imports: [], body: ["throw 1;"], shouldFail: true }),
+      emitFence(adapter, {
+        tag: "run",
+        imports: [],
+        body: ["throw 1;"],
+        shouldFail: true,
+        esmSyntax: false,
+      }),
     ).toEqual({
       imports: ["import { expect } from 'expect';", runtimeImport],
       tag: "block",

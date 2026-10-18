@@ -23,19 +23,21 @@ type BodyNode = ParsedBodyNode | SyntheticDefaultNode;
 export type PreparedBlock = {
   imports: MagicString[];
   body: MagicString[];
+  /** Whether the block has ESM syntax that survives type erasure, like Vitest's check for CommonJS */
+  esmSyntax: boolean;
 };
 
 export function splitImportsAndBlock(block: CodeBlock): PreparedBlock {
-  const { program, staticImports } = parse(block);
+  const { program, staticImports, esmSyntax } = parse(block);
   const source = new MagicString(block.code);
 
   const imports = staticImports.map((staticImport) => sliceSource(source, staticImport));
   const body = sanitizeProgram(program).map((node) => printBodyNode(source, node));
 
-  return { imports, body };
+  return { imports, body, esmSyntax };
 }
 
-type ParsedBlock = { program: Program; staticImports: Range[] };
+type ParsedBlock = { program: Program; staticImports: Range[]; esmSyntax: boolean };
 
 function parse(block: CodeBlock): ParsedBlock {
   const parser = parserOf(block.lang);
@@ -48,7 +50,22 @@ function parse(block: CodeBlock): ParsedBlock {
       errors.map((error) => toDiagnostic(block, error)),
     );
   }
-  return { program, staticImports: module.staticImports };
+  return { program, staticImports: module.staticImports, esmSyntax: hasEsmSyntax(module) };
+}
+
+type Statement = { entries: readonly { isType: boolean }[] };
+type ModuleRecord = {
+  staticImports: readonly Statement[];
+  staticExports: readonly Statement[];
+  importMetas: readonly unknown[];
+};
+
+const survives = ({ entries }: Statement): boolean =>
+  entries.length === 0 || entries.some((entry) => !entry.isType);
+
+/** Dynamic imports run in CommonJS, and type-only statements are erased, so neither counts */
+function hasEsmSyntax({ staticImports, staticExports, importMetas }: ModuleRecord): boolean {
+  return staticImports.some(survives) || staticExports.some(survives) || importMetas.length > 0;
 }
 
 type ParseResult = ReturnType<typeof parseSync> | ReturnType<typeof TsrxParser.parseSync>;

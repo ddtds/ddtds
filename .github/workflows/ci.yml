@@ -27,7 +27,7 @@ jobs:
       - run: pnpm run format:check
       - run: pnpm run typecheck
       - run: pnpm run publint
-      - run: pnpm --filter @ddtds/core --filter ddtds --filter @ddtds/vitest --filter @ddtds/node-test publish --dry-run --no-git-checks
+      - run: pnpm --filter @ddtds/core --filter ddtds --filter @ddtds/vitest --filter @ddtds/node-test --filter @ddtds/mocha publish --dry-run --no-git-checks
 
   test:
     name: ${{ matrix.name }}
@@ -40,6 +40,8 @@ jobs:
           - { name: vitest 5, script: test:vitest, vitest-version: 5 }
           - { name: node:test 24, script: test:node, node-version: 24 }
           - { name: node:test 26, script: test:node, node-version: 26 }
+          - { name: mocha 24, script: test:mocha, node-version: 24 }
+          - { name: mocha 26, script: test:mocha, node-version: 26 }
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:

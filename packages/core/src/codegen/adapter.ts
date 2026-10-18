@@ -37,6 +37,8 @@ export type TestAdapter = Readonly<{
   fenceImports: readonly string[];
   /** Module system fence modules are written in. Defaults to `"esm"` */
   module?: ModuleSystem;
+  /** The adapter for fences that name another module system. Without it they use this one. */
+  forModule?: (module: ModuleSystem) => TestAdapter;
 }>;
 
 type TypedImporter<Module> = (
@@ -75,4 +77,10 @@ export function runtimeImport(
   system: ModuleSystem = adapter.module ?? "esm",
 ): string {
   return importers[system](adapter.runtime, "runtime");
+}
+
+/** The adapter for a fence that names `module`, falling back to `adapter` when it cannot switch */
+export function adapterFor(adapter: TestAdapter, module: ModuleSystem): TestAdapter {
+  if (module === (adapter.module ?? "esm")) return adapter;
+  return adapter.forModule?.(module) ?? adapter;
 }

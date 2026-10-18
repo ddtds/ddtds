@@ -1,0 +1,16 @@
+{
+  "name": "@ddtds/example-mocha-cjs",
+  "version": "0.0.0",
+  "private": true,
+  "type": "commonjs",
+  "exports": {
+    ".": "./src/index.js"
+  },
+  "scripts": {
+    "test": "mocha --require @ddtds/mocha/register \"*.md\" \"src/*.js\""
+  },
+  "devDependencies": {
+    "@ddtds/mocha": "workspace:*",
+    "mocha": "catalog:dev"
+  }
+}

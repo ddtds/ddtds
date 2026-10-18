@@ -45,6 +45,13 @@
   },
   "overrides": [
     {
+      "files": ["packages/mocha/src/reporter.ts", "packages/node-test/src/hooks.ts"],
+      "rules": {
+        "no-restricted-properties": "off",
+        "typescript/no-extraneous-class": "off"
+      }
+    },
+    {
       "files": ["**/*.test.ts"],
       "rules": {
         "typescript/no-non-null-assertion": "off",

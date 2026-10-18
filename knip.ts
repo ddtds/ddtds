@@ -46,6 +46,10 @@ const config: KnipConfig = {
       // used in generated tests
       ignoreDependencies: ["shadow-dom-testing-library"],
     },
+    "packages/mocha": {
+      // loaded by `mocha --reporter`, not imported
+      entry: ["src/reporter.ts"],
+    },
     "packages/node-test": {
       // loaded by `node --test --test-reporter`, not imported
       entry: ["src/reporter.ts"],
