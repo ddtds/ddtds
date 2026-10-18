@@ -10,13 +10,7 @@ describe("adapterFor", () => {
   });
 
   test("minimal injects what a fence body can use", () => {
-    expect(injected("minimal")).toEqual([
-      "expect",
-      "vi",
-      "assert",
-      "onTestFinished",
-      "onTestFailed",
-    ]);
+    expect(injected("minimal")).toEqual(["expect", "vi"]);
   });
 
   test("full adds the suite and hook globals to minimal", () => {

@@ -48,8 +48,7 @@ export type DdtPluginOptions = DocsOptions & {
   /**
    * Names doc tests can use without importing them, only for doc tests. Defaults to `"minimal"`
    * - `"off"`: none
-   * - `"minimal"`: `expect`, `vi`, `assert`, `onTestFinished` and `onTestFailed`, what makes
-   *   sense inside a running test
+   * - `"minimal"`: `expect` and `vi`, what makes sense inside a running test
    * - `"full"`: `minimal` plus the rest of [vitest globals](https://vitest.dev/config/globals)
    *   such as `describe`, `test` and `it`, for parity with `test.globals`. Does nothing if
    *   globals are enabled project wide

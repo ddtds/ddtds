@@ -3,13 +3,7 @@ import { typedImports, type TestAdapter } from "@ddtds/core";
 const importFromVitest = typedImports<typeof import("vitest")>("vitest");
 
 /** What a fence body can use without importing it, and that makes sense inside a running test */
-const MINIMAL = [
-  "expect",
-  "vi",
-  "assert",
-  "onTestFinished",
-  "onTestFailed",
-] as const satisfies readonly (keyof typeof import("vitest"))[];
+const MINIMAL = ["expect", "vi"] as const satisfies readonly (keyof typeof import("vitest"))[];
 
 /** Everything vitest provides when `test.globals` is on */
 const FULL = [
@@ -19,6 +13,9 @@ const FULL = [
   "describe",
   "it",
   "chai",
+  "assert",
+  "onTestFinished",
+  "onTestFailed",
   "vitest",
   "beforeAll",
   "afterAll",
