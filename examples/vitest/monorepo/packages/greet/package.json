@@ -12,7 +12,8 @@
     }
   },
   "scripts": {
-    "test": "vitest run"
+    "test": "vitest run",
+    "typecheck": "tsc"
   },
   "devDependencies": {
     "@ddtds/vitest": "workspace:*",
