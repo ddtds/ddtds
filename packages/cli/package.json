@@ -20,5 +20,8 @@
   },
   "devDependencies": {
     "vitest": "catalog:dev"
+  },
+  "engines": {
+    "node": "^24.22.0 || >=25"
   }
 }
