@@ -818,9 +818,6 @@ importers:
       seroval:
         specifier: ^1.6.9
         version: 1.6.9
-      unist-util-visit:
-        specifier: ^5.1.0
-        version: 5.1.0
     devDependencies:
       '@jridgewell/trace-mapping':
         specifier: catalog:dev
