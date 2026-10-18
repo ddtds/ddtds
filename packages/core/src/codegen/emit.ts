@@ -2,6 +2,7 @@ import { MagicString } from "magic-string";
 import type { FenceRuntime } from "../runtime.ts";
 import { serialize } from "seroval";
 import { runtimeImport, type TestAdapter } from "./adapter.ts";
+import { unshadowed } from "./imports.ts";
 import type { FenceOutcome, Fragment } from "./plan.ts";
 
 /** One line of code, or a block whose body keeps fragments for source maps */
@@ -53,7 +54,8 @@ function asyncFunction(body: readonly Fragment[]): Expression {
 }
 
 function emitRun(adapter: TestAdapter, outcome: Extract<FenceOutcome, { tag: "run" }>): FenceCode {
-  const imports = [...adapter.fenceImports, ...outcome.imports];
+  const injected = unshadowed(adapter.fenceImports, outcome.importedNames);
+  const imports = [...injected.map(({ statement }) => statement), ...outcome.imports];
   const run = asyncFunction(outcome.body);
   if (!outcome.shouldFail) return { imports, ...run };
   return {

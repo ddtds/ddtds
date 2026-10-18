@@ -22,6 +22,8 @@ type BodyNode = ParsedBodyNode | SyntheticDefaultNode;
 
 export type PreparedBlock = {
   imports: MagicString[];
+  /** Local names the imports bind at runtime; type-only bindings are erased */
+  importedNames: string[];
   body: MagicString[];
   esmSyntax: boolean;
 };
@@ -33,10 +35,20 @@ export function splitImportsAndBlock(block: CodeBlock): PreparedBlock {
   const imports = staticImports.map((staticImport) => sliceSource(source, staticImport));
   const body = sanitizeProgram(program).map((node) => printBodyNode(source, node));
 
-  return { imports, body, esmSyntax };
+  return { imports, importedNames: runtimeNames(staticImports), body, esmSyntax };
 }
 
-type ParsedBlock = { program: Program; staticImports: Range[]; esmSyntax: boolean };
+type StaticImport = Range & {
+  entries: readonly { isType: boolean; localName: { value: string } }[];
+};
+
+function runtimeNames(staticImports: readonly StaticImport[]): string[] {
+  return staticImports.flatMap(({ entries }) =>
+    entries.filter(({ isType }) => !isType).map(({ localName }) => localName.value),
+  );
+}
+
+type ParsedBlock = { program: Program; staticImports: StaticImport[]; esmSyntax: boolean };
 
 function parse(block: CodeBlock): ParsedBlock {
   const parser = parserOf(block.lang);

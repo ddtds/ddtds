@@ -79,7 +79,7 @@ export function docModule(
   const self = isSourceFile(doc) ? [`import ${JSON.stringify(doc)};`] : [];
   const header = [
     ...self,
-    adapter.testImport,
+    adapter.testImport.statement,
     runtimeImport(adapter, "esm"),
     ...loadFences(fences),
   ];

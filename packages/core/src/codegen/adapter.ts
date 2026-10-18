@@ -1,3 +1,5 @@
+import type { Import } from "./imports.ts";
+
 export type ModuleSystem = "esm" | "cjs";
 
 /** Controls runtime function path and imports */
@@ -12,29 +14,29 @@ export type TestAdapter = Readonly<{
    * @example typesafe
    * ```ts
    * const importFromVitest = typedImports<typeof import("vitest")>("vitest");
-   * const statement = importFromVitest("test");
+   * const testImport = importFromVitest("test");
    * ```
    *
-   * @example raw string
+   * @example raw
    * ```ts
-   * "import { test } from 'vitest'"
+   * rawImport("import { test } from 'vitest'", "test")
    * ```
    */
-  testImport: string;
+  testImport: Import;
   /** Imports for fences, e.g. `expect`
    *
    * @example typesafe
    * ```ts
    * const importFromVitest = typedImports<typeof import("vitest")>("vitest");
-   * const statement = importFromVitest("expect");
+   * const fenceImport = importFromVitest("expect");
    * ```
    *
-   * @example raw string
+   * @example raw
    * ```ts
-   * ["import { expect } from 'vitest'"]
+   * [rawImport("import { expect } from 'vitest'", "expect")]
    * ```
    */
-  fenceImports: readonly string[];
+  fenceImports: readonly Import[];
   /** Module system fence modules are written in. Defaults to `"esm"` */
   module?: ModuleSystem;
   forModule?: (module: ModuleSystem) => TestAdapter;
@@ -43,7 +45,7 @@ export type TestAdapter = Readonly<{
 type TypedImporter<Module> = (
   name: keyof Module,
   options?: { alias?: string; type?: ModuleSystem },
-) => string;
+) => Import;
 
 const importers: Record<ModuleSystem, (module: string, name: string, alias?: string) => string> = {
   esm: (module, name, alias) =>
@@ -56,18 +58,21 @@ const importers: Record<ModuleSystem, (module: string, name: string, alias?: str
  * @example esm
  * ```ts
  * const importFromVitest = typedImports<typeof import("vitest")>("vitest");
- * expect(importFromVitest("test")).toBe("import { test } from 'vitest';");
+ * expect(importFromVitest("test").statement).toBe("import { test } from 'vitest';");
  * ```
  *
  * @example cjs with alias
  * ```ts
  * const importFromAssert = typedImports<typeof import("node:assert")>("node:assert");
- * const statement = importFromAssert("strict", { alias: "assert", type: "cjs" });
+ * const { statement } = importFromAssert("strict", { alias: "assert", type: "cjs" });
  * expect(statement).toBe("const { strict: assert } = require('node:assert');");
  * ```
  */
 export function typedImports<Module>(module: string): TypedImporter<Module> {
-  return (name, { alias, type = "esm" } = {}) => importers[type](module, String(name), alias);
+  return (name, { alias, type = "esm" } = {}) => {
+    const local = alias ?? String(name);
+    return { statement: importers[type](module, String(name), alias), locals: [local] };
+  };
 }
 
 /** Doc modules always `import`; fence modules follow the adapter's module system */
