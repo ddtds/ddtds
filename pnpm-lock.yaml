@@ -803,9 +803,6 @@ importers:
       '@logtape/logtape':
         specifier: catalog:prod
         version: 2.4.0
-      '@oxc-project/types':
-        specifier: ^0.153.0
-        version: 0.153.0
       magic-string:
         specifier: ^1.4.3
         version: 1.4.3
@@ -822,6 +819,9 @@ importers:
       '@jridgewell/trace-mapping':
         specifier: catalog:dev
         version: 0.3.31
+      '@oxc-project/types':
+        specifier: ^0.153.0
+        version: 0.153.0
       '@tsrx/oxc':
         specifier: catalog:dev
         version: 0.21.0(svelte@5.57.2)

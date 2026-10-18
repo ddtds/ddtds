@@ -29,7 +29,6 @@
   },
   "dependencies": {
     "@logtape/logtape": "catalog:prod",
-    "@oxc-project/types": "^0.153.0",
     "magic-string": "^1.4.3",
     "oxc-parser": "^0.153.0",
     "satteri": "^0.10.5",
@@ -37,6 +36,7 @@
   },
   "devDependencies": {
     "@jridgewell/trace-mapping": "catalog:dev",
+    "@oxc-project/types": "^0.153.0",
     "@tsrx/oxc": "catalog:dev",
     "@types/node": "catalog:dev",
     "vitest": "catalog:dev"
