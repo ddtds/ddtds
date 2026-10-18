@@ -102,7 +102,7 @@ Module type served to your framework of choice resolves in the following order
 
 ## Vitest
 
-Note: `fsModuleCache` saves several seconds on warm transform times. vitest v5+ has `fsModuleCache` and v5.0.4 turns it on by default
+See [packages/vitest](packages/vitest/README.md)
 
 ## Packages
 
