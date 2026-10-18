@@ -2,15 +2,38 @@ import { readFileSync } from "node:fs";
 import { findPackageJSON, setSourceMapsSupport, type RegisterHooksOptions } from "node:module";
 import { extname } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
-import { DdtSession, type ModuleSystem } from "@ddtds/core";
+import { DdtSession, resolveLogLevel, type ModuleSystem } from "@ddtds/core";
+import { configureSync, getLogger } from "@logtape/logtape";
 import { nodeTestAdapter } from "./adapter.ts";
 
 // works with both built and source
 const runtimeUrl = new URL(`./runtime${extname(import.meta.filename)}`, import.meta.url).href;
 
-export function ddtHooks(root: string): RegisterHooksOptions {
+const logger = getLogger(["ddtds", "hooks"]);
+
+function configureLogging(): void {
+  if (process.env.DDT_LOG_LEVEL === undefined) return;
+  configureSync({
+    reset: true,
+    sinks: {
+      stderr: (record) =>
+        process.stderr.write(`ddtds ${record.level}: ${record.message.join("")}\n`),
+    },
+    loggers: [
+      { category: ["ddtds"], lowestLevel: resolveLogLevel(), sinks: ["stderr"] },
+      { category: ["logtape", "meta"], lowestLevel: "warning", sinks: ["stderr"] },
+    ],
+  });
+}
+
+export type HookOptions = {
+  module?: ModuleSystem;
+};
+
+export function ddtHooks(root: string, options: HookOptions = {}): RegisterHooksOptions {
   setSourceMapsSupport(true);
-  const adapter = nodeTestAdapter(moduleSystem(root));
+  configureLogging();
+  const adapter = nodeTestAdapter(defaultModule(root, options));
   const session = DdtSession.open(adapter, root);
 
   return {
@@ -33,8 +56,7 @@ export function ddtHooks(root: string): RegisterHooksOptions {
       const module = session.load(id);
       if (!module) return next(url, context);
 
-      // doc modules always import; fence modules follow the package's module system
-      const commonjs = adapter.module === "cjs" && !session.isEntry(id);
+      const commonjs = module.module === "cjs" && !session.isEntry(id);
       return {
         format: commonjs ? "commonjs-typescript" : "module-typescript",
         source: `${module.code}\n//# sourceMappingURL=${module.map.toUrl()}`,
@@ -44,10 +66,28 @@ export function ddtHooks(root: string): RegisterHooksOptions {
   };
 }
 
+function defaultModule(root: string, options: HookOptions): ModuleSystem {
+  const fromEnv = moduleFromEnv();
+  const [module, from]: [ModuleSystem, string] = options.module
+    ? [options.module, "the module option"]
+    : fromEnv
+      ? [fromEnv, "DDTDS_MODULE"]
+      : [moduleSystem(root), "the nearest package.json type"];
+  logger.debug("default module system is {module} from {from}", { module, from });
+  return module;
+}
+
+function moduleFromEnv(): ModuleSystem | undefined {
+  const value = process.env.DDTDS_MODULE;
+  if (value === undefined || value === "") return undefined;
+  if (value === "esm" || value === "cjs") return value;
+  throw new Error(`DDTDS_MODULE must be "esm" or "cjs", got "${value}"`);
+}
+
 /** Node reads `type` from the closest package.json to pick CommonJS or ESM */
 function moduleSystem(root: string): ModuleSystem {
   const path = findPackageJSON(pathToFileURL(root + "/").href);
-  if (path === undefined) return "esm";
+  if (path === undefined || !path.endsWith("package.json")) return "esm";
   const pkg: unknown = JSON.parse(readFileSync(path, "utf8"));
   const commonjs =
     typeof pkg === "object" && pkg !== null && "type" in pkg && pkg.type === "commonjs";

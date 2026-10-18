@@ -1,11 +1,12 @@
 import { Bundle, MagicString, SourceMap, type SourceMapSegment } from "magic-string";
 import type { DocIndex, Fence } from "../docs/docs.ts";
-import { runtimeImport, type TestAdapter } from "./adapter.ts";
+import { adapterFor, runtimeImport, type ModuleSystem, type TestAdapter } from "./adapter.ts";
 import { isSourceFile } from "../fences/doc-kinds.ts";
 import { emitFence, wrap } from "./emit.ts";
+import { resolveModule } from "./resolve-module.ts";
 import { planFence } from "./plan.ts";
 
-export type GeneratedModule = { code: string; map: SourceMap };
+export type GeneratedModule = { code: string; map: SourceMap; module: ModuleSystem };
 
 function shiftToFence(mappings: SourceMapSegment[][], { block }: Fence): SourceMapSegment[][] {
   return mappings.map((segments) =>
@@ -18,8 +19,18 @@ function shiftToFence(mappings: SourceMapSegment[][], { block }: Fence): SourceM
   );
 }
 
-export function fenceModule(adapter: TestAdapter, fence: Fence, source?: string): GeneratedModule {
-  const { imports, ...expression } = emitFence(adapter, planFence(fence));
+export function fenceModule(
+  defaultAdapter: TestAdapter,
+  fence: Fence,
+  source?: string,
+): GeneratedModule {
+  const outcome = planFence(fence);
+  const module = resolveModule(fence.block, {
+    esmSyntax: outcome.tag === "run" && outcome.esmSyntax,
+    fallback: defaultAdapter.module ?? "esm",
+  });
+  const adapter = adapterFor(defaultAdapter, module);
+  const { imports, ...expression } = emitFence(adapter, outcome);
   const exported =
     adapter.module === "cjs"
       ? wrap`module.exports = ${expression};`
@@ -43,7 +54,7 @@ export function fenceModule(adapter: TestAdapter, fence: Fence, source?: string)
     names: [],
     mappings: shiftToFence(mappings, fence),
   });
-  return { code: bundle.toString(), map };
+  return { code: bundle.toString(), map, module: adapter.module ?? "esm" };
 }
 
 const testName = ({ block }: Fence): string =>
@@ -87,7 +98,7 @@ export function docModule(
     names: [],
     mappings,
   });
-  return { code: lines.join("\n"), map };
+  return { code: lines.join("\n"), map, module: "esm" };
 }
 
 export function moduleFiles(adapter: TestAdapter, index: DocIndex): Map<string, string> {
