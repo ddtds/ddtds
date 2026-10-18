@@ -1,29 +1,9 @@
 import { test } from "vitest";
 import { DocIndex } from "@ddtds/core";
-import { loadModule } from "@ddtds/vitest";
+import { loadModule, moduleFiles } from "@ddtds/vitest";
+import { fenceSources, options } from "./fixtures.ts";
 
-function fence(i: number): string {
-  return [
-    "```ts run",
-    'import { add } from "calc";',
-    `const values = [${i}, ${i + 1}];`,
-    `expect(add(...values)).toBe(${2 * i + 1});`,
-    "```",
-    "",
-  ].join("\n");
-}
-
-const root = "/repo";
-const sources = new Map(
-  Array.from({ length: 10 }, (_, doc) => [
-    `${root}/docs/guide-${doc}.md`,
-    Array.from({ length: 20 }, (_, i) => fence(i)).join("\n"),
-  ]),
-);
-const index = DocIndex.fromSources(sources, {
-  root,
-  moduleDir: `${root}/__ddtds__`,
-});
+const index = DocIndex.fromSources(fenceSources(10, 20), options);
 
 const fenceIds = Array.from(index.fences(), (fence) => fence.id);
 const docIds = index
@@ -39,5 +19,12 @@ test("vitest plugin load", async ({ bench }) => {
 
   await bench("serve every doc module", () => {
     for (const id of docIds) loadModule(index, id);
+  }).run();
+});
+
+/** What `moduleFiles` serves to `ddt build`: every module up front. */
+test("vitest plugin moduleFiles", async ({ bench }) => {
+  await bench("generate every module for 10 docs", () => {
+    moduleFiles(index);
   }).run();
 });
