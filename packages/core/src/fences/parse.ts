@@ -22,21 +22,40 @@ type BodyNode = ParsedBodyNode | SyntheticDefaultNode;
 
 export type PreparedBlock = {
   imports: MagicString[];
+  bindings: ImportBinding[];
   body: MagicString[];
-  esmSyntax: boolean;
+  syntax: ModuleSyntax;
 };
 
 export function splitImportsAndBlock(block: CodeBlock): PreparedBlock {
-  const { program, staticImports, esmSyntax } = parse(block);
+  const { program, staticImports, syntax } = parse(block);
   const source = new MagicString(block.code);
 
   const imports = staticImports.map((staticImport) => sliceSource(source, staticImport));
   const body = sanitizeProgram(program).map((node) => printBodyNode(source, node));
 
-  return { imports, body, esmSyntax };
+  return { imports, bindings: bindingsOf(staticImports), body, syntax };
 }
 
-type ParsedBlock = { program: Program; staticImports: Range[]; esmSyntax: boolean };
+/** "ambiguous" is not clearly ESM, will use other signals to decide how to run it */
+export type ModuleSyntax = "esm" | "ambiguous";
+
+export type ImportBinding = { local: string; kind: "type" | "value" };
+
+type ParsedImport = Range & {
+  entries: readonly { isType: boolean; localName: { value: string } }[];
+};
+
+function bindingsOf(staticImports: readonly ParsedImport[]): ImportBinding[] {
+  return staticImports.flatMap(({ entries }) =>
+    entries.map(({ isType, localName }) => ({
+      local: localName.value,
+      kind: isType ? "type" : "value",
+    })),
+  );
+}
+
+type ParsedBlock = { program: Program; staticImports: ParsedImport[]; syntax: ModuleSyntax };
 
 function parse(block: CodeBlock): ParsedBlock {
   const parser = parserOf(block.lang);
@@ -49,7 +68,7 @@ function parse(block: CodeBlock): ParsedBlock {
       errors.map((error) => toDiagnostic(block, error)),
     );
   }
-  return { program, staticImports: module.staticImports, esmSyntax: hasEsmSyntax(module) };
+  return { program, staticImports: module.staticImports, syntax: syntaxOf(module) };
 }
 
 type Statement = { entries: readonly { isType: boolean }[] };
@@ -62,8 +81,10 @@ type ModuleRecord = {
 const survives = ({ entries }: Statement): boolean =>
   entries.length === 0 || entries.some((entry) => !entry.isType);
 
-function hasEsmSyntax({ staticImports, staticExports, importMetas }: ModuleRecord): boolean {
-  return staticImports.some(survives) || staticExports.some(survives) || importMetas.length > 0;
+function syntaxOf({ staticImports, staticExports, importMetas }: ModuleRecord): ModuleSyntax {
+  const isEsm =
+    staticImports.some(survives) || staticExports.some(survives) || importMetas.length > 0;
+  return isEsm ? "esm" : "ambiguous";
 }
 
 type ParseResult = ReturnType<typeof parseSync> | ReturnType<typeof TsrxParser.parseSync>;

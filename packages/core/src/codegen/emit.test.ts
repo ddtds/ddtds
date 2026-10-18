@@ -14,9 +14,10 @@ describe("emitFence: run fences", () => {
       emitFence(adapter, {
         tag: "run",
         imports: ["import { a } from './a';"],
+        importedNames: ["a"],
         body: ["a();"],
         shouldFail: false,
-        esmSyntax: false,
+        syntax: "ambiguous",
       }),
     ).toEqual({
       imports: ["import { expect } from 'expect';", "import { a } from './a';"],
@@ -32,9 +33,10 @@ describe("emitFence: run fences", () => {
       emitFence(adapter, {
         tag: "run",
         imports: [],
+        importedNames: [],
         body: ["throw 1;"],
         shouldFail: true,
-        esmSyntax: false,
+        syntax: "ambiguous",
       }),
     ).toEqual({
       imports: ["import { expect } from 'expect';", runtimeImport],
@@ -43,6 +45,21 @@ describe("emitFence: run fences", () => {
       body: ["  throw 1;"],
       close: "} })",
     });
+  });
+});
+
+describe("emitFence: injected imports", () => {
+  test("a fence import of an injected name replaces the injected import", () => {
+    expect(
+      emitFence(adapter, {
+        tag: "run",
+        imports: ["import { expect } from 'my-expect';"],
+        importedNames: ["expect"],
+        body: [],
+        shouldFail: false,
+        syntax: "esm",
+      }),
+    ).toMatchObject({ imports: ["import { expect } from 'my-expect';"] });
   });
 });
 

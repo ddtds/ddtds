@@ -5,14 +5,22 @@ import {
   type CompileErrorDetails,
   type Position,
 } from "../fences/compile-error.ts";
-import type { PreparedBlock } from "../fences/parse.ts";
+import type { ModuleSyntax, PreparedBlock } from "../fences/parse.ts";
 import type { Fence } from "../docs/docs.ts";
 import type { SerializedCause } from "../runtime.ts";
+import { runtimeNames } from "./static-import.ts";
 
 export type Fragment = string | MagicString;
 
 export type FenceOutcome =
-  | { tag: "run"; imports: Fragment[]; body: Fragment[]; shouldFail: boolean; esmSyntax: boolean }
+  | {
+      tag: "run";
+      imports: Fragment[];
+      importedNames: string[];
+      body: Fragment[];
+      shouldFail: boolean;
+      syntax: ModuleSyntax;
+    }
   | { tag: "missingCompileError"; fileName: string; position: Position }
   | {
       tag: "compileError";
@@ -50,8 +58,9 @@ export function planFence({ doc, block }: Fence): FenceOutcome {
   return {
     tag: "run",
     imports: split.imports,
+    importedNames: runtimeNames(split.bindings),
     body: split.body,
     shouldFail: block.shouldFail(),
-    esmSyntax: split.esmSyntax,
+    syntax: split.syntax,
   };
 }

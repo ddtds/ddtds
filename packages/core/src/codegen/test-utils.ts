@@ -3,12 +3,13 @@ import { DdtCompileError } from "../fences/compile-error.ts";
 import type { Annotation, Lang } from "../constants.ts";
 import type { Fence } from "../docs/docs.ts";
 import type { TestAdapter } from "./adapter.ts";
+import { staticImport } from "./static-import.ts";
 
 // these are unit tests and don't need to resolve
 export const adapter: TestAdapter = {
   runtime: "@ddtds/test/runtime",
-  testImport: "import { test } from 'test';",
-  fenceImports: ["import { expect } from 'expect';"],
+  testImport: staticImport("import { test } from 'test';", "test"),
+  fenceImports: [staticImport("import { expect } from 'expect';", "expect")],
 };
 
 export function fence(

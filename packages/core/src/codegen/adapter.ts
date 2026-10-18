@@ -1,3 +1,5 @@
+import type { StaticImport } from "./static-import.ts";
+
 export type ModuleSystem = "esm" | "cjs";
 
 /** Controls runtime function path and imports */
@@ -10,75 +12,44 @@ export type TestAdapter = Readonly<{
   /** Imports `test` for doc modules
    *
    * @example typesafe
-   * ```ts
+   * ```ts run
+   * import { typedImports } from "@ddtds/core";
+   *
    * const importFromVitest = typedImports<typeof import("vitest")>("vitest");
-   * const statement = importFromVitest("test");
+   * const testImport = importFromVitest("test");
+   * expect(testImport.locals).toEqual(["test"]);
    * ```
    *
-   * @example raw string
-   * ```ts
-   * "import { test } from 'vitest'"
+   * @example raw
+   * ```ts run
+   * import { staticImport } from "@ddtds/core";
+   *
+   * const testImport = staticImport("import { test } from 'vitest'", "test");
+   * expect(testImport.locals).toEqual(["test"]);
    * ```
    */
-  testImport: string;
+  testImport: StaticImport;
   /** Imports for fences, e.g. `expect`
    *
    * @example typesafe
-   * ```ts
+   * ```ts run
+   * import { typedImports } from "@ddtds/core";
+   *
    * const importFromVitest = typedImports<typeof import("vitest")>("vitest");
-   * const statement = importFromVitest("expect");
+   * const fenceImport = importFromVitest("expect");
+   * expect(fenceImport.locals).toEqual(["expect"]);
    * ```
    *
-   * @example raw string
-   * ```ts
-   * ["import { expect } from 'vitest'"]
+   * @example raw
+   * ```ts run
+   * import { staticImport } from "@ddtds/core";
+   *
+   * const fenceImports = [staticImport("import { expect } from 'vitest'", "expect")];
+   * expect(fenceImports[0]?.locals).toEqual(["expect"]);
    * ```
    */
-  fenceImports: readonly string[];
+  fenceImports: readonly StaticImport[];
   /** Module system fence modules are written in. Defaults to `"esm"` */
   module?: ModuleSystem;
   forModule?: (module: ModuleSystem) => TestAdapter;
 }>;
-
-type TypedImporter<Module> = (
-  name: keyof Module,
-  options?: { alias?: string; type?: ModuleSystem },
-) => string;
-
-const importers: Record<ModuleSystem, (module: string, name: string, alias?: string) => string> = {
-  esm: (module, name, alias) =>
-    `import { ${name}${alias ? ` as ${alias}` : ""} } from '${module}';`,
-  cjs: (module, name, alias) =>
-    `const { ${name}${alias ? `: ${alias}` : ""} } = require('${module}');`,
-};
-
-/**
- * @example esm
- * ```ts
- * const importFromVitest = typedImports<typeof import("vitest")>("vitest");
- * expect(importFromVitest("test")).toBe("import { test } from 'vitest';");
- * ```
- *
- * @example cjs with alias
- * ```ts
- * const importFromAssert = typedImports<typeof import("node:assert")>("node:assert");
- * const statement = importFromAssert("strict", { alias: "assert", type: "cjs" });
- * expect(statement).toBe("const { strict: assert } = require('node:assert');");
- * ```
- */
-export function typedImports<Module>(module: string): TypedImporter<Module> {
-  return (name, { alias, type = "esm" } = {}) => importers[type](module, String(name), alias);
-}
-
-/** Doc modules always `import`; fence modules follow the adapter's module system */
-export function runtimeImport(
-  adapter: TestAdapter,
-  system: ModuleSystem = adapter.module ?? "esm",
-): string {
-  return importers[system](adapter.runtime, "runtime");
-}
-
-export function adapterFor(adapter: TestAdapter, module: ModuleSystem): TestAdapter {
-  if (module === (adapter.module ?? "esm")) return adapter;
-  return adapter.forModule?.(module) ?? adapter;
-}

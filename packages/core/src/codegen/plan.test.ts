@@ -4,6 +4,14 @@ import { planFence } from "./plan.ts";
 import { failingWithCause, fence } from "./test-utils.ts";
 
 describe("planFence: run fences", () => {
+  test("reports the runtime names the fence imports bind, not type-only ones", () => {
+    const outcome = planFence(
+      fence('import a, { b as c, type D } from "x";\nimport * as ns from "y";\nimport "z";'),
+    );
+    if (outcome.tag !== "run") throw new Error("expected a run outcome");
+    expect(outcome.importedNames).toEqual(["a", "c", "ns"]);
+  });
+
   test("splits imports from the body", () => {
     const outcome = planFence(fence("import { a } from './a';\na();"));
     expect(outcome).toMatchObject({ tag: "run", shouldFail: false });
