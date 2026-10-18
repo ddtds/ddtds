@@ -12,7 +12,7 @@ import type { SerializedCause } from "../runtime.ts";
 export type Fragment = string | MagicString;
 
 export type FenceOutcome =
-  | { tag: "run"; imports: Fragment[]; body: Fragment[]; shouldFail: boolean }
+  | { tag: "run"; imports: Fragment[]; body: Fragment[]; shouldFail: boolean; esmSyntax: boolean }
   | { tag: "missingCompileError"; fileName: string; position: Position }
   | {
       tag: "compileError";
@@ -52,5 +52,6 @@ export function planFence({ doc, block }: Fence): FenceOutcome {
     imports: split.imports,
     body: split.body,
     shouldFail: block.shouldFail(),
+    esmSyntax: split.esmSyntax,
   };
 }

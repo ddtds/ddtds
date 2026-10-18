@@ -168,6 +168,10 @@ describe("CodeBlock.splitImports", () => {
       tsx: "const a = <div>;",
       jsx: "const a = <div>;",
       tsrx: "function Greeting() @{\n  <p>\n}",
+      mjs: "const = 1;",
+      mts: "const x: = 1;",
+      cjs: "const = 1;",
+      cts: "const x: = 1;",
     };
     const messages: Record<string, string> = {};
     for (const [lang, code] of Object.entries(broken)) {
@@ -175,9 +179,13 @@ describe("CodeBlock.splitImports", () => {
     }
     expect(messages).toMatchInlineSnapshot(`
       {
+        "cjs": "t.md:11:7 Unexpected token (cjs block at line 10)",
+        "cts": "t.md:11:10 Unexpected token (cts block at line 10)",
         "javascript": "t.md:11:7 Unexpected token (javascript block at line 10)",
         "js": "t.md:11:7 Unexpected token (js block at line 10)",
         "jsx": "t.md:11:16 Unexpected token (jsx block at line 10)",
+        "mjs": "t.md:11:7 Unexpected token (mjs block at line 10)",
+        "mts": "t.md:11:10 Unexpected token (mts block at line 10)",
         "ts": "t.md:11:10 Unexpected token (ts block at line 10)",
         "tsrx": "t.md:12:3 unterminated JSX element starting at byte 25 (tsrx block at line 10)",
         "tsx": "t.md:11:16 Unexpected token (tsx block at line 10)",

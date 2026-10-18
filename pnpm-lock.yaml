@@ -771,6 +771,9 @@ importers:
       '@ddtds/core':
         specifier: workspace:*
         version: link:../core
+      '@logtape/logtape':
+        specifier: catalog:prod
+        version: 2.4.0
     devDependencies:
       '@ddtds/test-utils':
         specifier: workspace:*
