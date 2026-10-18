@@ -1,6 +1,5 @@
 import { getLogger } from "@logtape/logtape";
 import { markdownToMdast, mdxToMdast, type MdastNode } from "satteri";
-import { visit } from "unist-util-visit";
 import {
   ANNOTATIONS,
   extensionOf,
@@ -139,6 +138,14 @@ function parseMarkdown(source: string, path: string): MdastNode {
   return path.endsWith(".mdx") ? mdxToMdast(source) : markdownToMdast(source);
 }
 
+type CodeNode = Extract<MdastNode, { type: "code" }>;
+
+/** Walks the tree in document order, calling `onCode` for every code block. */
+function visitCode(node: MdastNode, onCode: (node: CodeNode) => void): void {
+  if (node.type === "code") onCode(node);
+  if ("children" in node) for (const child of node.children) visitCode(child, onCode);
+}
+
 export function parseCodeFences(
   source: string,
   path: string,
@@ -147,7 +154,7 @@ export function parseCodeFences(
   const tree = parseMarkdown(source, path);
   const blocks: CodeBlock[] = [];
 
-  visit(tree, "code", (node) => {
+  visitCode(tree, (node) => {
     const { lang, meta } = node;
     if (!meta || !lang || !isLang(lang)) return;
 
