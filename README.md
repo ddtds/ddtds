@@ -104,6 +104,10 @@ Module type served to your framework of choice resolves in the following order
 
 See [packages/vitest](packages/vitest/README.md)
 
+## Node
+
+See [packages/node-test](packages/node-test/README.md)
+
 ## Packages
 
 - `./packages` has ddtdts library and cli code

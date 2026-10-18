@@ -17,7 +17,7 @@ function generatedLine(code: string, matches: (line: string) => boolean) {
 
 const cjs: TestAdapter = {
   ...adapter,
-  fenceImports: [staticImport("const { expect } = require('expect');", "expect")],
+  fenceImports: [staticImport("expect", "expect")],
   module: "cjs",
 };
 
