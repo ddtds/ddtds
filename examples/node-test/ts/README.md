@@ -23,4 +23,14 @@ A `fail` fence passes only when it throws:
 assert.equal(1 + 1, 3);
 ```
 
+A `ddt-setup` comment above a fence runs as code before it, and readers never see it. Blank lines and other comments may sit in between:
+
+<!-- ddt-setup import { slugify } from "@ddtds/example-node"; -->
+
+<!-- not setup, no marker -->
+
+```ts run
+assert.equal(slugify("Set Up"), "set-up");
+```
+
 JSDoc comments in `src/index.ts` hold fences too.

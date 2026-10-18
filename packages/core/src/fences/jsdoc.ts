@@ -13,7 +13,7 @@ function commentMarkdown(
   commentValue: string,
 ): { markdown: string; placement: Placement } {
   const lines = commentValue.split("\n");
-  const prefixLengths = lines.map((line) => LINE_PREFIX.exec(line)?.[0].length ?? 0);
+  const prefixLengths = lines.map((line) => line.length - line.replace(LINE_PREFIX, "").length);
   const columnsBeforeFirstLine = columnsBeforeOffset(source, commentStart) + COMMENT_OPEN_LENGTH;
   const columnsBeforeLines = prefixLengths.map((length, i) =>
     i === 0 ? columnsBeforeFirstLine + length : length,
@@ -22,7 +22,11 @@ function commentMarkdown(
     markdown: lines.map((line, i) => line.slice(prefixLengths[i])).join("\n"),
     placement: {
       linesBefore: linesBeforeOffset(source, commentStart),
-      columnsBeforeLine: (line) => columnsBeforeLines[line] ?? 0,
+      columnsBeforeLine: (line) => {
+        const columns = columnsBeforeLines[line];
+        if (columns === undefined) throw new Error(`no line ${line} in the comment`);
+        return columns;
+      },
     },
   };
 }

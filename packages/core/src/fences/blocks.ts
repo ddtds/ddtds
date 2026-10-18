@@ -10,28 +10,33 @@ import {
   isLang,
 } from "../constants.ts";
 import type { BlockDetails, Position, SourceRange } from "./compile-error.ts";
-import { columnsBeforeOffset, linesBeforeOffset, WHOLE_FILE, type Placement } from "./placement.ts";
+import {
+  columnsBeforeOffset,
+  linesBeforeOffset,
+  oneBased,
+  placeInFile,
+  rangeInFile,
+  WHOLE_FILE,
+  zeroBased,
+  type Placement,
+} from "./placement.ts";
+import {
+  codeWithSetup,
+  positionInText,
+  segmentsOf,
+  type CodeRun,
+  type Segment,
+} from "./segments.ts";
+import { setupBefore } from "./hidden.ts";
 import { splitImportsAndBlock, type PreparedBlock } from "./parse.ts";
 
 const logger = getLogger(["ddtds", "blocks"]);
 
-type AnnotationResult =
-  | { tag: "ok"; annotation: Annotation }
-  | { tag: "none" }
-  | { tag: "unknown"; raw: string };
+type AnnotationResult = { tag: "ok"; annotation: Annotation } | { tag: "unknown"; raw: string };
 
 function parseAnnotation(meta: string): AnnotationResult {
-  if (!meta) return { tag: "none" };
   if (isAnnotation(meta)) return { tag: "ok", annotation: meta };
   return { tag: "unknown", raw: meta };
-}
-
-function zeroBased({ line, column }: Position): Position {
-  return { line: line - 1, column: column - 1 };
-}
-
-function oneBased({ line, column }: Position): Position {
-  return { line: line + 1, column: column + 1 };
 }
 
 export type CodeBlockInit = {
@@ -41,63 +46,43 @@ export type CodeBlockInit = {
   path: string;
   rangeInText: SourceRange;
   placement?: Placement;
+  setup?: readonly CodeRun[];
 };
 
 export class CodeBlock {
   readonly #code: string;
-  public readonly lang: Lang;
+  readonly #segments: readonly Segment[];
   public readonly details: BlockDetails;
-  readonly #annotation: Annotation | null;
-  readonly #fenceInText: Position;
   readonly #placement: Placement;
-  readonly #fenceInFile: Position;
 
-  public constructor({
-    code,
-    lang,
-    annotation,
-    path,
-    rangeInText,
-    placement = WHOLE_FILE,
-  }: CodeBlockInit) {
-    this.#code = code;
-    this.lang = lang;
-    this.#annotation = annotation;
+  public constructor(init: CodeBlockInit) {
+    const { code, setup = [], placement = WHOLE_FILE, rangeInText } = init;
     this.#placement = placement;
-    this.#fenceInText = zeroBased(rangeInText.start);
-    const inFile = (position: Position): Position => ({
-      line: position.line + placement.linesBefore,
-      column: position.column + placement.columnsBeforeLine(position.line),
-    });
-    this.#fenceInFile = inFile(this.#fenceInText);
+    this.#code = codeWithSetup(setup, code);
+    this.#segments = segmentsOf(setup, zeroBased(rangeInText.start));
     this.details = {
-      file: path,
-      lang,
-      annotation,
-      range: {
-        start: oneBased(this.#fenceInFile),
-        end: oneBased(inFile(zeroBased(rangeInText.end))),
-      },
+      file: init.path,
+      lang: init.lang,
+      annotation: init.annotation,
+      range: rangeInFile(placement, rangeInText),
       contents: code,
     };
+  }
+
+  public get lang(): Lang {
+    return this.details.lang;
   }
 
   public get line(): number {
     return this.details.range.start.line;
   }
 
-  /** 0 indexed */
   public get zeroBasedStart(): Position {
-    return this.#fenceInFile;
+    return zeroBased(this.details.range.start);
   }
 
-  /** `codeLine` and `codeColumn` are 0 indexed in the code, and so is the result in the file */
   public zeroBasedPositionAt(codeLine: number, codeColumn: number): Position {
-    const textLine = this.#fenceInText.line + 1 + codeLine;
-    return {
-      line: this.#fenceInFile.line + 1 + codeLine,
-      column: this.#fenceInText.column + this.#placement.columnsBeforeLine(textLine) + codeColumn,
-    };
+    return placeInFile(this.#placement, positionInText(this.#segments, codeLine, codeColumn));
   }
 
   public positionAt(offset: number): Position {
@@ -118,11 +103,11 @@ export class CodeBlock {
   }
 
   public shouldFail(): boolean {
-    return this.#annotation === ANNOTATIONS.FAIL;
+    return this.details.annotation === ANNOTATIONS.FAIL;
   }
 
   public shouldFailToCompile(): boolean {
-    return this.#annotation === ANNOTATIONS.COMPILE_FAIL;
+    return this.details.annotation === ANNOTATIONS.COMPILE_FAIL;
   }
 
   public splitImports(): PreparedBlock {
@@ -140,10 +125,16 @@ function parseMarkdown(source: string, path: string): MdastNode {
 
 type CodeNode = Extract<MdastNode, { type: "code" }>;
 
-/** Walks the tree in document order, calling `onCode` for every code block. */
-function visitCode(node: MdastNode, onCode: (node: CodeNode) => void): void {
-  if (node.type === "code") onCode(node);
-  if ("children" in node) for (const child of node.children) visitCode(child, onCode);
+/** Walks the tree in document order, calling `onCode` for every code block with its siblings. */
+function visitCode(
+  node: MdastNode,
+  onCode: (node: CodeNode, siblings: readonly MdastNode[], index: number) => void,
+): void {
+  if (!("children" in node)) return;
+  for (const [index, child] of node.children.entries()) {
+    if (child.type === "code") onCode(child, node.children, index);
+    visitCode(child, onCode);
+  }
 }
 
 export function parseCodeFences(
@@ -154,7 +145,7 @@ export function parseCodeFences(
   const tree = parseMarkdown(source, path);
   const blocks: CodeBlock[] = [];
 
-  visitCode(tree, (node) => {
+  visitCode(tree, (node, siblings, index) => {
     const { lang, meta } = node;
     if (!meta || !lang || !isLang(lang)) return;
 
@@ -163,23 +154,17 @@ export function parseCodeFences(
       logger.error('unknown annotation in code block: "{raw}"', { raw: result.raw });
       return;
     }
-    if (result.tag === "none" || result.annotation === ANNOTATIONS.SKIP) return;
-    if (!node.position) {
-      logger.error("code block missing position info, skipping");
-      return;
-    }
-    const { start, end } = node.position;
+    if (result.annotation === ANNOTATIONS.SKIP) return;
+    if (!node.position) throw new Error("code block has no position");
     blocks.push(
       new CodeBlock({
         code: node.value,
         lang,
         annotation: result.annotation,
         path,
-        rangeInText: {
-          start: { line: start.line, column: start.column },
-          end: { line: end.line, column: end.column },
-        },
+        rangeInText: node.position,
         placement,
+        setup: setupBefore(siblings, index),
       }),
     );
   });

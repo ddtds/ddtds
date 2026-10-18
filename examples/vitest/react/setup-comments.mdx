@@ -1,0 +1,34 @@
+# Setup comments in MDX
+
+MDX has no HTML comments, so setup goes in a JSX comment that starts with `ddt-setup`. The comment renders nothing.
+
+{/* ddt-setup import { render, screen } from "@testing-library/react"; */}
+{/* ddt-setup function Hello({ name }: { name: string }) { return <p>Hello, {name}!</p>; } */}
+
+```tsx run
+render(<Hello name="mdx" />);
+expect(screen.getByText("Hello, mdx!")).toBeInTheDocument();
+```
+
+Blank lines and other comments in between work too:
+
+{/* ddt-setup import { render as renderLater, screen as later } from "@testing-library/react"; */}
+
+{/* just a note, no marker */}
+
+```tsx run
+renderLater(<button type="submit">Save</button>);
+expect(later.getByRole("button", { name: "Save" })).toBeInTheDocument();
+```
+
+Setup inside a component sits above the fence in that component:
+
+<Steps>
+
+{/* ddt-setup const label = "Nested"; */}
+
+```tsx run
+expect(label).toBe("Nested");
+```
+
+</Steps>
