@@ -272,6 +272,11 @@ export function conformance(name: string, runner: Runner, dialect: Dialect): voi
       { "doc.md:5": [[3, 24]] },
     ],
     [
+      "a throw on the second line of a setup comment in a list",
+      `- item\n\n  <!-- ddt-setup\n  const a = 1;\n  ${throwing}\n  -->\n\n  \`\`\`ts run\n  ${passing}\n  \`\`\`\n`,
+      { "doc.md:8": [[5, 9]] },
+    ],
+    [
       "a throw in a setup comment in a blockquote",
       `> <!-- ddt-setup ${throwing} -->\n>\n> \`\`\`ts run\n> ${passing}\n> \`\`\`\n`,
       { "doc.md:3": [[1, 24]] },

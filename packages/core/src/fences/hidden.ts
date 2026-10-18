@@ -1,8 +1,11 @@
 import type { MdastNode } from "satteri";
 import type { Position } from "./compile-error.ts";
 
-/** Code from a comment above a fence; `start` is the 1 based position of `code` in the text. */
-export type SetupPiece = { code: string; start: Position };
+/**
+ * Code from a comment above a fence. `start` is the 1 based position of `code` in the text, and
+ * `indent` the columns a container such as a list item strips from every line after the first.
+ */
+export type SetupPiece = { code: string; start: Position; indent: number };
 
 const HTML_COMMENT = /^<!--([\s\S]*)-->$/;
 const JSX_COMMENT = /^\/\*([\s\S]*)\*\/$/;
@@ -30,6 +33,7 @@ function setupPiece(
   return {
     code: comment.body.slice(marker.length),
     start: { line, column: column + comment.open.length + marker.length },
+    indent: column - 1,
   };
 }
 

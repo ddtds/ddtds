@@ -123,6 +123,75 @@ describe("ddt-setup comments above a fence", () => {
     expect(block?.positionAt(code.indexOf("run"))).toEqual({ line: 6, column: 1 });
   });
 
+  test("joins each setup body and the fence code with one newline", () => {
+    const [block] = parseCodeFences(
+      [
+        "<!-- ddt-setup const a = 1; -->",
+        "<!-- ddt-setup const b = 2; -->",
+        fence("use(a, b);"),
+      ].join("\n"),
+      "doc.md",
+    );
+    expect(block?.code).toBe(" const a = 1; \n const b = 2; \nuse(a, b);");
+  });
+
+  test("keeps the fence code unchanged without setup", () => {
+    const [block] = parseCodeFences(fence("one();", "two();"), "doc.md");
+    expect(block?.code).toBe("one();\ntwo();");
+  });
+
+  test("maps every line of a multi line setup and the fence", () => {
+    const [block] = parseCodeFences(
+      [
+        "text",
+        "",
+        "<!-- ddt-setup",
+        "const a = 1;",
+        "const b = 2;",
+        "-->",
+        "<!-- ddt-setup const c = 3; -->",
+        fence("one();", "two();"),
+      ].join("\n"),
+      "doc.md",
+    );
+    const lines = (block?.code ?? "").split("\n");
+    const at = (needle: string) => {
+      const line = lines.findIndex((candidate) => candidate.includes(needle));
+      return block?.zeroBasedPositionAt(line, lines[line]?.indexOf(needle) ?? -1);
+    };
+    expect(at("const a")).toEqual({ line: 3, column: 0 });
+    expect(at("const b")).toEqual({ line: 4, column: 0 });
+    expect(at("const c")).toEqual({ line: 6, column: 15 });
+    expect(at("one")).toEqual({ line: 8, column: 0 });
+    expect(at("two")).toEqual({ line: 9, column: 0 });
+  });
+
+  test("an empty setup comment adds nothing that moves the fence", () => {
+    const [block] = parseCodeFences(["<!-- ddt-setup -->", fence("run();")].join("\n"), "doc.md");
+    const { body } = block?.splitImports() ?? { body: [] };
+    expect(body.map(String)).toEqual(["run();"]);
+    expect(block?.positionAt(block.code.indexOf("run"))).toEqual({ line: 3, column: 1 });
+  });
+
+  test("keeps the container indent on later lines of a setup in a list", () => {
+    const [block] = parseCodeFences(
+      [
+        "- item",
+        "",
+        "  <!-- ddt-setup",
+        "  const a = 1;",
+        "  -->",
+        "  ```ts run",
+        "  use(a);",
+        "  ```",
+      ].join("\n"),
+      "doc.md",
+    );
+    const code = block?.code ?? "";
+    expect(block?.positionAt(code.indexOf("const a"))).toEqual({ line: 4, column: 3 });
+    expect(block?.positionAt(code.indexOf("use"))).toEqual({ line: 7, column: 3 });
+  });
+
   test("points positions in an MDX setup at the comment", () => {
     const [block] = parseCodeFences(
       ["{/* ddt-setup const a = 1; */}", fence("run(a);")].join("\n"),

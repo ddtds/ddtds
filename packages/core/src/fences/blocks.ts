@@ -81,7 +81,7 @@ export class CodeBlock {
         codeLine,
         textLine: start.line,
         firstColumn: start.column,
-        restColumn: 0,
+        restColumn: piece.indent,
       });
       setupCode += `${piece.code}\n`;
       codeLine += piece.code.split("\n").length;
