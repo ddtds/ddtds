@@ -1,6 +1,7 @@
 import { Bundle, MagicString, SourceMap, type SourceMapSegment } from "magic-string";
 import type { DocIndex, Fence } from "../docs/docs.ts";
-import { adapterFor, runtimeImport, type ModuleSystem, type TestAdapter } from "./adapter.ts";
+import type { ModuleSystem, TestAdapter } from "./adapter.ts";
+import { adapterFor, runtimeImport } from "./module-system.ts";
 import { isSourceFile } from "../fences/doc-kinds.ts";
 import { emitFence, wrap } from "./emit.ts";
 import { resolveModule } from "./resolve-module.ts";
@@ -26,7 +27,7 @@ export function fenceModule(
 ): GeneratedModule {
   const outcome = planFence(fence);
   const module = resolveModule(fence.block, {
-    esmSyntax: outcome.tag === "run" && outcome.esmSyntax,
+    syntax: outcome.tag === "run" ? outcome.syntax : "ambiguous",
     fallback: defaultAdapter.module ?? "esm",
   });
   const adapter = adapterFor(defaultAdapter, module);
