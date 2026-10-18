@@ -7,10 +7,11 @@
     ".": "./src/index.ts"
   },
   "scripts": {
-    "test": "vitest run",
+    "test": "ng test --no-watch",
     "typecheck": "tsc"
   },
   "dependencies": {
+    "@angular/common": "catalog:examples",
     "@angular/core": "catalog:examples",
     "@angular/platform-browser": "catalog:examples",
     "@angular/router": "catalog:examples",
@@ -18,13 +19,16 @@
     "rxjs": "catalog:examples"
   },
   "devDependencies": {
+    "@angular/build": "catalog:examples",
+    "@angular/cli": "catalog:examples",
     "@angular/compiler": "catalog:examples",
+    "@angular/compiler-cli": "catalog:examples",
     "@ddtds/vitest": "workspace:*",
-    "@oxc-project/runtime": "catalog:examples",
     "@testing-library/angular": "catalog:examples",
     "@testing-library/dom": "catalog:examples",
     "@testing-library/jest-dom": "catalog:examples",
     "happy-dom": "catalog:examples",
+    "typescript": "catalog:examples",
     "vitest": "catalog:dev"
   }
 }

@@ -1,4 +1,4 @@
-import { getTestBed } from "@angular/core/testing";
-import { BrowserTestingModule, platformBrowserTesting } from "@angular/platform-browser/testing";
+import { expect } from "vitest";
+import * as matchers from "@testing-library/jest-dom/matchers";
 
-getTestBed().initTestEnvironment(BrowserTestingModule, platformBrowserTesting());
+expect.extend(matchers);

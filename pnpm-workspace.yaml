@@ -12,6 +12,10 @@ allowBuilds:
   protobufjs: false
   # optional native regex binding for renovate; falls back to RegExp fine
   re2: false
+  # optional native perf addons pulled in by @angular/build, fall back to JS
+  "@parcel/watcher": false
+  lmdb: false
+  msgpackr-extract: false
   # actually need these: esbuild downloads its binary, lefthook syncs git hooks
   esbuild: true
   lefthook: true
@@ -29,11 +33,14 @@ catalogs:
     vitest: ^5.0.4
     "@vitest/coverage-v8": ^5.0.4
   examples:
+    "@angular/build": ^22.2.2
+    "@angular/cli": ^22.2.2
+    "@angular/common": ^22.2.3
     "@angular/compiler": ^22.2.3
+    "@angular/compiler-cli": ^22.2.3
     "@angular/core": ^22.2.3
     "@angular/platform-browser": ^22.2.3
     "@angular/router": ^22.2.3
-    "@oxc-project/runtime": ^0.153.0
     "@preact/preset-vite": ^2.10.6
     "@solidjs/testing-library": ^0.8.10
     "@sveltejs/vite-plugin-svelte": ^7.3.1

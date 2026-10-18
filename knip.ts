@@ -31,8 +31,10 @@ const config: KnipConfig = {
       ignoreDependencies: ["react-dom", "@types/react-dom", "@testing-library/react"],
     },
     "examples/vitest/monorepo/packages/angular-greet": {
-      // used in generated tests; runtime helpers injected by the decorator transform
-      ignoreDependencies: ["@angular/router", "@testing-library/angular", "@oxc-project/runtime"],
+      // referenced from angular.json
+      entry: ["tests/setup.ts", "vitest-base.config.ts"],
+      // peers of the Angular CLI test builder, and used in generated tests
+      ignoreDependencies: ["@angular/router", "@testing-library/angular"],
     },
     "examples/vitest/monorepo/packages/preact-greet": {
       // used in generated tests
