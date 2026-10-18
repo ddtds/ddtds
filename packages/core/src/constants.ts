@@ -54,9 +54,12 @@ export function moduleOfLang(lang: Lang): ModuleSystem | undefined {
   return entry.module;
 }
 
+const ESM_PATH = /\.m[jt]s$/;
+const CJS_PATH = /\.c[jt]s$/;
+
 export function moduleOfPath(path: string): ModuleSystem | undefined {
-  if (/\.m[jt]s$/.test(path)) return "esm";
-  if (/\.c[jt]s$/.test(path)) return "cjs";
+  if (ESM_PATH.test(path)) return "esm";
+  if (CJS_PATH.test(path)) return "cjs";
   return undefined;
 }
 

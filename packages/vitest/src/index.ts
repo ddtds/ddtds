@@ -35,6 +35,8 @@ export function loadModule(index: DocIndex, id: string): GeneratedModule | undef
 
 const logger = getLogger(["ddtds", "vitest"]);
 
+const WATCH_TRIGGER = /\.(?:mdx?|[cm]?[jt]sx?)$/;
+
 export type DdtPluginOptions = DocsOptions & {
   /**
    * Precedence (highest to lowest):
@@ -50,7 +52,7 @@ export function ddtPlugin({ logLevel, ...docs }: DdtPluginOptions = {}): Plugin 
   configureLogging(resolveLogLevel(logLevel), vite);
   let project: TestProject | undefined;
   let session = DdtSession.fromSources(vitestTestAdapter, new Map(), process.cwd());
-  const docFiles = (): string[] => [...session.index.docs()].map(([doc]) => doc);
+  const docFiles = (): string[] => Array.from(session.index.docs(), ([doc]) => doc);
 
   return {
     name: "vite-plugin-ddtds",
@@ -70,7 +72,7 @@ export function ddtPlugin({ logLevel, ...docs }: DdtPluginOptions = {}): Plugin 
         test: {
           watchTriggerPatterns: [
             {
-              pattern: /\.(?:mdx?|[cm]?[jt]sx?)$/,
+              pattern: WATCH_TRIGGER,
               testsToRun(file: string): string[] | undefined {
                 if (!project || included.has(file) || !session.entry(file)) return undefined;
                 included.add(file);

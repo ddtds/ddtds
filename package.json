@@ -2,12 +2,18 @@
   "name": "ddtds",
   "version": "0.0.0",
   "private": true,
+  "files": [
+    "package.json"
+  ],
   "type": "module",
   "scripts": {
     "format": "oxfmt",
     "format:check": "oxfmt --check",
+    "dedupe": "pnpm dedupe",
+    "dedupe:check": "pnpm dedupe --check",
     "lint": "oxlint . --max-warnings 0",
     "lint:fix": "oxlint . --fix",
+    "analyze": "e18e-cli analyze",
     "prebench": "pnpm run build",
     "bench": "pnpm --filter @ddtds/benches bench",
     "typecheck": "pnpm -r run typecheck",
@@ -29,6 +35,8 @@
   "devDependencies": {
     "@arethetypeswrong/core": "0.18.5",
     "@ddtds/vitest": "workspace:*",
+    "@e18e/cli": "0.7.0",
+    "@e18e/eslint-plugin": "0.8.1",
     "@logtape/lint": "catalog:dev",
     "@testing-library/react": "catalog:examples",
     "@testing-library/user-event": "catalog:examples",

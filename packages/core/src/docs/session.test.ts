@@ -24,7 +24,7 @@ function source(name: string): string {
 }
 
 function docsOf(session: DdtSession, root: string): string[] {
-  return [...session.index.docs()].map(([doc]) => doc.slice(root.length + 1)).toSorted();
+  return Array.from(session.index.docs(), ([doc]) => doc.slice(root.length + 1)).toSorted();
 }
 
 function sessionOver(root: string): DdtSession {
@@ -39,7 +39,7 @@ describe("DdtSession.fromFiles", () => {
 
     expect(session.index.root).toBe(root);
     expect(session.index.size).toBe(1);
-    expect([...session.index.docs()].map(([doc]) => doc)).toEqual([join(root, "guide.md")]);
+    expect(Array.from(session.index.docs(), ([doc]) => doc)).toEqual([join(root, "guide.md")]);
     expect(session.index.hasDoc(join(root, "guide.md"))).toBe(true);
     expect(session.index.fence(fence!.id)).toBe(fence);
     expect(session.load(session.entry("guide.md")!)?.code).toContain('test("guide.md:1"');
@@ -94,7 +94,7 @@ describe("DdtSession.refresh", () => {
 
     const [updated] = session.index.fences();
     expect(session.load(updated!.id)?.code).toContain("expect(2).toBe(2);");
-    expect([...session.index.docs()].map(([doc]) => doc)).toEqual([join(root, "guide.md")]);
+    expect(Array.from(session.index.docs(), ([doc]) => doc)).toEqual([join(root, "guide.md")]);
   });
 
   test("picks up the first fence of a discovered doc without fences", () => {

@@ -25,7 +25,7 @@ const index = DocIndex.fromSources(sources, {
   moduleDir: `${root}/__ddtds__`,
 });
 
-const fenceIds = [...index.fences()].map((fence) => fence.id);
+const fenceIds = Array.from(index.fences(), (fence) => fence.id);
 const docIds = index
   .docs()
   .map(([doc]) => index.entryId(doc))

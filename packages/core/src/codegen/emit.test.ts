@@ -6,6 +6,8 @@ const details = captureParseError(fence("const = 1;")).details;
 
 const runtimeImport = "import { runtime } from '@ddtds/test/runtime';";
 
+const COMPILE_ERROR_CALL = /^runtime\.compileError\(\(\{fileName:"\/repo\/docs\/t\.md",details:/;
+
 describe("emitFence: run fences", () => {
   test("wraps the body in an async function after the adapter's fence imports", () => {
     expect(
@@ -76,9 +78,7 @@ describe("emitFence: other outcomes", () => {
     });
     expect(code.imports).toEqual([runtimeImport]);
     if (code.tag !== "inline") throw new Error("expected an inline runtime call");
-    expect(code.code).toMatch(
-      /^runtime\.compileError\(\(\{fileName:"\/repo\/docs\/t\.md",details:/,
-    );
+    expect(code.code).toMatch(COMPILE_ERROR_CALL);
     expect(code.code).toContain('cause:{name:"Error",message:"crashed",code:void 0}');
   });
 });

@@ -11,6 +11,9 @@ import { frame, type Frame } from "./frames.ts";
 
 export { framesOf, projectFrames, type Frame } from "./frames.ts";
 
+const MARKDOWN_EXTENSION = /\.mdx?$/;
+const TRAILING_NEWLINE = /\n$/;
+
 export const emptyReport: Report = { outcomes: {}, failures: {} };
 
 export type Mode = "run" | "watch";
@@ -227,14 +230,14 @@ export const markdown: Kind = {
 
 /** JSDoc indented by `indent` in a `.extension` file followed by `code`, which CommonJS files need to change */
 export function jsdocIn(extension: string, code = "export {};", indent = ""): Kind {
-  const file = (name: string): string => name.replace(/\.mdx?$/, `.${extension}`);
+  const file = (name: string): string => name.replace(MARKDOWN_EXTENSION, `.${extension}`);
   const opening = [`${indent}/**`];
   const prefix = `${indent} * `;
   return {
     file,
     content(text) {
       const lines = text
-        .replace(/\n$/, "")
+        .replace(TRAILING_NEWLINE, "")
         .split("\n")
         .map((line) => (line === "" ? prefix.trimEnd() : `${prefix}${line}`));
       return [...opening, ...lines, `${indent} */`, code, ""].join("\n");
@@ -250,7 +253,7 @@ export function jsdocIn(extension: string, code = "export {};", indent = ""): Ki
 
 export const jsdoc: Kind = jsdocIn("ts");
 
-const isMarkdown = (file: string): boolean => /\.mdx?$/.test(file);
+const isMarkdown = (file: string): boolean => MARKDOWN_EXTENSION.test(file);
 
 /**
  * Project from `files` plus a session to run or watch it. `kind` places markdown files, which the

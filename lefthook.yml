@@ -24,6 +24,8 @@ pre-push:
             run: pnpm run knip
           - name: typecheck
             run: pnpm run typecheck
+          - name: dedupe
+            run: pnpm run dedupe:check
           - name: publint
             run: pnpm run publint
           # not `pnpm test`, whose pretest would rebuild while other checks read dist
