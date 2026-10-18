@@ -10,8 +10,24 @@ import {
   isLang,
 } from "../constants.ts";
 import type { BlockDetails, Position, SourceRange } from "./compile-error.ts";
-import { columnsBeforeOffset, linesBeforeOffset, WHOLE_FILE, type Placement } from "./placement.ts";
-import { setupBefore, type SetupPiece } from "./hidden.ts";
+import {
+  columnsBeforeOffset,
+  linesBeforeOffset,
+  oneBased,
+  placeInFile,
+  rangeInFile,
+  WHOLE_FILE,
+  zeroBased,
+  type Placement,
+} from "./placement.ts";
+import {
+  codeWithSetup,
+  positionInText,
+  segmentsOf,
+  type CodeRun,
+  type Segment,
+} from "./segments.ts";
+import { setupBefore } from "./hidden.ts";
 import { splitImportsAndBlock, type PreparedBlock } from "./parse.ts";
 
 const logger = getLogger(["ddtds", "blocks"]);
@@ -27,14 +43,6 @@ function parseAnnotation(meta: string): AnnotationResult {
   return { tag: "unknown", raw: meta };
 }
 
-function zeroBased({ line, column }: Position): Position {
-  return { line: line - 1, column: column - 1 };
-}
-
-function oneBased({ line, column }: Position): Position {
-  return { line: line + 1, column: column + 1 };
-}
-
 export type CodeBlockInit = {
   code: string;
   lang: Lang;
@@ -43,68 +51,32 @@ export type CodeBlockInit = {
   rangeInText: SourceRange;
   placement?: Placement;
   /** Setup code from comments above the fence; it runs before `code` */
-  setup?: readonly SetupPiece[];
+  setup?: readonly CodeRun[];
 };
-
-/** A run of lines of `CodeBlock.code` that starts at `textLine` of the text */
-type Segment = { codeLine: number; textLine: number; firstColumn: number; restColumn: number };
 
 export class CodeBlock {
   readonly #code: string;
-  readonly #segments: Segment[] = [];
+  readonly #segments: readonly Segment[];
   public readonly lang: Lang;
   public readonly details: BlockDetails;
   readonly #annotation: Annotation | null;
-  readonly #fenceInText: Position;
   readonly #placement: Placement;
   readonly #fenceInFile: Position;
 
-  public constructor({
-    code,
-    lang,
-    annotation,
-    path,
-    rangeInText,
-    placement = WHOLE_FILE,
-    setup = [],
-  }: CodeBlockInit) {
-    this.lang = lang;
-    this.#annotation = annotation;
+  public constructor(init: CodeBlockInit) {
+    const { code, setup = [], placement = WHOLE_FILE, rangeInText } = init;
+    const fenceInText = zeroBased(rangeInText.start);
+    this.lang = init.lang;
+    this.#annotation = init.annotation;
     this.#placement = placement;
-    this.#fenceInText = zeroBased(rangeInText.start);
-    let codeLine = 0;
-    let setupCode = "";
-    for (const piece of setup) {
-      const start = zeroBased(piece.start);
-      this.#segments.push({
-        codeLine,
-        textLine: start.line,
-        firstColumn: start.column,
-        restColumn: piece.indent,
-      });
-      setupCode += `${piece.code}\n`;
-      codeLine += piece.code.split("\n").length;
-    }
-    this.#segments.push({
-      codeLine,
-      textLine: this.#fenceInText.line + 1,
-      firstColumn: this.#fenceInText.column,
-      restColumn: this.#fenceInText.column,
-    });
-    this.#code = setupCode + code;
-    const inFile = (position: Position): Position => ({
-      line: position.line + placement.linesBefore,
-      column: position.column + placement.columnsBeforeLine(position.line),
-    });
-    this.#fenceInFile = inFile(this.#fenceInText);
+    this.#code = codeWithSetup(setup, code);
+    this.#segments = segmentsOf(setup, fenceInText);
+    this.#fenceInFile = placeInFile(placement, fenceInText);
     this.details = {
-      file: path,
-      lang,
-      annotation,
-      range: {
-        start: oneBased(this.#fenceInFile),
-        end: oneBased(inFile(zeroBased(rangeInText.end))),
-      },
+      file: init.path,
+      lang: init.lang,
+      annotation: init.annotation,
+      range: rangeInFile(placement, rangeInText),
       contents: code,
     };
   }
@@ -120,15 +92,7 @@ export class CodeBlock {
 
   /** `codeLine` and `codeColumn` are 0 indexed in the code, and so is the result in the file */
   public zeroBasedPositionAt(codeLine: number, codeColumn: number): Position {
-    const segment = this.#segments.findLast((candidate) => candidate.codeLine <= codeLine);
-    if (!segment) throw new Error(`no code at line ${codeLine}`);
-    const lineInSegment = codeLine - segment.codeLine;
-    const textLine = segment.textLine + lineInSegment;
-    const column = lineInSegment === 0 ? segment.firstColumn : segment.restColumn;
-    return {
-      line: textLine + this.#placement.linesBefore,
-      column: column + this.#placement.columnsBeforeLine(textLine) + codeColumn,
-    };
+    return placeInFile(this.#placement, positionInText(this.#segments, codeLine, codeColumn));
   }
 
   public positionAt(offset: number): Position {

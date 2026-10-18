@@ -82,6 +82,8 @@ describe("ddt-setup comments above a fence", () => {
     "<!-- prettier-ignore -->",
     "<!-- markdownlint-disable MD013 -->",
     "<!-- ddt-setups const a = 1; -->",
+    "<!-- ddt-setup-more const a = 1; -->",
+    "<!-- ddt-setup;const a = 1; -->",
   ])("ignores %s, which has no ddt-setup marker", (comment) => {
     const { body } = split([comment, fence("run();")].join("\n"));
     expect(body).toEqual(["run();"]);
@@ -192,6 +194,41 @@ describe("ddt-setup comments above a fence", () => {
     const code = block?.code ?? "";
     expect(block?.positionAt(code.indexOf("const a"))).toEqual({ line: 4, column: 3 });
     expect(block?.positionAt(code.indexOf("use"))).toEqual({ line: 7, column: 3 });
+  });
+
+  test("points positions at the code when the comment is indented by up to three spaces", () => {
+    const [block] = parseCodeFences(
+      ["   <!-- ddt-setup const a = 1; -->", fence("run(a);")].join("\n"),
+      "doc.md",
+    );
+    expect(block?.positionAt(block.code.indexOf("const a"))).toEqual({ line: 1, column: 19 });
+  });
+
+  test("points positions at the code when the marker is on a later line than the opening", () => {
+    const [block] = parseCodeFences(
+      ["<!--", "ddt-setup const a = 1;", "-->", fence("run(a);")].join("\n"),
+      "doc.md",
+    );
+    expect(block?.positionAt(block.code.indexOf("const a"))).toEqual({ line: 2, column: 11 });
+  });
+
+  test("ignores a comment followed by text on its line", () => {
+    const { body } = split(
+      ["<!-- ddt-setup const a = 1; --> text", "", fence("run();")].join("\n"),
+    );
+    expect(body).toEqual(["run();"]);
+  });
+
+  test("ignores a node holding two comments, which is not one setup comment", () => {
+    const html = split(
+      ["<!-- ddt-setup const a = 1; --> <!-- other -->", "", fence("run();")].join("\n"),
+    );
+    expect(html.body).toEqual(["run();"]);
+    const mdx = split(
+      ["{/* ddt-setup const a = 1; */ /* other */}", fence("run();")].join("\n"),
+      "doc.mdx",
+    );
+    expect(mdx.body).toEqual(["run();"]);
   });
 
   test("points positions in an MDX setup at the comment", () => {
