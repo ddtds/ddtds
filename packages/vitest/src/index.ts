@@ -13,7 +13,7 @@ import {
   type LogLevel,
 } from "@ddtds/core";
 import { getLogger } from "@logtape/logtape";
-import { adapterFor, chooseGlobals, vitestTestAdapter } from "./adapter.ts";
+import { adapterFor, globalsIgnored, vitestTestAdapter, type GlobalsMode } from "./adapter.ts";
 import { configureLogging, createViteSink } from "./logging.ts";
 
 export type { CodeBlock, DocIndex, DocsOptions, Fence, LogLevel } from "@ddtds/core";
@@ -46,13 +46,22 @@ export type DdtPluginOptions = DocsOptions & {
    */
   logLevel?: LogLevel;
   /**
-   * Enable [vitest globals](https://vitest.dev/config/globals) only for doc tests.
-   * Does nothing if globals are enabled project wide
+   * Names doc tests can use without importing them, only for doc tests. Defaults to `"minimal"`
+   * - `"off"`: none
+   * - `"minimal"`: `expect`, `vi`, `assert`, `onTestFinished` and `onTestFailed`, what makes
+   *   sense inside a running test
+   * - `"full"`: `minimal` plus the rest of [vitest globals](https://vitest.dev/config/globals)
+   *   such as `describe`, `test` and `it`, for parity with `test.globals`. Does nothing if
+   *   globals are enabled project wide
    */
-  globals?: boolean;
+  globals?: GlobalsMode;
 };
 
-export function ddtPlugin({ logLevel, globals = false, ...docs }: DdtPluginOptions = {}): Plugin {
+export function ddtPlugin({
+  logLevel,
+  globals = "minimal",
+  ...docs
+}: DdtPluginOptions = {}): Plugin {
   const vite = createViteSink();
   configureLogging(resolveLogLevel(logLevel), vite);
   let project: TestProject | undefined;
@@ -94,11 +103,10 @@ export function ddtPlugin({ logLevel, globals = false, ...docs }: DdtPluginOptio
     configureVitest(context) {
       project = context.project;
       const { config } = context.project;
-      const choice = chooseGlobals(globals, config.globals);
-      if (globals && choice === "project") {
-        logger.warn("`globals` has no effect, vitest `test.globals` is already enabled");
+      if (globalsIgnored(globals, config.globals)) {
+        logger.warn('`globals: "full"` has no effect, vitest `test.globals` is already enabled');
       }
-      session.useAdapter(adapterFor(choice));
+      session.useAdapter(adapterFor(globals, config.globals));
       config.include = [...config.include, ...docFiles()];
       config.exclude = [...config.exclude, join(session.root, defaultOutDir, "**")];
     },

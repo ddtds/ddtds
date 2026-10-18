@@ -2,44 +2,53 @@ import { typedImports, type TestAdapter } from "@ddtds/core";
 
 const importFromVitest = typedImports<typeof import("vitest")>("vitest");
 
-export const vitestTestAdapter: TestAdapter = {
-  runtime: "@ddtds/vitest/runtime",
-  testImport: importFromVitest("test"),
-  fenceImports: [importFromVitest("expect")],
-};
+/** What a fence body can use without importing it, and that makes sense inside a running test */
+const MINIMAL = [
+  "expect",
+  "vi",
+  "assert",
+  "onTestFinished",
+  "onTestFailed",
+] as const satisfies readonly (keyof typeof import("vitest"))[];
 
-/** What vitest provides when `test.globals` is on */
-const GLOBALS = [
+/** Everything vitest provides when `test.globals` is on */
+const FULL = [
+  ...MINIMAL,
   "suite",
   "test",
   "describe",
   "it",
   "chai",
-  "expect",
-  "assert",
   "vitest",
-  "vi",
   "beforeAll",
   "afterAll",
   "beforeEach",
   "afterEach",
-  "onTestFailed",
-  "onTestFinished",
 ] as const satisfies readonly (keyof typeof import("vitest"))[];
 
-export const vitestGlobalsAdapter: TestAdapter = {
-  ...vitestTestAdapter,
-  fenceImports: GLOBALS.map((name) => importFromVitest(name)),
-};
+export type GlobalsMode = "off" | "minimal" | "full";
 
-export type GlobalsChoice = "project" | "docs" | "none";
-
-/** Which globals the docs get: the project's own, ours, or only `expect` */
-export function chooseGlobals(docsGlobals: boolean, projectGlobals: boolean): GlobalsChoice {
-  if (projectGlobals) return "project";
-  return docsGlobals ? "docs" : "none";
+function adapterOf(names: readonly (keyof typeof import("vitest"))[]): TestAdapter {
+  return {
+    runtime: "@ddtds/vitest/runtime",
+    testImport: importFromVitest("test"),
+    fenceImports: names.map((name) => importFromVitest(name)),
+  };
 }
 
-export function adapterFor(choice: GlobalsChoice): TestAdapter {
-  return choice === "docs" ? vitestGlobalsAdapter : vitestTestAdapter;
+const adapters: Record<GlobalsMode, TestAdapter> = {
+  off: adapterOf([]),
+  minimal: adapterOf(MINIMAL),
+  full: adapterOf(FULL),
+};
+
+export const vitestTestAdapter: TestAdapter = adapters.minimal;
+
+/** `test.globals` already provides everything `full` would inject, so `full` falls back to `minimal` */
+export function adapterFor(mode: GlobalsMode, projectGlobals: boolean): TestAdapter {
+  return adapters[mode === "full" && projectGlobals ? "minimal" : mode];
+}
+
+export function globalsIgnored(mode: GlobalsMode, projectGlobals: boolean): boolean {
+  return mode === "full" && projectGlobals;
 }
