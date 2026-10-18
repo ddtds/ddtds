@@ -2,6 +2,7 @@ import { spawn as launch } from "node:child_process";
 import { EventEmitter, once } from "node:events";
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
+import { tmpdir } from "node:os";
 import { createInterface } from "node:readline";
 import type { Readable } from "node:stream";
 import { setTimeout as delay } from "node:timers/promises";
@@ -79,8 +80,17 @@ export function encode(outcomes: Outcomes, failures: Failures): string {
   return `${JSON.stringify({ type: "outcomes", outcomes, failures })}\n`;
 }
 
+// every case starts a fresh node process, so a shared compile cache skips recompiling ddtds each time
+const compileCache = join(tmpdir(), "ddtds-compile-cache");
+
 function environment(env?: NodeJS.ProcessEnv): NodeJS.ProcessEnv {
-  const result: NodeJS.ProcessEnv = { ...process.env, NO_COLOR: "1", FORCE_COLOR: "0", ...env };
+  const result: NodeJS.ProcessEnv = {
+    ...process.env,
+    NO_COLOR: "1",
+    FORCE_COLOR: "0",
+    NODE_COMPILE_CACHE: compileCache,
+    ...env,
+  };
   for (const [key, value] of Object.entries(result)) {
     if (value === undefined) delete result[key];
   }
