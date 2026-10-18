@@ -16,6 +16,8 @@ import {
   type Runner,
 } from "./index.ts";
 
+const LINE_SUFFIX = /:\d+$/;
+
 export type Dialect = {
   /** An assertion that passes when `actual` equals `expected` */
   equal(actual: string, expected: string): string;
@@ -32,7 +34,7 @@ type Verdicts = Record<string, typeof PASSED | typeof FAILED>;
 const verdicts = (outcomes: Outcomes): Verdicts =>
   Object.fromEntries(
     Object.entries(outcomes)
-      .filter(([id]) => /:\d+$/.test(id))
+      .filter(([id]) => LINE_SUFFIX.test(id))
       .map(([id, outcome]) => [id, outcome === PASSED ? PASSED : FAILED]),
   );
 

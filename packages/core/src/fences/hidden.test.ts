@@ -2,6 +2,8 @@ import { describe, expect, test } from "vitest";
 import { parseCodeFences } from "./blocks.ts";
 import { parseJsDocFences } from "./jsdoc.ts";
 
+const AT_COMMENT = /doc\.md:1:/;
+
 const fence = (...lines: string[]): string => ["```ts run", ...lines, "```", ""].join("\n");
 
 function split(source: string, path = "doc.md") {
@@ -222,6 +224,6 @@ describe("ddt-setup comments above a fence", () => {
       ["<!-- ddt-setup const = ; -->", fence("run();")].join("\n"),
       "doc.md",
     );
-    expect(() => block?.splitImports()).toThrowError(/doc\.md:1:/);
+    expect(() => block?.splitImports()).toThrowError(AT_COMMENT);
   });
 });

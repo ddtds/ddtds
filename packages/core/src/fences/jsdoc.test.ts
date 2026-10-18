@@ -52,7 +52,8 @@ test("an index reads fences from JSDoc in source files", () => {
     ]),
     { root: "/repo", moduleDir: "/repo/__ddtds__" },
   );
-  expect([...index.fences()].map(({ id, block }) => `${id} ${block.line}`)).toMatchInlineSnapshot(`
+  expect(Array.from(index.fences(), ({ id, block }) => `${id} ${block.line}`))
+    .toMatchInlineSnapshot(`
     [
       "/repo/__ddtds__/src_one_ts_2_b41e6c30.ts 2",
     ]

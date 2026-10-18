@@ -4,6 +4,8 @@ import { afterEach, expect, test } from "vitest";
 import { parseCodeFences } from "@ddtds/core";
 import { configureLogging } from "./logging.ts";
 
+const UNKNOWN_ANNOTATION = /unknown annotation/;
+
 afterEach(() => resetSync());
 
 test("routes core logs to the configured sink", () => {
@@ -11,7 +13,7 @@ test("routes core logs to the configured sink", () => {
   configureLogging("info", recorder.sink);
   parseCodeFences("```ts rnu\n1;\n```\n", "t.md");
   expect(recorder.records).toHaveLength(1);
-  recorder.assertLogged({ level: "error", message: /unknown annotation/ });
+  recorder.assertLogged({ level: "error", message: UNKNOWN_ANNOTATION });
 });
 
 test("leaves LogTape alone when the application configured it", () => {

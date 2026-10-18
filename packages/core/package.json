@@ -29,15 +29,14 @@
   },
   "dependencies": {
     "@logtape/logtape": "catalog:prod",
-    "@oxc-project/types": "^0.153.0",
     "magic-string": "^1.4.3",
     "oxc-parser": "^0.153.0",
     "satteri": "^0.10.5",
-    "seroval": "^1.6.9",
-    "unist-util-visit": "^5.1.0"
+    "seroval": "^1.6.9"
   },
   "devDependencies": {
     "@jridgewell/trace-mapping": "catalog:dev",
+    "@oxc-project/types": "^0.153.0",
     "@tsrx/oxc": "catalog:dev",
     "@types/node": "catalog:dev",
     "vitest": "catalog:dev"

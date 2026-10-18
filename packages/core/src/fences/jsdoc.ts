@@ -5,6 +5,7 @@ import { columnsBeforeOffset, linesBeforeOffset, type Placement } from "./placem
 const COMMENT_OPEN_LENGTH = "/*".length;
 
 const LINE_PREFIX = /^\s*\*?[ \t]?/;
+const HAS_FENCE = /```|~~~/;
 
 function commentMarkdown(
   source: string,
@@ -28,7 +29,7 @@ function commentMarkdown(
 
 export function parseJsDocFences(source: string, path: string): CodeBlock[] {
   // most source files have no fences, so skip parsing them
-  if (!/```|~~~/.test(source)) return [];
+  if (!HAS_FENCE.test(source)) return [];
   return parseSync(path, source)
     .comments.filter(({ type, value }) => type === "Block" && value.startsWith("*"))
     .flatMap(({ start, value }) => {
