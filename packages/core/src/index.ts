@@ -6,7 +6,6 @@ export { resolveLogLevel, type LogLevel } from "./log-level.ts";
 export {
   moduleFiles,
   moduleFor,
-  staticImport,
   typedImports,
   unshadowed,
   type GeneratedModule,

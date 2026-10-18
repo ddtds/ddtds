@@ -1,48 +1,33 @@
-import { describe, expect, test } from "vitest";
-import { adapterFor, globalsIgnored, vitestTestAdapter, type GlobalsMode } from "./adapter.ts";
+import { expect, test } from "vitest";
+import { typedImports } from "@ddtds/core";
+import { defaultGlobals, vitestAdapter, vitestImports, vitestTestAdapter } from "./adapter.ts";
 
-const injected = (mode: GlobalsMode, projectGlobals = false): string[] =>
-  adapterFor(mode, projectGlobals).fenceImports.flatMap(({ locals }) => locals);
+const names = (globals: readonly { locals: readonly string[] }[]): string[] =>
+  globals.flatMap(({ locals }) => locals);
 
-describe("adapterFor", () => {
-  test("off injects nothing", () => {
-    expect(injected("off")).toEqual([]);
-  });
-
-  test("minimal injects what a fence body can use", () => {
-    expect(injected("minimal")).toEqual(["expect", "vi"]);
-  });
-
-  test("full adds the suite and hook globals to minimal", () => {
-    expect(injected("full")).toEqual(
-      expect.arrayContaining([...injected("minimal"), "describe", "test", "it"]),
-    );
-  });
-
-  test("each mode injects every name once", () => {
-    for (const mode of ["off", "minimal", "full"] as const) {
-      expect(new Set(injected(mode)).size).toBe(injected(mode).length);
-    }
-  });
-
-  test("full falls back to minimal when the project enables globals", () => {
-    expect(adapterFor("full", true)).toBe(adapterFor("minimal", false));
-  });
-
-  test.each(["off", "minimal"] as const)("%s ignores the project setting", (mode) => {
-    expect(adapterFor(mode, true)).toBe(adapterFor(mode, false));
-  });
-
-  test("minimal is the default adapter", () => {
-    expect(vitestTestAdapter).toBe(adapterFor("minimal", false));
-  });
+test("the default globals are expect and vi", () => {
+  expect(names(defaultGlobals)).toEqual(["expect", "vi"]);
+  expect(vitestTestAdapter.fenceImports).toBe(defaultGlobals);
 });
 
-test.each([
-  ["full", true, true],
-  ["full", false, false],
-  ["minimal", true, false],
-  ["off", true, false],
-] as const)("globalsIgnored(%s, project %s) is %s", (mode, project, ignored) => {
-  expect(globalsIgnored(mode, project)).toBe(ignored);
+test("an adapter injects exactly the globals it is given", () => {
+  const custom = [
+    ...defaultGlobals,
+    vitestImports("describe"),
+    typedImports<typeof import("node:path")>("node:path")("basename"),
+  ];
+  expect(names(vitestAdapter(custom).fenceImports)).toEqual([
+    "expect",
+    "vi",
+    "describe",
+    "basename",
+  ]);
+  expect(vitestAdapter([]).fenceImports).toEqual([]);
+});
+
+test("vitestImports renders an esm import of the vitest name", () => {
+  expect(vitestImports("describe")).toEqual({
+    statement: "import { describe } from 'vitest';",
+    locals: ["describe"],
+  });
 });

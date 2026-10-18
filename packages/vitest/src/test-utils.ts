@@ -78,7 +78,6 @@ export async function logs(
   root: string,
   plugin: DdtPluginOptions,
   logLevel?: ViteUserConfig["logLevel"],
-  test?: ViteUserConfig["test"],
 ): Promise<string[]> {
   const lines: string[] = [];
   const stream = (name: string): Writable =>
@@ -91,7 +90,7 @@ export async function logs(
       },
     });
   const output = { stdout: stream("stdout"), stderr: stream("stderr") };
-  await using instance = await create(root, { plugin, output, logLevel, test });
+  await using instance = await create(root, { plugin, output, logLevel });
   await instance.globTestSpecifications();
   return lines;
 }

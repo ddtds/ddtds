@@ -7,7 +7,7 @@ import { isMarkdownFile, isSourceFile } from "../fences/doc-kinds.ts";
 import { DocIndex } from "./docs.ts";
 
 export class DdtSession {
-  #adapter: TestAdapter;
+  readonly #adapter: TestAdapter;
   /** `"all"` tracks any doc a host asks about */
   readonly #tracked: Set<string> | "all";
   #index: DocIndex;
@@ -38,11 +38,6 @@ export class DdtSession {
   public static fromFiles(adapter: TestAdapter, config: DocsConfig): DdtSession {
     const { root, include, exclude } = resolveDocsOptions(config);
     return DdtSession.fromSources(adapter, readDocs(root, include, exclude), root);
-  }
-
-  /** Swaps the adapter for later loads; hosts that learn their config after opening call this */
-  public useAdapter(adapter: TestAdapter): void {
-    this.#adapter = adapter;
   }
 
   public get index(): DocIndex {

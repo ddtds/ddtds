@@ -4,6 +4,7 @@ import { expect, test } from "vitest";
 import { fence, fixture } from "@ddtds/test-utils";
 import { collect, create, logs } from "./test-utils.ts";
 import { vitest } from "./e2e.ts";
+import { defaultGlobals, vitestImports } from "./adapter.ts";
 
 const files = {
   "guide.md": fence("1;"),
@@ -126,58 +127,44 @@ const globalsFiles = {
 };
 
 test.each([
+  { name: "default", globals: undefined, project: false, describe: "AssertionError" },
   {
-    globals: "off",
+    name: "extended",
+    globals: [...defaultGlobals, vitestImports("describe")],
     project: false,
-    expect: "ReferenceError",
-    vi: "ReferenceError",
-    describe: "ReferenceError",
+    describe: "passed",
   },
+  { name: "project wide", globals: undefined, project: true, describe: "passed" },
   {
-    globals: "minimal",
-    project: false,
-    expect: "passed",
-    vi: "passed",
-    describe: "AssertionError",
+    name: "extended and project wide",
+    globals: [...defaultGlobals, vitestImports("describe")],
+    project: true,
+    describe: "passed",
   },
-  { globals: "full", project: false, expect: "passed", vi: "passed", describe: "passed" },
-  { globals: "off", project: true, expect: "passed", vi: "passed", describe: "passed" },
-  { globals: "minimal", project: true, expect: "passed", vi: "passed", describe: "passed" },
-  { globals: "full", project: true, expect: "passed", vi: "passed", describe: "passed" },
-] as const)(
-  "globals $globals, project globals $project",
-  async ({ globals, project, ...expected }) => {
-    await using dir = fixture(globalsFiles);
-    const { outcomes } = await vitest({ plugin: { globals }, test: { globals: project } }).run(
-      dir.root,
-      Object.keys(globalsFiles),
-    );
-    expect(outcomes).toEqual({
-      "expect.md:1": expected.expect,
-      "vi.md:1": expected.vi,
-      "describe.md:1": expected.describe,
-      "reimports.md:1": "passed",
-    });
-  },
-);
+])("$name globals", async ({ globals, project, describe }) => {
+  await using dir = fixture(globalsFiles);
+  const { outcomes } = await vitest({ plugin: { globals }, test: { globals: project } }).run(
+    dir.root,
+    Object.keys(globalsFiles),
+  );
+  expect(outcomes).toEqual({
+    "expect.md:1": "passed",
+    "vi.md:1": "passed",
+    "describe.md:1": describe,
+    "reimports.md:1": "passed",
+  });
+});
 
-test.each([
-  { globals: "full", warns: true },
-  { globals: "minimal", warns: false },
-  { globals: "off", warns: false },
-] as const)(
-  "globals $globals warns $warns when the project enables globals",
-  async ({ globals, warns }) => {
-    await using dir = fixture(globalsFiles);
-    const warnings = await logs(dir.root, { globals, logLevel: "info" }, undefined, {
-      globals: true,
-    });
-    expect(warnings).toEqual(
-      warns
-        ? [
-            'stderr: [ddtds] `globals: "full"` has no effect, vitest `test.globals` is already enabled',
-          ]
-        : [],
-    );
-  },
-);
+test("empty globals inject nothing", async () => {
+  await using dir = fixture(globalsFiles);
+  const { outcomes } = await vitest({ plugin: { globals: [] } }).run(
+    dir.root,
+    Object.keys(globalsFiles),
+  );
+  expect(outcomes).toEqual({
+    "expect.md:1": "ReferenceError",
+    "vi.md:1": "ReferenceError",
+    "describe.md:1": "ReferenceError",
+    "reimports.md:1": "passed",
+  });
+});

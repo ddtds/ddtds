@@ -11,7 +11,7 @@ export type TestAdapter = Readonly<{
   runtime: string;
   /** Imports `test` for doc modules
    *
-   * @example typesafe
+   * @example
    * ```ts run
    * import { typedImports } from "@ddtds/core";
    *
@@ -19,33 +19,17 @@ export type TestAdapter = Readonly<{
    * const testImport = importFromVitest("test");
    * expect(testImport.locals).toEqual(["test"]);
    * ```
-   *
-   * @example raw
-   * ```ts run
-   * import { staticImport } from "@ddtds/core";
-   *
-   * const testImport = staticImport("import { test } from 'vitest'", "test");
-   * expect(testImport.locals).toEqual(["test"]);
-   * ```
    */
   testImport: StaticImport;
   /** Imports for fences, e.g. `expect`
    *
-   * @example typesafe
+   * @example
    * ```ts run
    * import { typedImports } from "@ddtds/core";
    *
    * const importFromVitest = typedImports<typeof import("vitest")>("vitest");
    * const fenceImport = importFromVitest("expect");
    * expect(fenceImport.locals).toEqual(["expect"]);
-   * ```
-   *
-   * @example raw
-   * ```ts run
-   * import { staticImport } from "@ddtds/core";
-   *
-   * const fenceImports = [staticImport("import { expect } from 'vitest'", "expect")];
-   * expect(fenceImports[0]?.locals).toEqual(["expect"]);
    * ```
    */
   fenceImports: readonly StaticImport[];

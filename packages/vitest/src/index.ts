@@ -11,14 +11,17 @@ import {
   type DocsOptions,
   type GeneratedModule,
   type LogLevel,
+  type StaticImport,
 } from "@ddtds/core";
 import { getLogger } from "@logtape/logtape";
-import { adapterFor, globalsIgnored, vitestTestAdapter, type GlobalsMode } from "./adapter.ts";
+import { defaultGlobals, vitestAdapter, vitestTestAdapter } from "./adapter.ts";
 import { configureLogging, createViteSink } from "./logging.ts";
 
-export type { CodeBlock, DocIndex, DocsOptions, Fence, LogLevel } from "@ddtds/core";
+export { defaultGlobals, vitestImports } from "./adapter.ts";
+export type { CodeBlock, DocIndex, DocsOptions, Fence, LogLevel, StaticImport } from "@ddtds/core";
 export {
   DdtCompileError,
+  typedImports,
   defaultDocsInclude,
   defaultDocsExclude,
   defaultOutDir,
@@ -46,25 +49,23 @@ export type DdtPluginOptions = DocsOptions & {
    */
   logLevel?: LogLevel;
   /**
-   * Names doc tests can use without importing them, only for doc tests. Defaults to `"minimal"`
-   * - `"off"`: none
-   * - `"minimal"`: `expect` and `vi`, what makes sense inside a running test
-   * - `"full"`: `minimal` plus the rest of [vitest globals](https://vitest.dev/config/globals)
-   *   such as `describe`, `test` and `it`, for parity with `test.globals`. Does nothing if
-   *   globals are enabled project wide
+   * Imports every doc test gets without writing them. Defaults to `defaultGlobals`.
+   * Spread it to add more, with `vitestImports` for vitest names or `typedImports` for
+   * other libraries. `[]` injects nothing
    */
-  globals?: GlobalsMode;
+  globals?: readonly StaticImport[];
 };
 
 export function ddtPlugin({
   logLevel,
-  globals = "minimal",
+  globals = defaultGlobals,
   ...docs
 }: DdtPluginOptions = {}): Plugin {
   const vite = createViteSink();
   configureLogging(resolveLogLevel(logLevel), vite);
   let project: TestProject | undefined;
-  let session = DdtSession.fromSources(vitestTestAdapter, new Map(), process.cwd());
+  const adapter = vitestAdapter(globals);
+  let session = DdtSession.fromSources(adapter, new Map(), process.cwd());
   const docFiles = (): string[] => Array.from(session.index.docs(), ([doc]) => doc);
 
   return {
@@ -72,7 +73,7 @@ export function ddtPlugin({
     enforce: "pre",
     config(config) {
       const root = config.test?.root ?? config.root ?? process.cwd();
-      session = DdtSession.fromFiles(vitestTestAdapter, { ...docs, root });
+      session = DdtSession.fromFiles(adapter, { ...docs, root });
       for (const { id, block } of session.index.fences()) {
         logger.debug("{file}:{line} -> {id}", () => ({
           file: block.details.file,
@@ -102,10 +103,6 @@ export function ddtPlugin({
     configureVitest(context) {
       project = context.project;
       const { config } = context.project;
-      if (globalsIgnored(globals, config.globals)) {
-        logger.warn('`globals: "full"` has no effect, vitest `test.globals` is already enabled');
-      }
-      session.useAdapter(adapterFor(globals, config.globals));
       config.include = [...config.include, ...docFiles()];
       config.exclude = [...config.exclude, join(session.root, defaultOutDir, "**")];
     },

@@ -1,20 +1,16 @@
 # Vitest globals
 
-`ddtPlugin({ globals: "full" })` gives fences vitest's globals without turning on `test.globals` for the project.
+`ddtPlugin({ globals })` lists what fences use without importing. It defaults to `defaultGlobals`, `expect` and `vi`.
 
-A fence can use `vi` and `expect` without importing them, which `"minimal"` also allows:
+Spread `defaultGlobals` to add more. `vitestImports` types names from vitest, and `typedImports` types names from any other library.
 
 ```ts run
 expect(typeof vi.fn).toBe("function");
-```
-
-A fence can use `describe`, which only `"full"` injects:
-
-```ts run
 expect(typeof describe).toBe("function");
+expect(basename("/a/b.ts")).toBe("b.ts");
 ```
 
-A fence can import a name the runner injects:
+A fence can still import a name the runner injects:
 
 ```ts run
 import { describe, expect } from "vitest";
