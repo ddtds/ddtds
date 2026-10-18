@@ -1,5 +1,5 @@
 import { join, relative } from "node:path";
-import { defaultExclude, defaultInclude, type Plugin } from "vitest/config";
+import type { Plugin } from "vitest/config";
 import type { TestProject } from "vitest/node";
 import {
   DdtSession,
@@ -50,6 +50,7 @@ export function ddtPlugin({ logLevel, ...docs }: DdtPluginOptions = {}): Plugin 
   configureLogging(resolveLogLevel(logLevel), vite);
   let project: TestProject | undefined;
   let session = DdtSession.fromSources(vitestTestAdapter, new Map(), process.cwd());
+  const docFiles = (): string[] => [...session.index.docs()].map(([doc]) => doc);
 
   return {
     name: "vite-plugin-ddtds",
@@ -64,13 +65,9 @@ export function ddtPlugin({ logLevel, ...docs }: DdtPluginOptions = {}): Plugin 
           id: relative(root, id),
         }));
       }
-      const docFiles = [...session.index.docs()].map(([doc]) => doc);
-      const included = new Set(docFiles);
-      const buildOutput = join(root, defaultOutDir, "**");
+      const included = new Set(docFiles());
       return {
         test: {
-          include: [...(config.test?.include ? [] : defaultInclude), ...docFiles],
-          exclude: [...(config.test?.exclude ? [] : defaultExclude), buildOutput],
           watchTriggerPatterns: [
             {
               pattern: /\.(?:mdx?|[cm]?[jt]sx?)$/,
@@ -89,6 +86,9 @@ export function ddtPlugin({ logLevel, ...docs }: DdtPluginOptions = {}): Plugin 
     },
     configureVitest(context) {
       project = context.project;
+      const { config } = context.project;
+      config.include = [...config.include, ...docFiles()];
+      config.exclude = [...config.exclude, join(session.root, defaultOutDir, "**")];
     },
     configResolved(config) {
       vite.attach(config.logger);
