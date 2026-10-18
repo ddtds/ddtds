@@ -2,7 +2,6 @@ import type { Position, SourceRange } from "./compile-error.ts";
 
 export type Placement = {
   linesBefore: number;
-  /** `line` is a 0 indexed line of the text */
   columnsBeforeLine: (line: number) => number;
 };
 
@@ -33,7 +32,6 @@ export function oneBased({ line, column }: Position): Position {
   return { line: line + 1, column: column + 1 };
 }
 
-/** A 0 indexed position of the text, as a 0 indexed position of the file */
 export function placeInFile(placement: Placement, inText: Position): Position {
   return {
     line: inText.line + placement.linesBefore,
@@ -41,7 +39,6 @@ export function placeInFile(placement: Placement, inText: Position): Position {
   };
 }
 
-/** A 1 indexed range of the text, as a 1 indexed range of the file */
 export function rangeInFile(placement: Placement, inText: SourceRange): SourceRange {
   return {
     start: oneBased(placeInFile(placement, zeroBased(inText.start))),

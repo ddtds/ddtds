@@ -32,13 +32,9 @@ import { splitImportsAndBlock, type PreparedBlock } from "./parse.ts";
 
 const logger = getLogger(["ddtds", "blocks"]);
 
-type AnnotationResult =
-  | { tag: "ok"; annotation: Annotation }
-  | { tag: "none" }
-  | { tag: "unknown"; raw: string };
+type AnnotationResult = { tag: "ok"; annotation: Annotation } | { tag: "unknown"; raw: string };
 
 function parseAnnotation(meta: string): AnnotationResult {
-  if (!meta) return { tag: "none" };
   if (isAnnotation(meta)) return { tag: "ok", annotation: meta };
   return { tag: "unknown", raw: meta };
 }
@@ -50,28 +46,20 @@ export type CodeBlockInit = {
   path: string;
   rangeInText: SourceRange;
   placement?: Placement;
-  /** Setup code from comments above the fence; it runs before `code` */
   setup?: readonly CodeRun[];
 };
 
 export class CodeBlock {
   readonly #code: string;
   readonly #segments: readonly Segment[];
-  public readonly lang: Lang;
   public readonly details: BlockDetails;
-  readonly #annotation: Annotation | null;
   readonly #placement: Placement;
-  readonly #fenceInFile: Position;
 
   public constructor(init: CodeBlockInit) {
     const { code, setup = [], placement = WHOLE_FILE, rangeInText } = init;
-    const fenceInText = zeroBased(rangeInText.start);
-    this.lang = init.lang;
-    this.#annotation = init.annotation;
     this.#placement = placement;
     this.#code = codeWithSetup(setup, code);
-    this.#segments = segmentsOf(setup, fenceInText);
-    this.#fenceInFile = placeInFile(placement, fenceInText);
+    this.#segments = segmentsOf(setup, zeroBased(rangeInText.start));
     this.details = {
       file: init.path,
       lang: init.lang,
@@ -81,16 +69,18 @@ export class CodeBlock {
     };
   }
 
+  public get lang(): Lang {
+    return this.details.lang;
+  }
+
   public get line(): number {
     return this.details.range.start.line;
   }
 
-  /** 0 indexed */
   public get zeroBasedStart(): Position {
-    return this.#fenceInFile;
+    return zeroBased(this.details.range.start);
   }
 
-  /** `codeLine` and `codeColumn` are 0 indexed in the code, and so is the result in the file */
   public zeroBasedPositionAt(codeLine: number, codeColumn: number): Position {
     return placeInFile(this.#placement, positionInText(this.#segments, codeLine, codeColumn));
   }
@@ -113,11 +103,11 @@ export class CodeBlock {
   }
 
   public shouldFail(): boolean {
-    return this.#annotation === ANNOTATIONS.FAIL;
+    return this.details.annotation === ANNOTATIONS.FAIL;
   }
 
   public shouldFailToCompile(): boolean {
-    return this.#annotation === ANNOTATIONS.COMPILE_FAIL;
+    return this.details.annotation === ANNOTATIONS.COMPILE_FAIL;
   }
 
   public splitImports(): PreparedBlock {
@@ -164,22 +154,15 @@ export function parseCodeFences(
       logger.error('unknown annotation in code block: "{raw}"', { raw: result.raw });
       return;
     }
-    if (result.tag === "none" || result.annotation === ANNOTATIONS.SKIP) return;
-    if (!node.position) {
-      logger.error("code block missing position info, skipping");
-      return;
-    }
-    const { start, end } = node.position;
+    if (result.annotation === ANNOTATIONS.SKIP) return;
+    if (!node.position) throw new Error("code block has no position");
     blocks.push(
       new CodeBlock({
         code: node.value,
         lang,
         annotation: result.annotation,
         path,
-        rangeInText: {
-          start: { line: start.line, column: start.column },
-          end: { line: end.line, column: end.column },
-        },
+        rangeInText: node.position,
         placement,
         setup: setupBefore(siblings, index),
       }),

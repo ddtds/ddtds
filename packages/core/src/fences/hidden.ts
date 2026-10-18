@@ -2,23 +2,18 @@ import type { MdastNode } from "satteri";
 import { positionAfter, zeroBased } from "./placement.ts";
 import type { CodeRun } from "./segments.ts";
 
-/** What mdast leaves out of the value of an MDX expression: its opening brace */
+/** mdast leaves the opening brace out of an MDX expression value */
 const JSX_OPENING_BRACE = "{";
 const MARKER = "ddt-setup";
 
 /** mdast has no comment node: a comment is an `html` node or, in MDX, an expression node */
 type Comment = {
   node: MdastNode;
-  /** The source from the start of the node up to the comment's body */
   opening: string;
   body: string;
 };
 
-/**
- * Splits a node value that starts with `open` and ends with `close`, ignoring blanks around
- * them. The parser already ruled out an unclosed comment. A value with another `close` inside
- * holds several comments, so it is not one.
- */
+/** A value with another `close` inside holds several comments, so it is not one */
 function splitComment(
   value: string,
   open: string,
@@ -46,8 +41,7 @@ function commentOf(node: MdastNode): Comment | undefined {
   return undefined;
 }
 
-/** How much of `body` the blanks and marker take. The marker must be a word of its own. */
-function markerLength(body: string): number | undefined {
+function endOfMarker(body: string): number | undefined {
   const markerStart = body.length - body.trimStart().length;
   if (!body.startsWith(MARKER, markerStart)) return undefined;
   const markerEnd = markerStart + MARKER.length;
@@ -56,22 +50,21 @@ function markerLength(body: string): number | undefined {
 }
 
 function setupOf({ node, opening, body }: Comment): CodeRun | undefined {
-  const length = markerLength(body);
-  if (length === undefined) return undefined;
+  const markerEnd = endOfMarker(body);
+  if (markerEnd === undefined) return undefined;
   if (!node.position) throw new Error("comment node has no position");
   const indent = node.position.start.column - 1;
   const start = zeroBased(
-    positionAfter(node.position.start, opening + body.slice(0, length), indent),
+    positionAfter(node.position.start, opening + body.slice(0, markerEnd), indent),
   );
   return {
-    code: body.slice(length),
+    code: body.slice(markerEnd),
     firstTextLine: start.line,
     firstLineColumn: start.column,
     laterLinesColumn: indent,
   };
 }
 
-/** The comments directly above `index`, nearest first, stopping at the first other node */
 function* commentsAbove(siblings: readonly MdastNode[], index: number): Generator<Comment> {
   for (let i = index - 1; i >= 0; i--) {
     const node = siblings[i];
@@ -82,11 +75,7 @@ function* commentsAbove(siblings: readonly MdastNode[], index: number): Generato
   }
 }
 
-/**
- * The `ddt-setup` comments above the fence at `index`, in order: `<!-- ddt-setup code -->` in
- * markdown and `{/* ddt-setup code *\/}` in MDX. Other comments between them are skipped; any
- * other node ends the search.
- */
+/** Other comments between setup comments are skipped; any other node ends the search */
 export function setupBefore(siblings: readonly MdastNode[], index: number): CodeRun[] {
   return [...commentsAbove(siblings, index)]
     .toReversed()
