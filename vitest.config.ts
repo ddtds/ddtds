@@ -8,7 +8,7 @@ export default defineConfig({
     projects: [
       "packages/*/vitest.config.ts",
       "test-utils/vitest.config.ts",
-      "examples/vitest/{js,ts,react}",
+      "examples/vitest/{globals,js,ts,react}",
       "examples/vitest/monorepo/packages/*",
       "!examples/vitest/monorepo/packages/angular-greet",
       "examples/vitest/monorepo/packages/*/vitest.server.config.ts",
