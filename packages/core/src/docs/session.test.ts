@@ -6,6 +6,8 @@ import { adapter } from "../codegen/test-utils.ts";
 import { DocIndex } from "./docs.ts";
 import { DdtSession } from "./session.ts";
 
+const ROOT = "/repo";
+
 function fixture(files: Record<string, string>): string {
   const root = mkdtempSync(join(tmpdir(), "ddtds-session-"));
   onTestFinished(() => rmSync(root, { recursive: true, force: true }));
@@ -30,6 +32,23 @@ function docsOf(session: DdtSession, root: string): string[] {
 
 function sessionOver(root: string): DdtSession {
   return DdtSession.fromFiles(adapter, { root });
+}
+
+/** A session over in-memory docs: `edit` changes what the injected reader returns */
+function memorySession(files: Record<string, string> = {}): {
+  session: DdtSession;
+  edit: (file: string, content: string) => void;
+} {
+  const contents = new Map(
+    Object.entries(files).map(([file, content]) => [join(ROOT, file), content] as const),
+  );
+  const session = DdtSession.fromSources(adapter, contents, ROOT, (doc) => contents.get(doc)!);
+  return {
+    session,
+    edit: (file, content) => {
+      contents.set(join(ROOT, file), content);
+    },
+  };
 }
 
 describe("DdtSession.fromFiles", () => {
@@ -72,12 +91,11 @@ describe("DdtSession.fromFiles source files", () => {
 
 describe("DdtSession.refresh", () => {
   test("re-reads a doc and picks up the edit", () => {
-    const root = fixture({ "guide.md": doc("expect(1).toBe(1);") });
-    const session = sessionOver(root);
+    const { session, edit } = memorySession({ "guide.md": doc("expect(1).toBe(1);") });
     const [fence] = session.index.fences();
 
-    writeFileSync(join(root, "guide.md"), doc("expect(2).toBe(2);"));
-    session.refresh(join(root, "guide.md"));
+    edit("guide.md", doc("expect(2).toBe(2);"));
+    session.refresh(join(ROOT, "guide.md"));
 
     expect(session.index.size).toBe(1);
     // the fence id is content-addressed, so the edit produces a new id
@@ -87,58 +105,35 @@ describe("DdtSession.refresh", () => {
   });
 
   test("refreshes a doc when the watcher reports a root-relative id", () => {
-    const root = fixture({ "guide.md": doc("expect(1).toBe(1);") });
-    const session = sessionOver(root);
+    const { session, edit } = memorySession({ "guide.md": doc("expect(1).toBe(1);") });
+    edit("guide.md", doc("expect(2).toBe(2);"));
 
-    writeFileSync(join(root, "guide.md"), doc("expect(2).toBe(2);"));
     session.refresh("guide.md");
 
     const [updated] = session.index.fences();
     expect(session.load(updated!.id)?.code).toContain("expect(2).toBe(2);");
-    expect(Array.from(session.index.docs(), ([doc]) => doc)).toEqual([join(root, "guide.md")]);
+    expect(Array.from(session.index.docs(), ([doc]) => doc)).toEqual([join(ROOT, "guide.md")]);
   });
 
-  test("refreshes through an injected reader instead of the disk", () => {
-    const path = join("/repo", "guide.md");
-    let source = doc("expect(1).toBe(1);");
-    const session = DdtSession.fromSources(
-      adapter,
-      new Map([[path, source]]),
-      "/repo",
-      () => source,
-    );
-    const [before] = session.index.fencesOf(path);
-
-    source = doc("expect(2).toBe(2);");
-    session.refresh(path);
-
-    const [after] = session.index.fencesOf(path);
-    expect(after!.id).not.toBe(before!.id);
-    expect(after!.block.details.contents).toContain("expect(2).toBe(2);");
-  });
-
-  test("picks up the first fence of a discovered doc without fences", () => {
-    const root = fixture({ "guide.md": "# Guide\n" });
-    const session = sessionOver(root);
-    const path = join(root, "guide.md");
+  test("picks up a fence that appears in a tracked doc", () => {
+    const { session, edit } = memorySession({ "guide.md": "# Guide\n" });
+    const path = join(ROOT, "guide.md");
     expect(session.index.size).toBe(0);
 
-    writeFileSync(path, doc("expect(1).toBe(1);"));
+    edit("guide.md", doc("expect(1).toBe(1);"));
     expect(session.entry(path)).toBe(`${path}?ddtds`);
     expect(session.index.size).toBe(1);
   });
 
   test("does not run a doc it was never given", () => {
-    const root = fixture({ "guide.md": doc("expect(1).toBe(1);") });
-    const session = DdtSession.fromSources(adapter, new Map(), root);
+    const { session } = memorySession();
     expect(session.entry("guide.md")).toBeUndefined();
   });
 
   test("indexes a doc it has not seen yet", () => {
-    const root = fixture({});
-    const session = DdtSession.fromSources(adapter, new Map(), root);
-    const path = join(root, "guide.md");
-    writeFileSync(path, doc("expect(1).toBe(1);"));
+    const { session, edit } = memorySession();
+    const path = join(ROOT, "guide.md");
+    edit("guide.md", doc("expect(1).toBe(1);"));
 
     session.refresh(path);
     expect(session.index.hasDoc(path)).toBe(true);
@@ -148,38 +143,35 @@ describe("DdtSession.refresh", () => {
   });
 
   test("leaves anything that is not a doc alone", () => {
-    const root = fixture({ "guide.md": doc("expect(1).toBe(1);") });
-    const session = sessionOver(root);
+    const { session } = memorySession({ "guide.md": doc("expect(1).toBe(1);") });
 
-    expect(session.index.hasDoc(join(root, "src/index.ts"))).toBe(false);
-    session.refresh(join(root, "src/index.ts"));
-    expect(session.entry(join(root, "src/index.ts"))).toBeUndefined();
+    expect(session.index.hasDoc(join(ROOT, "src/index.ts"))).toBe(false);
+    session.refresh(join(ROOT, "src/index.ts"));
+    expect(session.entry(join(ROOT, "src/index.ts"))).toBeUndefined();
   });
 
   test("skips reindexing when a reread doc is unchanged", () => {
-    const root = fixture({ "guide.md": doc("expect(1).toBe(1);") });
-    const session = sessionOver(root);
+    const { session, edit } = memorySession({ "guide.md": doc("expect(1).toBe(1);") });
     const replaceDoc = vi.spyOn(DocIndex.prototype, "replaceDoc");
     onTestFinished(() => replaceDoc.mockRestore());
 
-    session.refresh(join(root, "guide.md"));
+    session.refresh(join(ROOT, "guide.md"));
     session.entry("guide.md");
     expect(replaceDoc).not.toHaveBeenCalled();
 
-    writeFileSync(join(root, "guide.md"), doc("expect(2).toBe(2);"));
-    session.refresh(join(root, "guide.md"));
+    edit("guide.md", doc("expect(2).toBe(2);"));
+    session.refresh(join(ROOT, "guide.md"));
     expect(replaceDoc).toHaveBeenCalledTimes(1);
   });
 });
 
 describe("DdtSession.resolve", () => {
   test("resolves absolute and root-relative fence ids", () => {
-    const root = fixture({ "guide.md": doc("expect(1).toBe(1);") });
-    const session = sessionOver(root);
+    const { session } = memorySession({ "guide.md": doc("expect(1).toBe(1);") });
     const [fence] = session.index.fences();
 
     expect(session.resolve(fence!.id)).toBe(fence!.id);
-    expect(session.resolve(fence!.id.slice(root.length))).toBe(fence!.id);
+    expect(session.resolve(fence!.id.slice(ROOT.length))).toBe(fence!.id);
     expect(session.resolve("guide.md")).toBeUndefined();
   });
 });
