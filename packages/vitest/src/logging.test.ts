@@ -23,6 +23,7 @@ test("debug logs where each fence is generated", () => {
   configureLogging(recorder.sink, "debug");
   const sources = new Map([["/root/guide.md", "```ts run\n1;\n```\n"]]);
   DdtSession.fromSources(vitestAdapter(), sources, "/root");
+  expect(recorder.records).toHaveLength(1);
   recorder.assertLogged({ level: "debug", message: FENCE_MAPPING });
 });
 
