@@ -47,28 +47,3 @@ Tests can safely shadow variables
 const vi = 5;
 expect(vi).toBe(5);
 ```
-
-## logging
-
-ddtds logs the number of doc tests it found, fences with unknown annotations, and with `debug`, which module each fence resolves to
-
-The log level is resolved like so
-
-1. `DDT_LOG_LEVEL` environment variable
-2. `logLevel` option
-3. Default (`"info"`)
-
-```ts run
-import { defineConfig } from "vitest/config";
-import { ddtPlugin } from "@ddtds/vitest";
-
-export default defineConfig({
-  plugins: [ddtPlugin({ logLevel: "error" })],
-});
-```
-
-```bash
-DDT_LOG_LEVEL=debug vitest
-```
-
-Levels are `trace`, `debug`, `info`, `warning`, `error` and `fatal`. Logs go through Vite's logger, so Vite's own `logLevel` still applies
