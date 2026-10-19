@@ -177,8 +177,8 @@ catalogs:
       specifier: 0.21.0
       version: 0.21.0
     '@types/node':
-      specifier: 24.19.1
-      version: 24.19.1
+      specifier: 24.19.2
+      version: 24.19.2
     '@types/stack-utils':
       specifier: ^2.0.3
       version: 2.0.3
@@ -341,7 +341,7 @@ importers:
         version: 14.6.8(@testing-library/dom@10.4.2)
       '@types/node':
         specifier: catalog:dev
-        version: 24.19.1
+        version: 24.19.2
       '@types/react':
         specifier: catalog:examples
         version: 19.3.0
@@ -386,22 +386,22 @@ importers:
         version: 1.13.0
       tsdown:
         specifier: 0.23.1
-        version: 0.23.1(@arethetypeswrong/core@0.18.5)(@volar/typescript@2.4.28(typescript@7.0.2))(@vue/language-core@3.3.13)(oxc-resolver@11.24.2)(publint@0.3.25)(typescript@7.0.2)(unplugin-unused@0.6.0(esbuild@0.28.2)(rolldown@1.2.14)(rollup@4.64.0)(vite@8.3.0(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1)))(vue-tsc@3.3.13(typescript@7.0.2))
+        version: 0.23.1(@arethetypeswrong/core@0.18.5)(@volar/typescript@2.4.28(typescript@7.0.2))(@vue/language-core@3.3.13)(oxc-resolver@11.24.2)(publint@0.3.25)(typescript@7.0.2)(unplugin-unused@0.6.0(esbuild@0.28.2)(rolldown@1.2.14)(rollup@4.64.0)(vite@8.3.0(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1)))(vue-tsc@3.3.13(typescript@7.0.2))
       typescript:
         specifier: catalog:dev
         version: 7.0.2
       unplugin-unused:
         specifier: 0.6.0
-        version: 0.6.0(esbuild@0.28.2)(rolldown@1.2.14)(rollup@4.64.0)(vite@8.3.0(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1))
+        version: 0.6.0(esbuild@0.28.2)(rolldown@1.2.14)(rollup@4.64.0)(vite@8.3.0(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1))
       vitest:
         specifier: catalog:dev
-        version: 5.0.4(@opentelemetry/api@1.9.1)(@types/node@24.19.1)(@vitest/coverage-v8@5.0.4)(happy-dom@21.0.3)(jsdom@30.1.2(@noble/hashes@2.4.0))(vite@8.3.0(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1))
+        version: 5.0.4(@opentelemetry/api@1.9.1)(@types/node@24.19.2)(@vitest/coverage-v8@5.0.4)(happy-dom@21.0.3)(jsdom@30.1.2(@noble/hashes@2.4.0))(vite@8.3.0(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1))
 
   benches:
     devDependencies:
       '@codspeed/vitest-plugin':
         specifier: 6.0.1
-        version: 6.0.1(debug@4.4.3(supports-color@7.2.0))(supports-color@7.2.0)(tinybench@6.2.2)(vite@8.3.0(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1))(vitest@5.0.4)
+        version: 6.0.1(debug@4.4.3(supports-color@7.2.0))(supports-color@7.2.0)(tinybench@6.2.2)(vite@8.3.0(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1))(vitest@5.0.4)
       '@ddtds/core':
         specifier: workspace:*
         version: link:../packages/core
@@ -410,10 +410,10 @@ importers:
         version: link:../packages/vitest
       '@types/node':
         specifier: catalog:dev
-        version: 24.19.1
+        version: 24.19.2
       vitest:
         specifier: catalog:dev
-        version: 5.0.4(@opentelemetry/api@1.9.1)(@types/node@24.19.1)(@vitest/coverage-v8@5.0.4)(happy-dom@21.0.3)(jsdom@30.1.2(@noble/hashes@2.4.0))(vite@8.3.0(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1))
+        version: 5.0.4(@opentelemetry/api@1.9.1)(@types/node@24.19.2)(@vitest/coverage-v8@5.0.4)(happy-dom@21.0.3)(jsdom@30.1.2(@noble/hashes@2.4.0))(vite@8.3.0(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1))
 
   examples/node-test/cjs:
     devDependencies:
@@ -422,7 +422,7 @@ importers:
         version: link:../../../packages/node-test
       '@types/node':
         specifier: catalog:dev
-        version: 24.19.1
+        version: 24.19.2
 
   examples/node-test/ts:
     devDependencies:
@@ -431,7 +431,7 @@ importers:
         version: link:../../../packages/node-test
       '@types/node':
         specifier: catalog:dev
-        version: 24.19.1
+        version: 24.19.2
 
   examples/vitest/js:
     devDependencies:
@@ -440,7 +440,7 @@ importers:
         version: link:../../../packages/vitest
       vitest:
         specifier: catalog:dev
-        version: 5.0.4(@opentelemetry/api@1.9.1)(@types/node@24.19.1)(@vitest/coverage-v8@5.0.4)(happy-dom@21.0.3)(jsdom@30.1.2(@noble/hashes@2.4.0))(vite@8.3.0(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1))
+        version: 5.0.4(@opentelemetry/api@1.9.1)(@types/node@24.19.2)(@vitest/coverage-v8@5.0.4)(happy-dom@21.0.3)(jsdom@30.1.2(@noble/hashes@2.4.0))(vite@8.3.0(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1))
 
   examples/vitest/monorepo: {}
 
@@ -467,10 +467,10 @@ importers:
     devDependencies:
       '@angular/build':
         specifier: catalog:examples
-        version: 22.2.3(@angular/compiler-cli@22.2.3(@angular/compiler@22.2.3)(typescript@6.0.3))(@angular/compiler@22.2.3)(@angular/core@22.2.3(@angular/compiler@22.2.3)(rxjs@7.8.2))(@angular/platform-browser@22.2.3(@angular/common@22.2.3(@angular/core@22.2.3(@angular/compiler@22.2.3)(rxjs@7.8.2))(rxjs@7.8.2))(@angular/core@22.2.3(@angular/compiler@22.2.3)(rxjs@7.8.2)))(@types/node@24.19.1)(jiti@2.7.0)(postcss@8.5.29)(rollup@4.64.0)(supports-color@7.2.0)(tslib@2.8.1)(typescript@6.0.3)(vitest@5.0.4)(yaml@2.9.1)
+        version: 22.2.3(@angular/compiler-cli@22.2.3(@angular/compiler@22.2.3)(typescript@6.0.3))(@angular/compiler@22.2.3)(@angular/core@22.2.3(@angular/compiler@22.2.3)(rxjs@7.8.2))(@angular/platform-browser@22.2.3(@angular/common@22.2.3(@angular/core@22.2.3(@angular/compiler@22.2.3)(rxjs@7.8.2))(rxjs@7.8.2))(@angular/core@22.2.3(@angular/compiler@22.2.3)(rxjs@7.8.2)))(@types/node@24.19.2)(jiti@2.7.0)(postcss@8.5.29)(rollup@4.64.0)(supports-color@7.2.0)(tslib@2.8.1)(typescript@6.0.3)(vitest@5.0.4)(yaml@2.9.1)
       '@angular/cli':
         specifier: catalog:examples
-        version: 22.2.3(@types/node@24.19.1)(chokidar@5.0.0)
+        version: 22.2.3(@types/node@24.19.2)(chokidar@5.0.0)
       '@angular/compiler':
         specifier: catalog:examples
         version: 22.2.3
@@ -497,7 +497,7 @@ importers:
         version: 6.0.3
       vitest:
         specifier: catalog:dev
-        version: 5.0.4(@opentelemetry/api@1.9.1)(@types/node@24.19.1)(@vitest/coverage-v8@5.0.4)(happy-dom@21.0.3)(jsdom@30.1.2(@noble/hashes@2.4.0))(vite@8.3.0(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1))
+        version: 5.0.4(@opentelemetry/api@1.9.1)(@types/node@24.19.2)(@vitest/coverage-v8@5.0.4)(happy-dom@21.0.3)(jsdom@30.1.2(@noble/hashes@2.4.0))(vite@8.3.0(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1))
 
   examples/vitest/monorepo/packages/greet:
     devDependencies:
@@ -506,7 +506,7 @@ importers:
         version: link:../../../../../packages/vitest
       vitest:
         specifier: catalog:dev
-        version: 5.0.4(@opentelemetry/api@1.9.1)(@types/node@24.19.1)(@vitest/coverage-v8@5.0.4)(happy-dom@21.0.3)(jsdom@30.1.2(@noble/hashes@2.4.0))(vite@8.3.0(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1))
+        version: 5.0.4(@opentelemetry/api@1.9.1)(@types/node@24.19.2)(@vitest/coverage-v8@5.0.4)(happy-dom@21.0.3)(jsdom@30.1.2(@noble/hashes@2.4.0))(vite@8.3.0(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1))
 
   examples/vitest/monorepo/packages/lit-greet:
     dependencies:
@@ -534,7 +534,7 @@ importers:
         version: 1.14.2(@testing-library/dom@10.4.2)
       vitest:
         specifier: catalog:dev
-        version: 5.0.4(@opentelemetry/api@1.9.1)(@types/node@24.19.1)(@vitest/coverage-v8@5.0.4)(happy-dom@21.0.3)(jsdom@30.1.2(@noble/hashes@2.4.0))(vite@8.3.0(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1))
+        version: 5.0.4(@opentelemetry/api@1.9.1)(@types/node@24.19.2)(@vitest/coverage-v8@5.0.4)(happy-dom@21.0.3)(jsdom@30.1.2(@noble/hashes@2.4.0))(vite@8.3.0(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1))
 
   examples/vitest/monorepo/packages/octane-greet:
     dependencies:
@@ -543,7 +543,7 @@ importers:
         version: link:../greet
       octane:
         specifier: catalog:examples
-        version: 0.13.8(@tsrx/oxc@0.20.0(svelte@5.57.2))(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(typescript@7.0.2)(vite@8.3.0(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1))
+        version: 0.13.8(@tsrx/oxc@0.20.0(svelte@5.57.2))(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(typescript@7.0.2)(vite@8.3.0(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1))
     devDependencies:
       '@ddtds/vitest':
         specifier: workspace:*
@@ -559,7 +559,7 @@ importers:
         version: 21.0.3
       vitest:
         specifier: catalog:dev
-        version: 5.0.4(@opentelemetry/api@1.9.1)(@types/node@24.19.1)(@vitest/coverage-v8@5.0.4)(happy-dom@21.0.3)(jsdom@30.1.2(@noble/hashes@2.4.0))(vite@8.3.0(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1))
+        version: 5.0.4(@opentelemetry/api@1.9.1)(@types/node@24.19.2)(@vitest/coverage-v8@5.0.4)(happy-dom@21.0.3)(jsdom@30.1.2(@noble/hashes@2.4.0))(vite@8.3.0(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1))
 
   examples/vitest/monorepo/packages/preact-greet:
     dependencies:
@@ -575,7 +575,7 @@ importers:
         version: link:../../../../../packages/vitest
       '@preact/preset-vite':
         specifier: catalog:examples
-        version: 2.10.6(@babel/core@7.29.7(supports-color@7.2.0))(preact@11.0.1)(rollup@4.64.0)(supports-color@7.2.0)(vite@8.3.0(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1))
+        version: 2.10.6(@babel/core@7.29.7(supports-color@7.2.0))(preact@11.0.1)(rollup@4.64.0)(supports-color@7.2.0)(vite@8.3.0(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1))
       '@testing-library/dom':
         specifier: catalog:examples
         version: 10.4.2
@@ -590,7 +590,7 @@ importers:
         version: 21.0.3
       vitest:
         specifier: catalog:dev
-        version: 5.0.4(@opentelemetry/api@1.9.1)(@types/node@24.19.1)(@vitest/coverage-v8@5.0.4)(happy-dom@21.0.3)(jsdom@30.1.2(@noble/hashes@2.4.0))(vite@8.3.0(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1))
+        version: 5.0.4(@opentelemetry/api@1.9.1)(@types/node@24.19.2)(@vitest/coverage-v8@5.0.4)(happy-dom@21.0.3)(jsdom@30.1.2(@noble/hashes@2.4.0))(vite@8.3.0(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1))
 
   examples/vitest/monorepo/packages/react-greet:
     dependencies:
@@ -624,13 +624,13 @@ importers:
         version: 19.3.0(@types/react@19.3.0)
       '@vitejs/plugin-react':
         specifier: catalog:examples
-        version: 6.1.2(vite@8.3.0(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1))
+        version: 6.1.2(vite@8.3.0(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1))
       happy-dom:
         specifier: catalog:examples
         version: 21.0.3
       vitest:
         specifier: catalog:dev
-        version: 5.0.4(@opentelemetry/api@1.9.1)(@types/node@24.19.1)(@vitest/coverage-v8@5.0.4)(happy-dom@21.0.3)(jsdom@30.1.2(@noble/hashes@2.4.0))(vite@8.3.0(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1))
+        version: 5.0.4(@opentelemetry/api@1.9.1)(@types/node@24.19.2)(@vitest/coverage-v8@5.0.4)(happy-dom@21.0.3)(jsdom@30.1.2(@noble/hashes@2.4.0))(vite@8.3.0(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1))
 
   examples/vitest/monorepo/packages/solid-greet:
     dependencies:
@@ -658,10 +658,10 @@ importers:
         version: 21.0.3
       vite-plugin-solid:
         specifier: catalog:examples
-        version: 2.11.14(@testing-library/jest-dom@7.0.1(@testing-library/dom@10.4.2)(vitest@5.0.4))(solid-js@1.9.17)(supports-color@7.2.0)(vite@8.3.0(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1))
+        version: 2.11.14(@testing-library/jest-dom@7.0.1(@testing-library/dom@10.4.2)(vitest@5.0.4))(solid-js@1.9.17)(supports-color@7.2.0)(vite@8.3.0(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1))
       vitest:
         specifier: catalog:dev
-        version: 5.0.4(@opentelemetry/api@1.9.1)(@types/node@24.19.1)(@vitest/coverage-v8@5.0.4)(happy-dom@21.0.3)(jsdom@30.1.2(@noble/hashes@2.4.0))(vite@8.3.0(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1))
+        version: 5.0.4(@opentelemetry/api@1.9.1)(@types/node@24.19.2)(@vitest/coverage-v8@5.0.4)(happy-dom@21.0.3)(jsdom@30.1.2(@noble/hashes@2.4.0))(vite@8.3.0(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1))
 
   examples/vitest/monorepo/packages/svelte-greet:
     dependencies:
@@ -677,7 +677,7 @@ importers:
         version: link:../../../../../packages/vitest
       '@sveltejs/vite-plugin-svelte':
         specifier: catalog:examples
-        version: 7.3.1(svelte@5.57.2)(vite@8.3.0(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1))
+        version: 7.3.1(svelte@5.57.2)(vite@8.3.0(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1))
       '@testing-library/dom':
         specifier: catalog:examples
         version: 10.4.2
@@ -686,7 +686,7 @@ importers:
         version: 7.0.1(@testing-library/dom@10.4.2)(vitest@5.0.4)
       '@testing-library/svelte':
         specifier: catalog:examples
-        version: 5.4.2(svelte@5.57.2)(vite@8.3.0(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1))(vitest@5.0.4)
+        version: 5.4.2(svelte@5.57.2)(vite@8.3.0(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1))(vitest@5.0.4)
       happy-dom:
         specifier: catalog:examples
         version: 21.0.3
@@ -698,7 +698,7 @@ importers:
         version: 6.0.3
       vitest:
         specifier: catalog:dev
-        version: 5.0.4(@opentelemetry/api@1.9.1)(@types/node@24.19.1)(@vitest/coverage-v8@5.0.4)(happy-dom@21.0.3)(jsdom@30.1.2(@noble/hashes@2.4.0))(vite@8.3.0(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1))
+        version: 5.0.4(@opentelemetry/api@1.9.1)(@types/node@24.19.2)(@vitest/coverage-v8@5.0.4)(happy-dom@21.0.3)(jsdom@30.1.2(@noble/hashes@2.4.0))(vite@8.3.0(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1))
 
   examples/vitest/monorepo/packages/vue-greet:
     dependencies:
@@ -723,7 +723,7 @@ importers:
         version: 8.1.0(@vue/compiler-dom@3.5.44)(@vue/compiler-sfc@3.5.44)(@vue/server-renderer@3.5.44)(vue@3.5.44(typescript@6.0.3))
       '@vitejs/plugin-vue':
         specifier: catalog:examples
-        version: 6.0.10(vite@8.3.0(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1))(vue@3.5.44(typescript@6.0.3))
+        version: 6.0.10(vite@8.3.0(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1))(vue@3.5.44(typescript@6.0.3))
       happy-dom:
         specifier: catalog:examples
         version: 21.0.3
@@ -732,7 +732,7 @@ importers:
         version: 6.0.3
       vitest:
         specifier: catalog:dev
-        version: 5.0.4(@opentelemetry/api@1.9.1)(@types/node@24.19.1)(@vitest/coverage-v8@5.0.4)(happy-dom@21.0.3)(jsdom@30.1.2(@noble/hashes@2.4.0))(vite@8.3.0(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1))
+        version: 5.0.4(@opentelemetry/api@1.9.1)(@types/node@24.19.2)(@vitest/coverage-v8@5.0.4)(happy-dom@21.0.3)(jsdom@30.1.2(@noble/hashes@2.4.0))(vite@8.3.0(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1))
       vue-tsc:
         specifier: catalog:examples
         version: 3.3.13(typescript@6.0.3)
@@ -765,7 +765,7 @@ importers:
         version: 19.3.1(react@19.3.1)
       vitest:
         specifier: catalog:dev
-        version: 5.0.4(@opentelemetry/api@1.9.1)(@types/node@24.19.1)(@vitest/coverage-v8@5.0.4)(happy-dom@21.0.3)(jsdom@30.1.2(@noble/hashes@2.4.0))(vite@8.3.0(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1))
+        version: 5.0.4(@opentelemetry/api@1.9.1)(@types/node@24.19.2)(@vitest/coverage-v8@5.0.4)(happy-dom@21.0.3)(jsdom@30.1.2(@noble/hashes@2.4.0))(vite@8.3.0(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1))
 
   examples/vitest/ts:
     devDependencies:
@@ -774,10 +774,10 @@ importers:
         version: link:../../../packages/vitest
       '@types/node':
         specifier: catalog:dev
-        version: 24.19.1
+        version: 24.19.2
       vitest:
         specifier: catalog:dev
-        version: 5.0.4(@opentelemetry/api@1.9.1)(@types/node@24.19.1)(@vitest/coverage-v8@5.0.4)(happy-dom@21.0.3)(jsdom@30.1.2(@noble/hashes@2.4.0))(vite@8.3.0(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1))
+        version: 5.0.4(@opentelemetry/api@1.9.1)(@types/node@24.19.2)(@vitest/coverage-v8@5.0.4)(happy-dom@21.0.3)(jsdom@30.1.2(@noble/hashes@2.4.0))(vite@8.3.0(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1))
 
   packages/cli:
     dependencies:
@@ -796,7 +796,7 @@ importers:
     devDependencies:
       vitest:
         specifier: catalog:dev
-        version: 5.0.4(@opentelemetry/api@1.9.1)(@types/node@24.19.1)(@vitest/coverage-v8@5.0.4)(happy-dom@21.0.3)(jsdom@30.1.2(@noble/hashes@2.4.0))(vite@8.3.0(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1))
+        version: 5.0.4(@opentelemetry/api@1.9.1)(@types/node@24.19.2)(@vitest/coverage-v8@5.0.4)(happy-dom@21.0.3)(jsdom@30.1.2(@noble/hashes@2.4.0))(vite@8.3.0(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1))
 
   packages/core:
     dependencies:
@@ -827,10 +827,10 @@ importers:
         version: 0.21.0(svelte@5.57.2)
       '@types/node':
         specifier: catalog:dev
-        version: 24.19.1
+        version: 24.19.2
       vitest:
         specifier: catalog:dev
-        version: 5.0.4(@opentelemetry/api@1.9.1)(@types/node@24.19.1)(@vitest/coverage-v8@5.0.4)(happy-dom@21.0.3)(jsdom@30.1.2(@noble/hashes@2.4.0))(vite@8.3.0(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1))
+        version: 5.0.4(@opentelemetry/api@1.9.1)(@types/node@24.19.2)(@vitest/coverage-v8@5.0.4)(happy-dom@21.0.3)(jsdom@30.1.2(@noble/hashes@2.4.0))(vite@8.3.0(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1))
 
   packages/node-test:
     dependencies:
@@ -846,10 +846,10 @@ importers:
         version: link:../../test-utils
       '@types/node':
         specifier: catalog:dev
-        version: 24.19.1
+        version: 24.19.2
       vitest:
         specifier: catalog:dev
-        version: 5.0.4(@opentelemetry/api@1.9.1)(@types/node@24.19.1)(@vitest/coverage-v8@5.0.4)(happy-dom@21.0.3)(jsdom@30.1.2(@noble/hashes@2.4.0))(vite@8.3.0(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1))
+        version: 5.0.4(@opentelemetry/api@1.9.1)(@types/node@24.19.2)(@vitest/coverage-v8@5.0.4)(happy-dom@21.0.3)(jsdom@30.1.2(@noble/hashes@2.4.0))(vite@8.3.0(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1))
 
   packages/vitest:
     dependencies:
@@ -871,7 +871,7 @@ importers:
         version: 5.0.4(vitest@5.0.4)
       vitest:
         specifier: catalog:dev
-        version: 5.0.4(@opentelemetry/api@1.9.1)(@types/node@24.19.1)(@vitest/coverage-v8@5.0.4)(happy-dom@21.0.3)(jsdom@30.1.2(@noble/hashes@2.4.0))(vite@8.3.0(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1))
+        version: 5.0.4(@opentelemetry/api@1.9.1)(@types/node@24.19.2)(@vitest/coverage-v8@5.0.4)(happy-dom@21.0.3)(jsdom@30.1.2(@noble/hashes@2.4.0))(vite@8.3.0(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1))
 
   test-utils:
     dependencies:
@@ -887,13 +887,13 @@ importers:
     devDependencies:
       '@types/node':
         specifier: catalog:dev
-        version: 24.19.1
+        version: 24.19.2
       '@types/stack-utils':
         specifier: catalog:dev
         version: 2.0.3
       vitest:
         specifier: catalog:dev
-        version: 5.0.4(@opentelemetry/api@1.9.1)(@types/node@24.19.1)(@vitest/coverage-v8@5.0.4)(happy-dom@21.0.3)(jsdom@30.1.2(@noble/hashes@2.4.0))(vite@8.3.0(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1))
+        version: 5.0.4(@opentelemetry/api@1.9.1)(@types/node@24.19.2)(@vitest/coverage-v8@5.0.4)(happy-dom@21.0.3)(jsdom@30.1.2(@noble/hashes@2.4.0))(vite@8.3.0(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1))
 
 packages:
 
@@ -4290,8 +4290,8 @@ packages:
   '@types/ms@2.1.0':
     resolution: {integrity: sha512-GsCCIZDE/p3i96vtEqx+7dBUGXrc7zeSK3wwPHIaRThS+9OhWIXRqzs4d6k1SVU8g91DrNRWxWUGhp5KXQb2VA==}
 
-  '@types/node@24.19.1':
-    resolution: {integrity: sha512-aS3/DG0oM05K0RIXXP+hKjinGG5IgSSVGzswZxW3O0sS3pH4/fycXundUC9XsszgKCk4gHXylTEK6hyFxVxnoQ==}
+  '@types/node@24.19.2':
+    resolution: {integrity: sha512-93d49wCWJkCyN87MxLpNN6KXPCwFw7bVUg79mGUV1OS40JGWwVCr8n61DXCSqz7CV6/VfPkb7xec7uP2M+QHWQ==}
 
   '@types/parse-path@7.0.3':
     resolution: {integrity: sha512-LriObC2+KYZD3FzCrgWGv/qufdUy4eXrxcLgQMfYXgPbLIecKIsVBaQgUPmxSSLcjmYbDTQbMgr6qr6l/eb7Bg==}
@@ -8243,16 +8243,16 @@ snapshots:
     transitivePeerDependencies:
       - chokidar
 
-  '@angular/build@22.2.3(@angular/compiler-cli@22.2.3(@angular/compiler@22.2.3)(typescript@6.0.3))(@angular/compiler@22.2.3)(@angular/core@22.2.3(@angular/compiler@22.2.3)(rxjs@7.8.2))(@angular/platform-browser@22.2.3(@angular/common@22.2.3(@angular/core@22.2.3(@angular/compiler@22.2.3)(rxjs@7.8.2))(rxjs@7.8.2))(@angular/core@22.2.3(@angular/compiler@22.2.3)(rxjs@7.8.2)))(@types/node@24.19.1)(jiti@2.7.0)(postcss@8.5.29)(rollup@4.64.0)(supports-color@7.2.0)(tslib@2.8.1)(typescript@6.0.3)(vitest@5.0.4)(yaml@2.9.1)':
+  '@angular/build@22.2.3(@angular/compiler-cli@22.2.3(@angular/compiler@22.2.3)(typescript@6.0.3))(@angular/compiler@22.2.3)(@angular/core@22.2.3(@angular/compiler@22.2.3)(rxjs@7.8.2))(@angular/platform-browser@22.2.3(@angular/common@22.2.3(@angular/core@22.2.3(@angular/compiler@22.2.3)(rxjs@7.8.2))(rxjs@7.8.2))(@angular/core@22.2.3(@angular/compiler@22.2.3)(rxjs@7.8.2)))(@types/node@24.19.2)(jiti@2.7.0)(postcss@8.5.29)(rollup@4.64.0)(supports-color@7.2.0)(tslib@2.8.1)(typescript@6.0.3)(vitest@5.0.4)(yaml@2.9.1)':
     dependencies:
       '@ampproject/remapping': 2.3.0
       '@angular-devkit/architect': 0.2202.3(chokidar@5.0.0)
       '@angular/compiler': 22.2.3
       '@angular/compiler-cli': 22.2.3(@angular/compiler@22.2.3)(typescript@6.0.3)
       '@babel/core': 8.0.5
-      '@inquirer/confirm': 6.3.2(@types/node@24.19.1)
+      '@inquirer/confirm': 6.3.2(@types/node@24.19.2)
       '@parcel/watcher': 2.6.0
-      '@vitejs/plugin-basic-ssl': 2.3.0(vite@8.3.0(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1))
+      '@vitejs/plugin-basic-ssl': 2.3.0(vite@8.3.0(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1))
       beasties: 0.5.4
       browserslist: 4.29.3
       chokidar: 5.0.0
@@ -8274,7 +8274,7 @@ snapshots:
       tinyglobby: 0.2.17
       tslib: 2.8.1
       typescript: 6.0.3
-      vite: 8.3.0(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1)
+      vite: 8.3.0(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1)
       xxhash-wasm: 1.1.0
     optionalDependencies:
       '@angular/core': 22.2.3(@angular/compiler@22.2.3)(rxjs@7.8.2)
@@ -8282,7 +8282,7 @@ snapshots:
       lmdb: 3.5.6
       postcss: 8.5.29
       rollup: 4.64.0
-      vitest: 5.0.4(@opentelemetry/api@1.9.1)(@types/node@24.19.1)(@vitest/coverage-v8@5.0.4)(happy-dom@21.0.3)(jsdom@30.1.2(@noble/hashes@2.4.0))(vite@8.3.0(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1))
+      vitest: 5.0.4(@opentelemetry/api@1.9.1)(@types/node@24.19.2)(@vitest/coverage-v8@5.0.4)(happy-dom@21.0.3)(jsdom@30.1.2(@noble/hashes@2.4.0))(vite@8.3.0(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1))
     transitivePeerDependencies:
       - '@types/node'
       - '@vitejs/devtools'
@@ -8295,13 +8295,13 @@ snapshots:
       - tsx
       - yaml
 
-  '@angular/cli@22.2.3(@types/node@24.19.1)(chokidar@5.0.0)':
+  '@angular/cli@22.2.3(@types/node@24.19.2)(chokidar@5.0.0)':
     dependencies:
       '@angular-devkit/architect': 0.2202.3(chokidar@5.0.0)
       '@angular-devkit/core': 22.2.3(chokidar@5.0.0)
       '@angular-devkit/schematics': 22.2.3(chokidar@5.0.0)
-      '@inquirer/prompts': 8.7.2(@types/node@24.19.1)
-      '@listr2/prompt-adapter-inquirer': 4.2.7(@inquirer/prompts@8.7.2(@types/node@24.19.1))(@types/node@24.19.1)(listr2@11.1.0)
+      '@inquirer/prompts': 8.7.2(@types/node@24.19.2)
+      '@listr2/prompt-adapter-inquirer': 4.2.7(@inquirer/prompts@8.7.2(@types/node@24.19.2))(@types/node@24.19.2)(listr2@11.1.0)
       '@modelcontextprotocol/server': 2.3.1
       '@schematics/angular': 22.2.3(chokidar@5.0.0)
       jsonc-parser: 3.3.1
@@ -9048,12 +9048,12 @@ snapshots:
       - debug
       - supports-color
 
-  '@codspeed/vitest-plugin@6.0.1(debug@4.4.3(supports-color@7.2.0))(supports-color@7.2.0)(tinybench@6.2.2)(vite@8.3.0(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1))(vitest@5.0.4)':
+  '@codspeed/vitest-plugin@6.0.1(debug@4.4.3(supports-color@7.2.0))(supports-color@7.2.0)(tinybench@6.2.2)(vite@8.3.0(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1))(vitest@5.0.4)':
     dependencies:
       '@codspeed/core': 6.0.1(debug@4.4.3(supports-color@7.2.0))(supports-color@7.2.0)
       tinybench: 6.2.2
-      vite: 8.3.0(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1)
-      vitest: 5.0.4(@opentelemetry/api@1.9.1)(@types/node@24.19.1)(@vitest/coverage-v8@5.0.4)(happy-dom@21.0.3)(jsdom@30.1.2(@noble/hashes@2.4.0))(vite@8.3.0(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1))
+      vite: 8.3.0(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1)
+      vitest: 5.0.4(@opentelemetry/api@1.9.1)(@types/node@24.19.2)(@vitest/coverage-v8@5.0.4)(happy-dom@21.0.3)(jsdom@30.1.2(@noble/hashes@2.4.0))(vite@8.3.0(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1))
     transitivePeerDependencies:
       - debug
       - supports-color
@@ -9254,133 +9254,133 @@ snapshots:
 
   '@inquirer/ansi@2.0.9': {}
 
-  '@inquirer/checkbox@5.2.6(@types/node@24.19.1)':
+  '@inquirer/checkbox@5.2.6(@types/node@24.19.2)':
     dependencies:
       '@inquirer/ansi': 2.0.9
-      '@inquirer/core': 12.0.4(@types/node@24.19.1)
+      '@inquirer/core': 12.0.4(@types/node@24.19.2)
       '@inquirer/figures': 2.0.9
-      '@inquirer/type': 4.2.0(@types/node@24.19.1)
+      '@inquirer/type': 4.2.0(@types/node@24.19.2)
     optionalDependencies:
-      '@types/node': 24.19.1
+      '@types/node': 24.19.2
 
-  '@inquirer/confirm@6.3.2(@types/node@24.19.1)':
+  '@inquirer/confirm@6.3.2(@types/node@24.19.2)':
     dependencies:
-      '@inquirer/core': 12.0.4(@types/node@24.19.1)
-      '@inquirer/type': 4.1.1(@types/node@24.19.1)
+      '@inquirer/core': 12.0.4(@types/node@24.19.2)
+      '@inquirer/type': 4.1.1(@types/node@24.19.2)
     optionalDependencies:
-      '@types/node': 24.19.1
+      '@types/node': 24.19.2
 
-  '@inquirer/confirm@6.3.3(@types/node@24.19.1)':
+  '@inquirer/confirm@6.3.3(@types/node@24.19.2)':
     dependencies:
-      '@inquirer/core': 12.0.4(@types/node@24.19.1)
-      '@inquirer/type': 4.2.0(@types/node@24.19.1)
+      '@inquirer/core': 12.0.4(@types/node@24.19.2)
+      '@inquirer/type': 4.2.0(@types/node@24.19.2)
     optionalDependencies:
-      '@types/node': 24.19.1
+      '@types/node': 24.19.2
 
-  '@inquirer/core@12.0.4(@types/node@24.19.1)':
+  '@inquirer/core@12.0.4(@types/node@24.19.2)':
     dependencies:
       '@inquirer/ansi': 2.0.9
       '@inquirer/figures': 2.0.9
-      '@inquirer/type': 4.2.0(@types/node@24.19.1)
+      '@inquirer/type': 4.2.0(@types/node@24.19.2)
       cli-width: 4.1.0
       fast-wrap-ansi: 0.2.2
       mute-stream: 3.0.0
       signal-exit: 4.1.0
     optionalDependencies:
-      '@types/node': 24.19.1
+      '@types/node': 24.19.2
 
-  '@inquirer/editor@5.3.4(@types/node@24.19.1)':
+  '@inquirer/editor@5.3.4(@types/node@24.19.2)':
     dependencies:
-      '@inquirer/core': 12.0.4(@types/node@24.19.1)
-      '@inquirer/external-editor': 3.0.6(@types/node@24.19.1)
-      '@inquirer/type': 4.2.0(@types/node@24.19.1)
+      '@inquirer/core': 12.0.4(@types/node@24.19.2)
+      '@inquirer/external-editor': 3.0.6(@types/node@24.19.2)
+      '@inquirer/type': 4.2.0(@types/node@24.19.2)
     optionalDependencies:
-      '@types/node': 24.19.1
+      '@types/node': 24.19.2
 
-  '@inquirer/expand@5.1.6(@types/node@24.19.1)':
+  '@inquirer/expand@5.1.6(@types/node@24.19.2)':
     dependencies:
-      '@inquirer/core': 12.0.4(@types/node@24.19.1)
-      '@inquirer/type': 4.2.0(@types/node@24.19.1)
+      '@inquirer/core': 12.0.4(@types/node@24.19.2)
+      '@inquirer/type': 4.2.0(@types/node@24.19.2)
     optionalDependencies:
-      '@types/node': 24.19.1
+      '@types/node': 24.19.2
 
-  '@inquirer/external-editor@3.0.6(@types/node@24.19.1)':
+  '@inquirer/external-editor@3.0.6(@types/node@24.19.2)':
     dependencies:
       chardet: 2.2.0
       iconv-lite: 0.7.3
     optionalDependencies:
-      '@types/node': 24.19.1
+      '@types/node': 24.19.2
 
   '@inquirer/figures@2.0.9': {}
 
-  '@inquirer/input@5.1.7(@types/node@24.19.1)':
+  '@inquirer/input@5.1.7(@types/node@24.19.2)':
     dependencies:
-      '@inquirer/core': 12.0.4(@types/node@24.19.1)
-      '@inquirer/type': 4.2.0(@types/node@24.19.1)
+      '@inquirer/core': 12.0.4(@types/node@24.19.2)
+      '@inquirer/type': 4.2.0(@types/node@24.19.2)
     optionalDependencies:
-      '@types/node': 24.19.1
+      '@types/node': 24.19.2
 
-  '@inquirer/number@4.2.4(@types/node@24.19.1)':
+  '@inquirer/number@4.2.4(@types/node@24.19.2)':
     dependencies:
-      '@inquirer/core': 12.0.4(@types/node@24.19.1)
-      '@inquirer/type': 4.2.0(@types/node@24.19.1)
+      '@inquirer/core': 12.0.4(@types/node@24.19.2)
+      '@inquirer/type': 4.2.0(@types/node@24.19.2)
     optionalDependencies:
-      '@types/node': 24.19.1
+      '@types/node': 24.19.2
 
-  '@inquirer/password@5.2.3(@types/node@24.19.1)':
-    dependencies:
-      '@inquirer/ansi': 2.0.9
-      '@inquirer/core': 12.0.4(@types/node@24.19.1)
-      '@inquirer/type': 4.2.0(@types/node@24.19.1)
-    optionalDependencies:
-      '@types/node': 24.19.1
-
-  '@inquirer/prompts@8.7.2(@types/node@24.19.1)':
-    dependencies:
-      '@inquirer/checkbox': 5.2.6(@types/node@24.19.1)
-      '@inquirer/confirm': 6.3.3(@types/node@24.19.1)
-      '@inquirer/editor': 5.3.4(@types/node@24.19.1)
-      '@inquirer/expand': 5.1.6(@types/node@24.19.1)
-      '@inquirer/input': 5.1.7(@types/node@24.19.1)
-      '@inquirer/number': 4.2.4(@types/node@24.19.1)
-      '@inquirer/password': 5.2.3(@types/node@24.19.1)
-      '@inquirer/rawlist': 5.3.6(@types/node@24.19.1)
-      '@inquirer/search': 4.3.4(@types/node@24.19.1)
-      '@inquirer/select': 5.2.6(@types/node@24.19.1)
-    optionalDependencies:
-      '@types/node': 24.19.1
-
-  '@inquirer/rawlist@5.3.6(@types/node@24.19.1)':
-    dependencies:
-      '@inquirer/core': 12.0.4(@types/node@24.19.1)
-      '@inquirer/type': 4.2.0(@types/node@24.19.1)
-    optionalDependencies:
-      '@types/node': 24.19.1
-
-  '@inquirer/search@4.3.4(@types/node@24.19.1)':
-    dependencies:
-      '@inquirer/core': 12.0.4(@types/node@24.19.1)
-      '@inquirer/figures': 2.0.9
-      '@inquirer/type': 4.2.0(@types/node@24.19.1)
-    optionalDependencies:
-      '@types/node': 24.19.1
-
-  '@inquirer/select@5.2.6(@types/node@24.19.1)':
+  '@inquirer/password@5.2.3(@types/node@24.19.2)':
     dependencies:
       '@inquirer/ansi': 2.0.9
-      '@inquirer/core': 12.0.4(@types/node@24.19.1)
+      '@inquirer/core': 12.0.4(@types/node@24.19.2)
+      '@inquirer/type': 4.2.0(@types/node@24.19.2)
+    optionalDependencies:
+      '@types/node': 24.19.2
+
+  '@inquirer/prompts@8.7.2(@types/node@24.19.2)':
+    dependencies:
+      '@inquirer/checkbox': 5.2.6(@types/node@24.19.2)
+      '@inquirer/confirm': 6.3.3(@types/node@24.19.2)
+      '@inquirer/editor': 5.3.4(@types/node@24.19.2)
+      '@inquirer/expand': 5.1.6(@types/node@24.19.2)
+      '@inquirer/input': 5.1.7(@types/node@24.19.2)
+      '@inquirer/number': 4.2.4(@types/node@24.19.2)
+      '@inquirer/password': 5.2.3(@types/node@24.19.2)
+      '@inquirer/rawlist': 5.3.6(@types/node@24.19.2)
+      '@inquirer/search': 4.3.4(@types/node@24.19.2)
+      '@inquirer/select': 5.2.6(@types/node@24.19.2)
+    optionalDependencies:
+      '@types/node': 24.19.2
+
+  '@inquirer/rawlist@5.3.6(@types/node@24.19.2)':
+    dependencies:
+      '@inquirer/core': 12.0.4(@types/node@24.19.2)
+      '@inquirer/type': 4.2.0(@types/node@24.19.2)
+    optionalDependencies:
+      '@types/node': 24.19.2
+
+  '@inquirer/search@4.3.4(@types/node@24.19.2)':
+    dependencies:
+      '@inquirer/core': 12.0.4(@types/node@24.19.2)
       '@inquirer/figures': 2.0.9
-      '@inquirer/type': 4.2.0(@types/node@24.19.1)
+      '@inquirer/type': 4.2.0(@types/node@24.19.2)
     optionalDependencies:
-      '@types/node': 24.19.1
+      '@types/node': 24.19.2
 
-  '@inquirer/type@4.1.1(@types/node@24.19.1)':
+  '@inquirer/select@5.2.6(@types/node@24.19.2)':
+    dependencies:
+      '@inquirer/ansi': 2.0.9
+      '@inquirer/core': 12.0.4(@types/node@24.19.2)
+      '@inquirer/figures': 2.0.9
+      '@inquirer/type': 4.2.0(@types/node@24.19.2)
     optionalDependencies:
-      '@types/node': 24.19.1
+      '@types/node': 24.19.2
 
-  '@inquirer/type@4.2.0(@types/node@24.19.1)':
+  '@inquirer/type@4.1.1(@types/node@24.19.2)':
     optionalDependencies:
-      '@types/node': 24.19.1
+      '@types/node': 24.19.2
+
+  '@inquirer/type@4.2.0(@types/node@24.19.2)':
+    optionalDependencies:
+      '@types/node': 24.19.2
 
   '@isaacs/cliui@8.0.2':
     dependencies:
@@ -9431,10 +9431,10 @@ snapshots:
 
   '@kwsites/promise-deferred@1.1.1': {}
 
-  '@listr2/prompt-adapter-inquirer@4.2.7(@inquirer/prompts@8.7.2(@types/node@24.19.1))(@types/node@24.19.1)(listr2@11.1.0)':
+  '@listr2/prompt-adapter-inquirer@4.2.7(@inquirer/prompts@8.7.2(@types/node@24.19.2))(@types/node@24.19.2)(listr2@11.1.0)':
     dependencies:
-      '@inquirer/prompts': 8.7.2(@types/node@24.19.1)
-      '@inquirer/type': 4.2.0(@types/node@24.19.1)
+      '@inquirer/prompts': 8.7.2(@types/node@24.19.2)
+      '@inquirer/type': 4.2.0(@types/node@24.19.2)
       listr2: 11.1.0
     transitivePeerDependencies:
       - '@types/node'
@@ -10371,19 +10371,19 @@ snapshots:
       write-file-atomic: 5.0.1
       write-yaml-file: 4.2.0
 
-  '@preact/preset-vite@2.10.6(@babel/core@7.29.7(supports-color@7.2.0))(preact@11.0.1)(rollup@4.64.0)(supports-color@7.2.0)(vite@8.3.0(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1))':
+  '@preact/preset-vite@2.10.6(@babel/core@7.29.7(supports-color@7.2.0))(preact@11.0.1)(rollup@4.64.0)(supports-color@7.2.0)(vite@8.3.0(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1))':
     dependencies:
       '@babel/core': 7.29.7(supports-color@7.2.0)
       '@babel/plugin-transform-react-jsx': 7.29.7(@babel/core@7.29.7(supports-color@7.2.0))(supports-color@7.2.0)
       '@babel/plugin-transform-react-jsx-development': 7.29.7(@babel/core@7.29.7(supports-color@7.2.0))(supports-color@7.2.0)
-      '@prefresh/vite': 2.4.12(preact@11.0.1)(supports-color@7.2.0)(vite@8.3.0(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1))
+      '@prefresh/vite': 2.4.12(preact@11.0.1)(supports-color@7.2.0)(vite@8.3.0(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1))
       '@rollup/pluginutils': 5.4.0(rollup@4.64.0)
       babel-plugin-transform-hook-names: 1.0.2(@babel/core@7.29.7(supports-color@7.2.0))
       debug: 4.4.3(supports-color@7.2.0)
       magic-string: 0.30.21
       picocolors: 1.1.1
-      vite: 8.3.0(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1)
-      vite-prerender-plugin: 0.5.14(vite@8.3.0(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1))
+      vite: 8.3.0(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1)
+      vite-prerender-plugin: 0.5.14(vite@8.3.0(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1))
       zimmerframe: 1.1.5
     transitivePeerDependencies:
       - preact
@@ -10400,7 +10400,7 @@ snapshots:
 
   '@prefresh/utils@1.2.1': {}
 
-  '@prefresh/vite@2.4.12(preact@11.0.1)(supports-color@7.2.0)(vite@8.3.0(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1))':
+  '@prefresh/vite@2.4.12(preact@11.0.1)(supports-color@7.2.0)(vite@8.3.0(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1))':
     dependencies:
       '@babel/core': 7.29.7(supports-color@7.2.0)
       '@prefresh/babel-plugin': 0.5.4(@babel/core@7.29.7(supports-color@7.2.0))
@@ -10408,7 +10408,7 @@ snapshots:
       '@prefresh/utils': 1.2.1
       '@rollup/pluginutils': 4.2.1
       preact: 11.0.1
-      vite: 8.3.0(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1)
+      vite: 8.3.0(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1)
     transitivePeerDependencies:
       - supports-color
 
@@ -10739,14 +10739,14 @@ snapshots:
 
   '@sveltejs/load-config@0.2.3': {}
 
-  '@sveltejs/vite-plugin-svelte@7.3.1(svelte@5.57.2)(vite@8.3.0(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1))':
+  '@sveltejs/vite-plugin-svelte@7.3.1(svelte@5.57.2)(vite@8.3.0(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1))':
     dependencies:
       deepmerge: 4.3.1
       magic-string: 1.4.3
       obug: 2.2.1
       svelte: 5.57.2
-      vite: 8.3.0(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1)
-      vitefu: 1.1.3(vite@8.3.0(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1))
+      vite: 8.3.0(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1)
+      vitefu: 1.1.3(vite@8.3.0(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1))
 
   '@szmarczak/http-timer@4.0.6':
     dependencies:
@@ -10802,7 +10802,7 @@ snapshots:
       picocolors: 1.1.1
       redent: 3.0.0
     optionalDependencies:
-      vitest: 5.0.4(@opentelemetry/api@1.9.1)(@types/node@24.19.1)(@vitest/coverage-v8@5.0.4)(happy-dom@21.0.3)(jsdom@30.1.2(@noble/hashes@2.4.0))(vite@8.3.0(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1))
+      vitest: 5.0.4(@opentelemetry/api@1.9.1)(@types/node@24.19.2)(@vitest/coverage-v8@5.0.4)(happy-dom@21.0.3)(jsdom@30.1.2(@noble/hashes@2.4.0))(vite@8.3.0(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1))
 
   '@testing-library/preact@3.2.4(preact@11.0.1)':
     dependencies:
@@ -10823,14 +10823,14 @@ snapshots:
     dependencies:
       svelte: 5.57.2
 
-  '@testing-library/svelte@5.4.2(svelte@5.57.2)(vite@8.3.0(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1))(vitest@5.0.4)':
+  '@testing-library/svelte@5.4.2(svelte@5.57.2)(vite@8.3.0(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1))(vitest@5.0.4)':
     dependencies:
       '@testing-library/dom': 10.4.2
       '@testing-library/svelte-core': 1.1.3(svelte@5.57.2)
       svelte: 5.57.2
     optionalDependencies:
-      vite: 8.3.0(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1)
-      vitest: 5.0.4(@opentelemetry/api@1.9.1)(@types/node@24.19.1)(@vitest/coverage-v8@5.0.4)(happy-dom@21.0.3)(jsdom@30.1.2(@noble/hashes@2.4.0))(vite@8.3.0(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1))
+      vite: 8.3.0(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1)
+      vitest: 5.0.4(@opentelemetry/api@1.9.1)(@types/node@24.19.2)(@vitest/coverage-v8@5.0.4)(happy-dom@21.0.3)(jsdom@30.1.2(@noble/hashes@2.4.0))(vite@8.3.0(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1))
 
   '@testing-library/user-event@14.6.8(@testing-library/dom@10.4.2)':
     dependencies:
@@ -11026,7 +11026,7 @@ snapshots:
     dependencies:
       '@types/http-cache-semantics': 4.2.0
       '@types/keyv': 3.1.4
-      '@types/node': 24.19.1
+      '@types/node': 24.19.2
       '@types/responselike': 1.0.3
 
   '@types/chai@5.2.3':
@@ -11060,7 +11060,7 @@ snapshots:
 
   '@types/keyv@3.1.4':
     dependencies:
-      '@types/node': 24.19.1
+      '@types/node': 24.19.2
 
   '@types/mdast@4.0.4':
     dependencies:
@@ -11070,7 +11070,7 @@ snapshots:
 
   '@types/ms@2.1.0': {}
 
-  '@types/node@24.19.1':
+  '@types/node@24.19.2':
     dependencies:
       undici-types: 7.24.6
 
@@ -11086,7 +11086,7 @@ snapshots:
 
   '@types/responselike@1.0.3':
     dependencies:
-      '@types/node': 24.19.1
+      '@types/node': 24.19.2
 
   '@types/semver@7.8.0': {}
 
@@ -11102,7 +11102,7 @@ snapshots:
 
   '@types/ws@8.18.2':
     dependencies:
-      '@types/node': 24.19.1
+      '@types/node': 24.19.2
 
   '@typescript/typescript-aix-ppc64@7.0.2':
     optional: true
@@ -11164,19 +11164,19 @@ snapshots:
   '@typescript/typescript-win32-x64@7.0.2':
     optional: true
 
-  '@vitejs/plugin-basic-ssl@2.3.0(vite@8.3.0(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1))':
+  '@vitejs/plugin-basic-ssl@2.3.0(vite@8.3.0(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1))':
     dependencies:
-      vite: 8.3.0(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1)
+      vite: 8.3.0(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1)
 
-  '@vitejs/plugin-react@6.1.2(vite@8.3.0(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1))':
+  '@vitejs/plugin-react@6.1.2(vite@8.3.0(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1))':
     dependencies:
       '@rolldown/pluginutils': 1.0.1
-      vite: 8.3.0(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1)
+      vite: 8.3.0(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1)
 
-  '@vitejs/plugin-vue@6.0.10(vite@8.3.0(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1))(vue@3.5.44(typescript@6.0.3))':
+  '@vitejs/plugin-vue@6.0.10(vite@8.3.0(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1))(vue@3.5.44(typescript@6.0.3))':
     dependencies:
       '@rolldown/pluginutils': 1.0.1
-      vite: 8.3.0(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1)
+      vite: 8.3.0(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1)
       vue: 3.5.44(typescript@6.0.3)
 
   '@vitest/coverage-v8@5.0.4(vitest@5.0.4)':
@@ -11189,7 +11189,7 @@ snapshots:
       obug: 3.0.0
       std-env: 4.3.0
       tinyrainbow: 3.2.0
-      vitest: 5.0.4(@opentelemetry/api@1.9.1)(@types/node@24.19.1)(@vitest/coverage-v8@5.0.4)(happy-dom@21.0.3)(jsdom@30.1.2(@noble/hashes@2.4.0))(vite@8.3.0(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1))
+      vitest: 5.0.4(@opentelemetry/api@1.9.1)(@types/node@24.19.2)(@vitest/coverage-v8@5.0.4)(happy-dom@21.0.3)(jsdom@30.1.2(@noble/hashes@2.4.0))(vite@8.3.0(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1))
 
   '@vitest/istanbul-lib-coverage@1.0.2': {}
 
@@ -11197,14 +11197,14 @@ snapshots:
     dependencies:
       '@vitest/istanbul-lib-coverage': 1.0.2
 
-  '@vitest/mocker@5.0.4(vite@8.3.0(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1))':
+  '@vitest/mocker@5.0.4(vite@8.3.0(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1))':
     dependencies:
       '@jridgewell/trace-mapping': 0.3.31
       '@vitest/spy': 5.0.4
       estree-walker: 3.0.3
       magic-string: 1.4.3
     optionalDependencies:
-      vite: 8.3.0(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1)
+      vite: 8.3.0(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1)
 
   '@vitest/spy@5.0.4': {}
 
@@ -11602,7 +11602,7 @@ snapshots:
 
   buffer-image-size@0.6.4:
     dependencies:
-      '@types/node': 24.19.1
+      '@types/node': 24.19.2
 
   builtins@5.1.0:
     dependencies:
@@ -12474,7 +12474,7 @@ snapshots:
 
   happy-dom@21.0.3:
     dependencies:
-      '@types/node': 24.19.1
+      '@types/node': 24.19.2
       '@types/whatwg-mimetype': 3.0.2
       '@types/ws': 8.18.2
       buffer-image-size: 0.6.4
@@ -13613,7 +13613,7 @@ snapshots:
 
   obug@3.0.0: {}
 
-  octane@0.13.8(@tsrx/oxc@0.20.0(svelte@5.57.2))(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(typescript@7.0.2)(vite@8.3.0(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1)):
+  octane@0.13.8(@tsrx/oxc@0.20.0(svelte@5.57.2))(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(typescript@7.0.2)(vite@8.3.0(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1)):
     dependencies:
       '@tsrx/core': 0.5.5
       '@types/react': 19.3.0
@@ -13628,7 +13628,7 @@ snapshots:
       react: 19.3.1
       react-dom: 19.3.1(react@19.3.1)
       typescript: 7.0.2
-      vite: 8.3.0(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1)
+      vite: 8.3.0(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1)
     transitivePeerDependencies:
       - '@typescript-eslint/types'
 
@@ -14000,7 +14000,7 @@ snapshots:
       '@protobufjs/path': 1.1.2
       '@protobufjs/pool': 1.1.0
       '@protobufjs/utf8': 1.1.2
-      '@types/node': 24.19.1
+      '@types/node': 24.19.2
       long: 5.3.2
 
   protobufjs@8.8.0:
@@ -14898,7 +14898,7 @@ snapshots:
 
   trough@2.2.0: {}
 
-  tsdown@0.23.1(@arethetypeswrong/core@0.18.5)(@volar/typescript@2.4.28(typescript@7.0.2))(@vue/language-core@3.3.13)(oxc-resolver@11.24.2)(publint@0.3.25)(typescript@7.0.2)(unplugin-unused@0.6.0(esbuild@0.28.2)(rolldown@1.2.14)(rollup@4.64.0)(vite@8.3.0(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1)))(vue-tsc@3.3.13(typescript@7.0.2)):
+  tsdown@0.23.1(@arethetypeswrong/core@0.18.5)(@volar/typescript@2.4.28(typescript@7.0.2))(@vue/language-core@3.3.13)(oxc-resolver@11.24.2)(publint@0.3.25)(typescript@7.0.2)(unplugin-unused@0.6.0(esbuild@0.28.2)(rolldown@1.2.14)(rollup@4.64.0)(vite@8.3.0(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1)))(vue-tsc@3.3.13(typescript@7.0.2)):
     dependencies:
       cac: 7.0.1
       defu: 6.1.7
@@ -14918,7 +14918,7 @@ snapshots:
       '@arethetypeswrong/core': 0.18.5
       publint: 0.3.25
       typescript: 7.0.2
-      unplugin-unused: 0.6.0(esbuild@0.28.2)(rolldown@1.2.14)(rollup@4.64.0)(vite@8.3.0(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1))
+      unplugin-unused: 0.6.0(esbuild@0.28.2)(rolldown@1.2.14)(rollup@4.64.0)(vite@8.3.0(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1))
     transitivePeerDependencies:
       - '@typescript/native-preview'
       - '@volar/typescript'
@@ -15033,12 +15033,12 @@ snapshots:
 
   universalify@2.0.1: {}
 
-  unplugin-unused@0.6.0(esbuild@0.28.2)(rolldown@1.2.14)(rollup@4.64.0)(vite@8.3.0(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1)):
+  unplugin-unused@0.6.0(esbuild@0.28.2)(rolldown@1.2.14)(rollup@4.64.0)(vite@8.3.0(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1)):
     dependencies:
       empathic: 2.1.0
       escape-string-regexp: 5.0.0
       js-tokens: 10.0.0
-      unplugin: 3.4.0(esbuild@0.28.2)(rolldown@1.2.14)(rollup@4.64.0)(vite@8.3.0(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1))
+      unplugin: 3.4.0(esbuild@0.28.2)(rolldown@1.2.14)(rollup@4.64.0)(vite@8.3.0(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1))
     transitivePeerDependencies:
       - '@farmfe/core'
       - '@rsbuild/core'
@@ -15051,7 +15051,7 @@ snapshots:
       - vite
       - webpack
 
-  unplugin@3.4.0(esbuild@0.28.2)(rolldown@1.2.14)(rollup@4.64.0)(vite@8.3.0(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1)):
+  unplugin@3.4.0(esbuild@0.28.2)(rolldown@1.2.14)(rollup@4.64.0)(vite@8.3.0(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1)):
     dependencies:
       '@jridgewell/remapping': 2.3.5
       picomatch: 4.0.7
@@ -15060,7 +15060,7 @@ snapshots:
       esbuild: 0.28.2
       rolldown: 1.2.14
       rollup: 4.64.0
-      vite: 8.3.0(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1)
+      vite: 8.3.0(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1)
 
   upath@3.0.8: {}
 
@@ -15102,7 +15102,7 @@ snapshots:
       '@types/unist': 3.0.3
       vfile-message: 4.0.3
 
-  vite-plugin-solid@2.11.14(@testing-library/jest-dom@7.0.1(@testing-library/dom@10.4.2)(vitest@5.0.4))(solid-js@1.9.17)(supports-color@7.2.0)(vite@8.3.0(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1)):
+  vite-plugin-solid@2.11.14(@testing-library/jest-dom@7.0.1(@testing-library/dom@10.4.2)(vitest@5.0.4))(solid-js@1.9.17)(supports-color@7.2.0)(vite@8.3.0(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1)):
     dependencies:
       '@babel/core': 7.29.7(supports-color@7.2.0)
       '@types/babel__core': 7.20.5
@@ -15110,14 +15110,14 @@ snapshots:
       merge-anything: 5.1.7
       solid-js: 1.9.17
       solid-refresh: 0.6.3(solid-js@1.9.17)(supports-color@7.2.0)
-      vite: 8.3.0(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1)
-      vitefu: 1.1.3(vite@8.3.0(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1))
+      vite: 8.3.0(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1)
+      vitefu: 1.1.3(vite@8.3.0(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1))
     optionalDependencies:
       '@testing-library/jest-dom': 7.0.1(@testing-library/dom@10.4.2)(vitest@5.0.4)
     transitivePeerDependencies:
       - supports-color
 
-  vite-prerender-plugin@0.5.14(vite@8.3.0(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1)):
+  vite-prerender-plugin@0.5.14(vite@8.3.0(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1)):
     dependencies:
       kolorist: 1.8.0
       magic-string: 0.30.21
@@ -15125,9 +15125,9 @@ snapshots:
       simple-code-frame: 1.3.0
       source-map: 0.7.6
       stack-trace: 1.0.0-pre2
-      vite: 8.3.0(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1)
+      vite: 8.3.0(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1)
 
-  vite@8.3.0(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1):
+  vite@8.3.0(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1):
     dependencies:
       lightningcss: 1.33.0
       picomatch: 4.0.7
@@ -15135,7 +15135,7 @@ snapshots:
       rolldown: 1.2.12
       tinyglobby: 0.2.17
     optionalDependencies:
-      '@types/node': 24.19.1
+      '@types/node': 24.19.2
       esbuild: 0.28.2
       fsevents: 2.3.3
       jiti: 2.7.0
@@ -15143,14 +15143,14 @@ snapshots:
       sass-embedded: 1.104.1
       yaml: 2.9.1
 
-  vitefu@1.1.3(vite@8.3.0(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1)):
+  vitefu@1.1.3(vite@8.3.0(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1)):
     optionalDependencies:
-      vite: 8.3.0(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1)
+      vite: 8.3.0(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1)
 
-  vitest@5.0.4(@opentelemetry/api@1.9.1)(@types/node@24.19.1)(@vitest/coverage-v8@5.0.4)(happy-dom@21.0.3)(jsdom@30.1.2(@noble/hashes@2.4.0))(vite@8.3.0(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1)):
+  vitest@5.0.4(@opentelemetry/api@1.9.1)(@types/node@24.19.2)(@vitest/coverage-v8@5.0.4)(happy-dom@21.0.3)(jsdom@30.1.2(@noble/hashes@2.4.0))(vite@8.3.0(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1)):
     dependencies:
       '@types/chai': 5.2.3
-      '@vitest/mocker': 5.0.4(vite@8.3.0(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1))
+      '@vitest/mocker': 5.0.4(vite@8.3.0(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1))
       chai: 6.3.0
       es-module-lexer: 2.3.2
       expect-type: 1.4.0
@@ -15161,11 +15161,11 @@ snapshots:
       tinybench: 6.2.2
       tinyexec: 1.3.1
       tinyglobby: 0.2.17
-      vite: 8.3.0(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1)
+      vite: 8.3.0(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1)
       why-is-node-running: 3.2.1
     optionalDependencies:
       '@opentelemetry/api': 1.9.1
-      '@types/node': 24.19.1
+      '@types/node': 24.19.2
       '@vitest/coverage-v8': 5.0.4(vitest@5.0.4)
       happy-dom: 21.0.3
       jsdom: 30.1.2(@noble/hashes@2.4.0)
