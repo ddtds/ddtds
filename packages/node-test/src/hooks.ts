@@ -10,7 +10,7 @@ import {
   type ModuleSystem,
 } from "@ddtds/core";
 import { configureSync, getLogger } from "@logtape/logtape";
-import { defaultGlobals, nodeTestAdapter } from "./adapter.ts";
+import { nodeTestAdapter } from "./adapter.ts";
 
 // works with both built and source
 const runtimeUrl = new URL(`./runtime${extname(import.meta.filename)}`, import.meta.url).href;
@@ -39,7 +39,7 @@ export type HookOptions = DdtOptions & {
 export function ddtHooks(root: string, options: HookOptions = {}): RegisterHooksOptions {
   setSourceMapsSupport(true);
   configureLogging(options.logLevel);
-  const adapter = nodeTestAdapter(defaultModule(root, options), options.globals ?? defaultGlobals);
+  const adapter = nodeTestAdapter(defaultModule(root, options), options.globals);
   const session = DdtSession.open(adapter, root);
 
   return {
