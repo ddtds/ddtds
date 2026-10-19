@@ -35,24 +35,6 @@ export function runtimeNames(bindings: readonly ImportBinding[]): string[] {
 
 type TypedImporter<Module> = (name: keyof Module, options?: { alias?: string }) => StaticImport;
 
-/**
- * @example
- * ```ts run
- * import { typedImports } from "@ddtds/core";
- *
- * const importFromVitest = typedImports<typeof import("vitest")>("vitest");
- * expect(importFromVitest("test")).toEqual({ module: "vitest", name: "test" });
- * ```
- *
- * @example with alias
- * ```ts run
- * import { typedImports } from "@ddtds/core";
- *
- * const importFromAssert = typedImports<typeof import("node:assert")>("node:assert");
- * const strict = importFromAssert("strict", { alias: "assert" });
- * expect(strict).toEqual({ module: "node:assert", name: "strict", alias: "assert" });
- * ```
- */
 export function typedImports<Module>(module: string): TypedImporter<Module> {
   return (name, { alias } = {}) => staticImport(module, String(name), alias);
 }

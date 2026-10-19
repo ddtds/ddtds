@@ -3,7 +3,7 @@ import { typedImports, type ModuleSystem, type StaticImport, type TestAdapter } 
 export const nodeTestImports: ReturnType<typeof typedImports<typeof import("node:test")>> =
   typedImports("node:test");
 
-export const nodeAssertImports: ReturnType<typeof typedImports<typeof import("node:assert")>> =
+const nodeAssertImports: ReturnType<typeof typedImports<typeof import("node:assert")>> =
   typedImports("node:assert");
 
 export const defaultGlobals: readonly StaticImport[] = [

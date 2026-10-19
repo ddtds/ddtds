@@ -20,16 +20,6 @@ export default defineConfig({
         plugins: [ddtPlugin({ include: ["packages/vitest/README.md"] })],
         test: { name: "vitest-readme", include: ["packages/vitest/README.md"] },
       },
-      {
-        plugins: [ddtPlugin({ include: ["packages/core/src/codegen/{adapter,static-import}.ts"] })],
-        resolve: {
-          alias: {
-            "@ddtds/core/runtime": import.meta.dirname + "/packages/core/src/runtime.ts",
-            "@ddtds/core": import.meta.dirname + "/packages/core/src/index.ts",
-          },
-        },
-        test: { name: "jsdoc", include: ["packages/core/src/codegen/{adapter,static-import}.ts"] },
-      },
     ],
     coverage: {
       provider: "v8",
