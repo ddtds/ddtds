@@ -17,10 +17,8 @@ const command = (hooks: string) =>
 
 export const nodeTest: Runner = cli({ name: "node:test", command: command(register) });
 
-const importSource = ({ module, name, alias }: StaticImport): string => {
-  const options = alias === undefined ? "" : `, { alias: ${JSON.stringify(alias)} }`;
-  return `typedImports(${JSON.stringify(module)})(${JSON.stringify(name)}${options})`;
-};
+const importSource = ({ module, name, alias }: StaticImport): string =>
+  `typedImports(${JSON.stringify(module)})(${JSON.stringify(name)}, ${JSON.stringify({ alias })})`;
 
 // .mts keeps the file ESM inside a CommonJS fixture package
 const registerSource = ({ defaults, extra }: Globals): string =>
