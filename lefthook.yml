@@ -1,7 +1,7 @@
 pre-commit:
   jobs:
     - name: format
-      run: pnpm run format {staged_files}
+      run: pnpm run format --no-error-on-unmatched-pattern {staged_files}
       stage_fixed: true
     - name: renovate-config
       glob: "renovate.json"
