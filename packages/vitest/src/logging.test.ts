@@ -6,7 +6,7 @@ import { defaultGlobals, vitestAdapter } from "./adapter.ts";
 import { configureLogging } from "./logging.ts";
 
 const UNKNOWN_ANNOTATION = /unknown annotation/;
-const FENCE_MAPPING = /guide\.md.:1 -> .__ddtds__\/guide_md_1/;
+const FENCE_MAPPING = /guide\.md.:1 -> .__ddtds__\/guide\.md_1/;
 
 afterEach(() => resetSync());
 

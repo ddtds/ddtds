@@ -54,10 +54,10 @@ test("an index reads fences from JSDoc in source files", () => {
   );
   expect(Array.from(index.fences(), ({ id, block }) => `${id} ${block.line}`))
     .toMatchInlineSnapshot(`
-    [
-      "/repo/__ddtds__/src_one_ts_2_b41e6c30.ts 2",
-    ]
-  `);
+      [
+        "/repo/__ddtds__/src_sone.ts_2_b41e6c30.ts 2",
+      ]
+    `);
 });
 
 test("maps each line of a fence by its own prefix", () => {
