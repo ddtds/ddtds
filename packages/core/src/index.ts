@@ -7,7 +7,6 @@ export {
   moduleFiles,
   moduleFor,
   typedImports,
-  unshadowed,
   type GeneratedModule,
   type StaticImport,
   type ModuleSystem,

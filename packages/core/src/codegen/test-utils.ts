@@ -8,8 +8,8 @@ import { staticImport } from "./static-import.ts";
 // these are unit tests and don't need to resolve
 export const adapter: TestAdapter = {
   runtime: "@ddtds/test/runtime",
-  testImport: staticImport("import { test } from 'test';", "test"),
-  fenceImports: [staticImport("import { expect } from 'expect';", "expect")],
+  testImport: staticImport("test", "test"),
+  fenceImports: [staticImport("expect", "expect")],
 };
 
 export function fence(

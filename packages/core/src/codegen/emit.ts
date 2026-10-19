@@ -3,7 +3,7 @@ import type { FenceRuntime } from "../runtime.ts";
 import { serialize } from "seroval";
 import type { TestAdapter } from "./adapter.ts";
 import { runtimeImport } from "./module-system.ts";
-import { unshadowed } from "./static-import.ts";
+import { renderImport, unshadowed } from "./static-import.ts";
 import type { FenceOutcome, Fragment } from "./plan.ts";
 
 /** One line of code, or a block whose body keeps fragments for source maps */
@@ -56,7 +56,10 @@ function asyncFunction(body: readonly Fragment[]): Expression {
 
 function emitRun(adapter: TestAdapter, outcome: Extract<FenceOutcome, { tag: "run" }>): FenceCode {
   const injected = unshadowed(adapter.fenceImports, outcome.importedNames);
-  const imports = [...injected.map(({ statement }) => statement), ...outcome.imports];
+  const imports = [
+    ...injected.map((fenceImport) => renderImport(fenceImport, adapter.module ?? "esm")),
+    ...outcome.imports,
+  ];
   const run = asyncFunction(outcome.body);
   if (!outcome.shouldFail) return { imports, ...run };
   return {

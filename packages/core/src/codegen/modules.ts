@@ -6,6 +6,7 @@ import { isSourceFile } from "../fences/doc-kinds.ts";
 import { emitFence, wrap } from "./emit.ts";
 import { resolveModule } from "./resolve-module.ts";
 import { planFence } from "./plan.ts";
+import { renderImport } from "./static-import.ts";
 
 export type GeneratedModule = { code: string; map: SourceMap; module: ModuleSystem };
 
@@ -80,7 +81,7 @@ export function docModule(
   const self = isSourceFile(doc) ? [`import ${JSON.stringify(doc)};`] : [];
   const header = [
     ...self,
-    adapter.testImport.statement,
+    renderImport(adapter.testImport, "esm"),
     runtimeImport(adapter, "esm"),
     ...loadFences(fences),
   ];

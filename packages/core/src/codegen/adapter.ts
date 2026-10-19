@@ -9,29 +9,9 @@ export type TestAdapter = Readonly<{
    * functions are reexported in plugins so clients don't need to manage peers
    */
   runtime: string;
-  /** Imports `test` for doc modules
-   *
-   * @example
-   * ```ts run
-   * import { typedImports } from "@ddtds/core";
-   *
-   * const importFromVitest = typedImports<typeof import("vitest")>("vitest");
-   * const testImport = importFromVitest("test");
-   * expect(testImport.locals).toEqual(["test"]);
-   * ```
-   */
+  /** Imports `test` for doc modules */
   testImport: StaticImport;
-  /** Imports for fences, e.g. `expect`
-   *
-   * @example
-   * ```ts run
-   * import { typedImports } from "@ddtds/core";
-   *
-   * const importFromVitest = typedImports<typeof import("vitest")>("vitest");
-   * const fenceImport = importFromVitest("expect");
-   * expect(fenceImport.locals).toEqual(["expect"]);
-   * ```
-   */
+  /** Imports for fences, e.g. `expect` */
   fenceImports: readonly StaticImport[];
   /** Module system fence modules are written in. Defaults to `"esm"` */
   module?: ModuleSystem;

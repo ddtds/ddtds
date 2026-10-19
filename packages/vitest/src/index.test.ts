@@ -168,3 +168,17 @@ test("empty globals inject nothing", async () => {
     "reimports.md:1": "passed",
   });
 });
+
+test("empty globals leave vitest's own globals to the project", async () => {
+  await using dir = fixture(globalsFiles);
+  const { outcomes } = await vitest({ plugin: { globals: [] }, test: { globals: true } }).run(
+    dir.root,
+    Object.keys(globalsFiles),
+  );
+  expect(outcomes).toEqual({
+    "expect.md:1": "passed",
+    "vi.md:1": "passed",
+    "describe.md:1": "passed",
+    "reimports.md:1": "passed",
+  });
+});

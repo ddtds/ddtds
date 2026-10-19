@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { findPackageJSON, setSourceMapsSupport, type RegisterHooksOptions } from "node:module";
 import { extname } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
-import { DdtSession, resolveLogLevel, type ModuleSystem } from "@ddtds/core";
+import { DdtSession, resolveLogLevel, type ModuleSystem, type StaticImport } from "@ddtds/core";
 import { configureSync, getLogger } from "@logtape/logtape";
 import { nodeTestAdapter } from "./adapter.ts";
 
@@ -28,12 +28,13 @@ function configureLogging(): void {
 
 export type HookOptions = {
   module?: ModuleSystem;
+  globals?: readonly StaticImport[];
 };
 
 export function ddtHooks(root: string, options: HookOptions = {}): RegisterHooksOptions {
   setSourceMapsSupport(true);
   configureLogging();
-  const adapter = nodeTestAdapter(defaultModule(root, options));
+  const adapter = nodeTestAdapter(defaultModule(root, options), options.globals);
   const session = DdtSession.open(adapter, root);
 
   return {
@@ -67,21 +68,11 @@ export function ddtHooks(root: string, options: HookOptions = {}): RegisterHooks
 }
 
 function defaultModule(root: string, options: HookOptions): ModuleSystem {
-  const fromEnv = moduleFromEnv();
   const [module, from]: [ModuleSystem, string] = options.module
     ? [options.module, "the module option"]
-    : fromEnv
-      ? [fromEnv, "DDTDS_MODULE"]
-      : [moduleSystem(root), "the nearest package.json type"];
+    : [moduleSystem(root), "the nearest package.json type"];
   logger.debug("default module system is {module} from {from}", { module, from });
   return module;
-}
-
-function moduleFromEnv(): ModuleSystem | undefined {
-  const value = process.env.DDTDS_MODULE;
-  if (value === undefined || value === "") return undefined;
-  if (value === "esm" || value === "cjs") return value;
-  throw new Error(`DDTDS_MODULE must be "esm" or "cjs", got "${value}"`);
 }
 
 /** Node reads `type` from the closest package.json to pick CommonJS or ESM */

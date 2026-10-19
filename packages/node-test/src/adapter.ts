@@ -1,14 +1,25 @@
-import { typedImports, type ModuleSystem, type TestAdapter } from "@ddtds/core";
+import { typedImports, type ModuleSystem, type StaticImport, type TestAdapter } from "@ddtds/core";
 
-const importFromNodeTest = typedImports<typeof import("node:test")>("node:test");
-const importFromNodeAssert = typedImports<typeof import("node:assert")>("node:assert");
+export const nodeTestImports: ReturnType<typeof typedImports<typeof import("node:test")>> =
+  typedImports("node:test");
 
-export function nodeTestAdapter(module: ModuleSystem): TestAdapter {
+const nodeAssertImports: ReturnType<typeof typedImports<typeof import("node:assert")>> =
+  typedImports("node:assert");
+
+export const defaultGlobals: readonly StaticImport[] = [
+  nodeAssertImports("strict", { alias: "assert" }),
+  nodeTestImports("mock"),
+];
+
+export function nodeTestAdapter(
+  module: ModuleSystem,
+  globals: readonly StaticImport[] = defaultGlobals,
+): TestAdapter {
   return {
     runtime: "@ddtds/node-test/runtime",
-    testImport: importFromNodeTest("test"),
-    fenceImports: [importFromNodeAssert("strict", { alias: "assert", type: module })],
+    testImport: nodeTestImports("test"),
+    fenceImports: globals,
     module,
-    forModule: nodeTestAdapter,
+    forModule: (forModule) => nodeTestAdapter(forModule, globals),
   };
 }

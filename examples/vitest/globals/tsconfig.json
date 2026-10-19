@@ -1,8 +1,0 @@
-{
-  "extends": "../../../tsconfig.base.json",
-  "compilerOptions": {
-    "lib": ["es2023", "dom", "dom.iterable", "esnext.disposable", "esnext.iterator"],
-    "types": ["node", "vitest/globals"]
-  },
-  "include": ["*.ts"]
-}

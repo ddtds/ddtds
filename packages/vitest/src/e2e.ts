@@ -1,8 +1,9 @@
 import { emptyReport, type Report, type Runner, type Watcher } from "@ddtds/test-utils";
+import type { Globals } from "@ddtds/test-utils/conformance";
 import type { ViteUserConfig } from "vitest/config";
 import type { Reporter, TestModule } from "vitest/node";
 import { create, failureFrames, outcomes } from "./test-utils.ts";
-import type { DdtPluginOptions } from "./index.ts";
+import { defaultGlobals, type DdtPluginOptions } from "./index.ts";
 
 export type VitestRunnerOptions = {
   plugin?: DdtPluginOptions;
@@ -54,4 +55,8 @@ export function vitest(options: VitestRunnerOptions = {}): Runner {
       };
     },
   };
+}
+
+export function vitestWithGlobals({ defaults, extra }: Globals): Runner {
+  return vitest({ plugin: { globals: [...(defaults ? defaultGlobals : []), ...extra] } });
 }

@@ -4,6 +4,7 @@
  */
 
 import { describe, expect, test } from "vitest";
+import { typedImports, type StaticImport } from "@ddtds/core";
 import {
   fence,
   jsdoc,
@@ -18,12 +19,23 @@ import {
 
 const LINE_SUFFIX = /:\d+$/;
 
+/** Imports a runner injects into fences: the defaults, or only `extra` without them */
+export type Globals = {
+  defaults: boolean;
+  extra: readonly StaticImport[];
+};
+
 export type Dialect = {
   /** An assertion that passes when `actual` equals `expected` */
   equal(actual: string, expected: string): string;
   /** Module system of the project and its fences. Defaults to `"esm"` */
   module?: "esm" | "cjs";
   nativeModules?: boolean;
+  globals?: {
+    /** Names the runner injects into every fence by default */
+    names: readonly string[];
+    runner: (globals: Globals) => Runner;
+  };
 };
 
 const PASSED = "passed";
@@ -79,6 +91,12 @@ function open(runner: Runner, kind: Kind, files: Record<string, string>, docs?: 
   };
 }
 
+const lines = (...statements: string[]): string => statements.join("\n");
+const injected = (global: string): string =>
+  `if (typeof ${global} === "undefined") throw new Error("${global} missing");`;
+const notInjected = (global: string): string =>
+  `if (typeof ${global} !== "undefined") throw new Error("${global} injected");`;
+
 export function conformance(name: string, runner: Runner, dialect: Dialect): void {
   const commonjs = dialect.module === "cjs";
   const importNames = (names: string, from: string): string =>
@@ -101,8 +119,12 @@ export function conformance(name: string, runner: Runner, dialect: Dialect): voi
   // a CommonJS entry cannot hold `export`, which `jsdoc` appends
   const jsdocKind = commonjs ? jsdocIn("ts", "1;") : jsdoc;
   const indentedKind = jsdocIn("ts", commonjs ? "1;" : undefined, "    ");
-  const openProject = (kind: Kind, files: Record<string, string>, docs?: string[]): Opened =>
-    open(runner, kind, { ...project, ...files }, docs);
+  const openProject = (
+    kind: Kind,
+    files: Record<string, string>,
+    docs?: string[],
+    using: Runner = runner,
+  ): Opened => open(using, kind, { ...project, ...files }, docs);
   const missingPackage = `${importNames("x", "missing-package")}\nx;`;
   const passing = dialect.equal("1", "1");
   const failing = dialect.equal("1", "2");
@@ -630,6 +652,95 @@ export function conformance(name: string, runner: Runner, dialect: Dialect): voi
         const code = isRequireDefined(commonjs ? "function" : "undefined");
         await using ddt = openProject(markdown, { "doc.md": fence(code) });
         expect(await ddt.run()).toEqual({ "doc.md:1": PASSED });
+      });
+    },
+  );
+
+  describe.concurrent.each(dialect.globals ? [dialect.globals] : [])(
+    `${name} globals conformance`,
+    ({ names, runner: withGlobals }) => {
+      const importFromPath = typedImports<typeof import("node:path")>("node:path");
+      const basename = importFromPath("basename");
+      const sep = importFromPath("sep");
+      const isFunction = (global: string): string =>
+        dialect.equal(`typeof ${global}`, '"function"');
+
+      const cases: [title: string, globals: Globals, doc: string, expected: Verdicts][] = [
+        [
+          "injects the default globals",
+          { defaults: true, extra: [] },
+          fence(lines(...names.map(injected))),
+          { "doc.md:1": PASSED },
+        ],
+        [
+          "injects extra globals beside the defaults",
+          { defaults: true, extra: [basename] },
+          fence(isFunction("basename")),
+          { "doc.md:1": PASSED },
+        ],
+        [
+          "injects a global under its alias",
+          { defaults: true, extra: [importFromPath("basename", { alias: "base" })] },
+          fence(lines(isFunction("base"), notInjected("basename"))),
+          { "doc.md:1": PASSED },
+        ],
+        [
+          "injects only the given globals without the defaults",
+          { defaults: false, extra: [basename] },
+          fence(lines(...names.map(notInjected), injected("basename"))),
+          { "doc.md:1": PASSED },
+        ],
+        [
+          "fails a fence that uses a global that is not injected",
+          { defaults: false, extra: [] },
+          fence(passing),
+          { "doc.md:1": FAILED },
+        ],
+        [
+          "lets a fence shadow a global with a declaration",
+          { defaults: true, extra: [basename] },
+          fence(lines("const basename = 5;", dialect.equal("basename", "5"))),
+          { "doc.md:1": PASSED },
+        ],
+        [
+          "lets a fence shadow a global with its own import",
+          { defaults: true, extra: [sep] },
+          fence(lines(importNames("sep", "node:path"), dialect.equal("typeof sep", '"string"'))),
+          { "doc.md:1": PASSED },
+        ],
+        [
+          "gives a setup comment the globals",
+          { defaults: true, extra: [] },
+          `<!-- ddt-setup ${dialect.equal("1", "1")} -->\n\n${fence(passing)}`,
+          { "doc.md:3": PASSED },
+        ],
+        [
+          "gives every fence of a doc the globals",
+          { defaults: true, extra: [basename] },
+          fence(isFunction("basename")) + fence(passing),
+          { "doc.md:1": PASSED, "doc.md:5": PASSED },
+        ],
+      ];
+
+      test.each(cases)("%s", async (_title, globals, doc, expected) => {
+        await using ddt = openProject(
+          markdown,
+          { "doc.md": doc },
+          ["doc.md"],
+          withGlobals(globals),
+        );
+        expect(await ddt.run()).toEqual(expected);
+      });
+
+      test("gives a JSDoc fence the globals", async () => {
+        const code = isFunction("basename");
+        await using ddt = openProject(
+          jsdocKind,
+          { "doc.md": fence(code) },
+          undefined,
+          withGlobals({ defaults: true, extra: [basename] }),
+        );
+        expect(await ddt.run()).toEqual(located(jsdocKind, { "doc.md:1": PASSED }));
       });
     },
   );
