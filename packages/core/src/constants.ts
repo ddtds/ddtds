@@ -8,6 +8,8 @@ export const defaultDocsExclude: string[] = [
   "**/CHANGELOG.md",
   "**/dist/**",
   "**/*.d.ts",
+  "**/*.d.mts",
+  "**/*.d.cts",
   "**/__ddtds__/**",
 ];
 export const defaultOutDir = "__doctests__";
