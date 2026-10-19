@@ -1,14 +1,11 @@
 import { expect, test } from "vitest";
-import { renderImport, typedImports, type StaticImport } from "@ddtds/core";
+import { typedImports } from "@ddtds/core";
 import { defaultGlobals, vitestAdapter, vitestImports, vitestTestAdapter } from "./adapter.ts";
 
-const statements = (globals: readonly StaticImport[]): string[] =>
-  globals.map((global) => renderImport(global, "esm"));
-
 test("the default globals are expect and vi", () => {
-  expect(statements(defaultGlobals)).toEqual([
-    "import { expect } from 'vitest';",
-    "import { vi } from 'vitest';",
+  expect(defaultGlobals).toEqual([
+    { module: "vitest", name: "expect" },
+    { module: "vitest", name: "vi" },
   ]);
   expect(vitestTestAdapter.fenceImports).toBe(defaultGlobals);
 });
@@ -19,11 +16,11 @@ test("an adapter injects exactly the globals it is given", () => {
     vitestImports("describe"),
     typedImports<typeof import("node:path")>("node:path")("basename"),
   ];
-  expect(statements(vitestAdapter(custom).fenceImports)).toEqual([
-    "import { expect } from 'vitest';",
-    "import { vi } from 'vitest';",
-    "import { describe } from 'vitest';",
-    "import { basename } from 'node:path';",
+  expect(vitestAdapter(custom).fenceImports).toEqual([
+    { module: "vitest", name: "expect" },
+    { module: "vitest", name: "vi" },
+    { module: "vitest", name: "describe" },
+    { module: "node:path", name: "basename" },
   ]);
   expect(vitestAdapter([]).fenceImports).toEqual([]);
 });

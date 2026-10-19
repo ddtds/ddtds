@@ -36,21 +36,21 @@ export function runtimeNames(bindings: readonly ImportBinding[]): string[] {
 type TypedImporter<Module> = (name: keyof Module, options?: { alias?: string }) => StaticImport;
 
 /**
- * @example esm
+ * @example
  * ```ts run
- * import { renderImport, typedImports } from "@ddtds/core";
+ * import { typedImports } from "@ddtds/core";
  *
  * const importFromVitest = typedImports<typeof import("vitest")>("vitest");
- * expect(renderImport(importFromVitest("test"), "esm")).toBe("import { test } from 'vitest';");
+ * expect(importFromVitest("test")).toEqual({ module: "vitest", name: "test" });
  * ```
  *
- * @example cjs with alias
+ * @example with alias
  * ```ts run
- * import { renderImport, typedImports } from "@ddtds/core";
+ * import { typedImports } from "@ddtds/core";
  *
  * const importFromAssert = typedImports<typeof import("node:assert")>("node:assert");
  * const strict = importFromAssert("strict", { alias: "assert" });
- * expect(renderImport(strict, "cjs")).toBe("const { strict: assert } = require('node:assert');");
+ * expect(strict).toEqual({ module: "node:assert", name: "strict", alias: "assert" });
  * ```
  */
 export function typedImports<Module>(module: string): TypedImporter<Module> {

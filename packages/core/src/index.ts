@@ -7,9 +7,7 @@ export type { DdtOptions } from "./options.ts";
 export {
   moduleFiles,
   moduleFor,
-  renderImport,
   typedImports,
-  unshadowed,
   type GeneratedModule,
   type StaticImport,
   type ModuleSystem,

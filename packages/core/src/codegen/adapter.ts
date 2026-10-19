@@ -13,10 +13,10 @@ export type TestAdapter = Readonly<{
    *
    * @example
    * ```ts run
-   * import { renderImport, typedImports } from "@ddtds/core";
+   * import { typedImports } from "@ddtds/core";
    *
    * const importFromVitest = typedImports<typeof import("vitest")>("vitest");
-   * expect(renderImport(importFromVitest("test"), "esm")).toBe("import { test } from 'vitest';");
+   * expect(importFromVitest("test")).toEqual({ module: "vitest", name: "test" });
    * ```
    */
   testImport: StaticImport;
@@ -24,10 +24,10 @@ export type TestAdapter = Readonly<{
    *
    * @example
    * ```ts run
-   * import { renderImport, typedImports } from "@ddtds/core";
+   * import { typedImports } from "@ddtds/core";
    *
    * const importFromVitest = typedImports<typeof import("vitest")>("vitest");
-   * expect(renderImport(importFromVitest("expect"), "esm")).toBe("import { expect } from 'vitest';");
+   * expect(importFromVitest("expect")).toEqual({ module: "vitest", name: "expect" });
    * ```
    */
   fenceImports: readonly StaticImport[];
