@@ -1,12 +1,23 @@
 import { test } from "vitest";
-import { DocIndex, parseCodeFences } from "@ddtds/core";
-import { guide, markdownSources, mdxGuide, options, root } from "./fixtures.ts";
+import { DdtSession, parseCodeFences } from "@ddtds/core";
+import { vitestTestAdapter } from "@ddtds/vitest";
+import { guide, markdownSources, mdxGuide, root } from "./fixtures.ts";
 
 const doc = guide(50);
 const mdx = mdxGuide(50);
 
 const sources = markdownSources(20, 10);
-const index = DocIndex.fromSources(sources, options);
+const edited = `${root}/docs/guide-0.md`;
+
+function reader(): () => string {
+  const before = guide(1);
+  const after = `${before}\n`;
+  let flip = false;
+  return () => {
+    flip = !flip;
+    return flip ? after : before;
+  };
+}
 
 test("parseCodeFences", async ({ bench }) => {
   await bench("find fences in a 50 section markdown doc", () => {
@@ -18,12 +29,18 @@ test("parseCodeFences", async ({ bench }) => {
   }).run();
 });
 
-test("DocIndex", async ({ bench }) => {
+test("DdtSession", async ({ bench }) => {
   await bench("index 20 docs of 10 sections", () => {
-    DocIndex.fromSources(sources, options);
+    DdtSession.fromSources(vitestTestAdapter, sources, root);
   }).run();
 
-  await bench("reindex one changed doc", () => {
-    index.withDoc(`${root}/docs/guide-0.md`, guide(11));
+  const session = DdtSession.fromSources(vitestTestAdapter, sources, root, reader());
+  await bench("reindex one changed doc in a 20 doc session", () => {
+    session.refresh(edited);
+  }).run();
+
+  const many = DdtSession.fromSources(vitestTestAdapter, markdownSources(1_000, 1), root, reader());
+  await bench("reindex one changed doc in a 1000 doc session", () => {
+    many.refresh(edited);
   }).run();
 });

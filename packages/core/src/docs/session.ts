@@ -9,11 +9,13 @@ import { isMarkdownFile, isSourceFile } from "../fences/doc-kinds.ts";
 import { DocIndex } from "./docs.ts";
 
 const logger = getLogger(["ddtds", "session"]);
+const readFromDisk = (doc: string): string => readFileSync(doc, "utf8");
 
 export class DdtSession {
   readonly #adapter: TestAdapter;
   /** `"all"` tracks any doc a host asks about */
   readonly #tracked: Set<string> | "all";
+  readonly #read: (doc: string) => string;
   #index: DocIndex;
 
   private constructor(
@@ -21,9 +23,11 @@ export class DdtSession {
     sources: ReadonlyMap<string, string>,
     root: string,
     tracked: Set<string> | "all",
+    read: (doc: string) => string,
   ) {
     this.#adapter = adapter;
     this.#tracked = tracked;
+    this.#read = read;
     logger.debug("injecting {globals} into every fence", () => ({
       globals: adapter.fenceImports.map(localName),
     }));
@@ -32,15 +36,16 @@ export class DdtSession {
   }
 
   public static open(adapter: TestAdapter, root: string): DdtSession {
-    return new DdtSession(adapter, new Map(), root, "all");
+    return new DdtSession(adapter, new Map(), root, "all", readFromDisk);
   }
 
   public static fromSources(
     adapter: TestAdapter,
     sources: ReadonlyMap<string, string>,
     root: string,
+    read: (doc: string) => string = readFromDisk,
   ): DdtSession {
-    return new DdtSession(adapter, sources, root, new Set(sources.keys()));
+    return new DdtSession(adapter, sources, root, new Set(sources.keys()), read);
   }
 
   public static fromFiles(adapter: TestAdapter, config: DocsConfig): DdtSession {
@@ -73,7 +78,7 @@ export class DdtSession {
     const doc = resolve(this.root, id);
     if (!isMarkdownFile(doc) && !this.#tracks(doc)) return;
     if (this.#tracked !== "all") this.#tracked.add(doc);
-    const source = readFileSync(doc, "utf8");
+    const source = this.#read(doc);
     // indexing is pure in the source, so an unchanged doc needs no work
     if (this.#index.sourceOf(doc) === source) return;
     this.#index = this.#index.withDoc(doc, source);

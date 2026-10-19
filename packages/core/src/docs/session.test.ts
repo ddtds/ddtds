@@ -98,6 +98,25 @@ describe("DdtSession.refresh", () => {
     expect(Array.from(session.index.docs(), ([doc]) => doc)).toEqual([join(root, "guide.md")]);
   });
 
+  test("refreshes through an injected reader instead of the disk", () => {
+    const path = join("/repo", "guide.md");
+    let source = doc("expect(1).toBe(1);");
+    const session = DdtSession.fromSources(
+      adapter,
+      new Map([[path, source]]),
+      "/repo",
+      () => source,
+    );
+    const [before] = session.index.fencesOf(path);
+
+    source = doc("expect(2).toBe(2);");
+    session.refresh(path);
+
+    const [after] = session.index.fencesOf(path);
+    expect(after!.id).not.toBe(before!.id);
+    expect(after!.block.details.contents).toContain("expect(2).toBe(2);");
+  });
+
   test("picks up the first fence of a discovered doc without fences", () => {
     const root = fixture({ "guide.md": "# Guide\n" });
     const session = sessionOver(root);
