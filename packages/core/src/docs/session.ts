@@ -81,7 +81,7 @@ export class DdtSession {
     const source = this.#read(doc);
     // indexing is pure in the source, so an unchanged doc needs no work
     if (this.#index.sourceOf(doc) === source) return;
-    this.#index = this.#index.withDoc(doc, source);
+    this.#index.replaceDoc(doc, source);
     this.#logFences(doc);
   }
 
