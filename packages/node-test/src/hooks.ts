@@ -8,6 +8,7 @@ import {
   type DdtOptions,
   type LogLevel,
   type ModuleSystem,
+  type StaticImport,
 } from "@ddtds/core";
 import { configureSync, getLogger } from "@logtape/logtape";
 import { nodeTestAdapter } from "./adapter.ts";
@@ -34,6 +35,7 @@ function configureLogging(logLevel?: LogLevel): void {
 
 export type HookOptions = DdtOptions & {
   module?: ModuleSystem;
+  globals?: readonly StaticImport[];
 };
 
 export function ddtHooks(root: string, options: HookOptions = {}): RegisterHooksOptions {
