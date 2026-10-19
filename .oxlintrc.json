@@ -66,7 +66,6 @@
     {
       "files": ["packages/node-test/src/hooks.ts"],
       "rules": {
-        "no-restricted-properties": "off",
         "typescript/no-extraneous-class": "off"
       }
     },

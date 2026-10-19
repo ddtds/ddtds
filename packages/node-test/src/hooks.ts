@@ -9,11 +9,17 @@ import {
   type ModuleSystem,
   type StaticImport,
 } from "@ddtds/core";
-import { getLogger } from "@logtape/logtape";
+import { getConsoleSink, getLogger, getTextFormatter } from "@logtape/logtape";
 import { nodeTestAdapter } from "./adapter.ts";
 
 // works with both built and source
 const runtimeUrl = new URL(`./runtime${extname(import.meta.filename)}`, import.meta.url).href;
+
+const formatter = getTextFormatter({
+  value: "bare",
+  format: ({ level, message }) => `ddtds ${level}: ${message}`,
+});
+const sink = getConsoleSink({ formatter });
 
 const logger = getLogger(["ddtds", "hooks"]);
 
@@ -24,10 +30,7 @@ export type HookOptions = DdtOptions & {
 
 export function ddtHooks(root: string, options: HookOptions = {}): RegisterHooksOptions {
   setSourceMapsSupport(true);
-  configureLogging(
-    (record) => process.stderr.write(`ddtds ${record.level}: ${record.message.join("")}\n`),
-    options.logLevel,
-  );
+  configureLogging(sink, options.logLevel);
   const adapter = nodeTestAdapter(defaultModule(root, options), options.globals);
   const session = DdtSession.open(adapter, root);
 
