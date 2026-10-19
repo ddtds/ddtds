@@ -2,7 +2,7 @@ import { configureSync, getLogger, resetSync } from "@logtape/logtape";
 import { createLogRecorder } from "@logtape/testing/recorder";
 import { afterEach, expect, test } from "vitest";
 import { DdtSession, parseCodeFences } from "@ddtds/core";
-import { vitestAdapter } from "./adapter.ts";
+import { defaultGlobals, vitestAdapter } from "./adapter.ts";
 import { configureLogging } from "./logging.ts";
 
 const UNKNOWN_ANNOTATION = /unknown annotation/;
@@ -22,7 +22,7 @@ test("debug logs where each fence is generated", () => {
   const recorder = createLogRecorder();
   configureLogging(recorder.sink, "debug");
   const sources = new Map([["/root/guide.md", "```ts run\n1;\n```\n"]]);
-  DdtSession.fromSources(vitestAdapter(), sources, "/root");
+  DdtSession.fromSources(vitestAdapter(defaultGlobals), sources, "/root");
   expect(recorder.records).toHaveLength(1);
   recorder.assertLogged({ level: "debug", message: FENCE_MAPPING });
 });
