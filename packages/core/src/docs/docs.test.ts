@@ -28,8 +28,8 @@ test("fromSources indexes runnable fences and skips docs without any", () => {
   expect(summary(docs)).toMatchInlineSnapshot(`
     {
       "/repo/docs/guide.md": [
-        "1 /repo/pkg/__doctests__/___docs_guide_md_1_25d58d7b.ts",
-        "5 /repo/pkg/__doctests__/___docs_guide_md_5_427efaac.tsx",
+        "1 /repo/pkg/__doctests__/.._sdocs_sguide.md_1_25d58d7b.ts",
+        "5 /repo/pkg/__doctests__/.._sdocs_sguide.md_5_427efaac.tsx",
       ],
     }
   `);
@@ -44,10 +44,10 @@ test("replaceDoc replaces one doc in place", () => {
   expect(summary(docs)).toMatchInlineSnapshot(`
     {
       "/repo/pkg/a.md": [
-        "3 /repo/pkg/__doctests__/a_md_3_b00973ef.ts",
+        "3 /repo/pkg/__doctests__/a.md_3_b00973ef.ts",
       ],
       "/repo/pkg/b.md": [
-        "1 /repo/pkg/__doctests__/b_md_1_d974e864.ts",
+        "1 /repo/pkg/__doctests__/b.md_1_d974e864.ts",
       ],
     }
   `);
@@ -67,8 +67,15 @@ test("replaceDoc keeps a doc that loses all its fences", () => {
 
 test("docModuleId flattens the doc path relative to the root", () => {
   expect(index({}).docModuleId("/repo/docs/guide.md")).toBe(
-    "/repo/pkg/__doctests__/___docs_guide_md.test.ts",
+    "/repo/pkg/__doctests__/.._sdocs_sguide.md.test.ts",
   );
+});
+
+test("docs whose flattened paths collide get distinct ids", () => {
+  const paths = ["/repo/pkg/a/b.md", "/repo/pkg/a_b.md", "/repo/pkg/a.b.md"];
+  const ids = paths.map((doc) => index({ [doc]: run("1") }).docModuleId(doc));
+
+  expect(new Set(ids).size).toBe(paths.length);
 });
 
 test("sourceOf returns the doc's original text", () => {

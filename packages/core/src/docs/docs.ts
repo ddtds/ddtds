@@ -116,11 +116,11 @@ function allFences(docs: ReadonlyMap<string, readonly Fence[]>): Map<string, Fen
 
 function parseFences({ root, moduleDir }: IndexOptions, doc: string, source: string): Fence[] {
   const parse = isSourceFile(doc) ? parseJsDocFences : parseCodeFences;
-  return parse(source, relative(root, doc)).map((block) => ({
-    id: join(
-      moduleDir,
-      `${flatName(root, doc)}_${block.line}_${contentHash(block)}.${block.outputExtension}`,
-    ),
+  const blocks = parse(source, relative(root, doc));
+  if (blocks.length === 0) return [];
+  const name = flatName(root, doc);
+  return blocks.map((block) => ({
+    id: join(moduleDir, `${name}_${block.line}_${contentHash(block)}.${block.outputExtension}`),
     doc,
     block,
   }));
@@ -128,13 +128,19 @@ function parseFences({ root, moduleDir }: IndexOptions, doc: string, source: str
 
 /**
  * hashes code fence content and annotations
- * stable bashes enable caching for some runners
+ * stable hashes enable caching for some runners
  */
 function contentHash(block: CodeBlock): string {
   const input = JSON.stringify([block.details.annotation, block.code]);
   return createHash("sha1").update(input).digest("hex").slice(0, 8);
 }
 
+/**
+ * Flattens a doc path to a name. The separator is escaped and `_` is doubled, so
+ * paths that would otherwise alias stay distinct: `a/b.md` → `a_sb.md`, `a_b.md` → `a__b.md`
+ */
 function flatName(root: string, doc: string): string {
-  return relative(root, doc).replaceAll(".", "_").replaceAll(sep, "_");
+  return relative(root, doc).replace(/[_/\\]/g, (char) =>
+    char === "_" ? "__" : char === sep ? "_s" : char,
+  );
 }
