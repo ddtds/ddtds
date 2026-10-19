@@ -30,19 +30,19 @@
   "dependencies": {
     "@logtape/logtape": "catalog:prod",
     "magic-string": "^1.4.3",
-    "oxc-parser": "^0.153.0",
+    "oxc-parser": "^0.154.0",
     "satteri": "^0.10.5",
     "seroval": "^1.6.9"
   },
   "devDependencies": {
     "@jridgewell/trace-mapping": "catalog:dev",
-    "@oxc-project/types": "^0.153.0",
+    "@oxc-project/types": "^0.154.0",
     "@tsrx/oxc": "catalog:dev",
     "@types/node": "catalog:dev",
     "vitest": "catalog:dev"
   },
   "peerDependencies": {
-    "@tsrx/oxc": "^0.20.0"
+    "@tsrx/oxc": "^0.20.0 || ^0.21.0"
   },
   "peerDependenciesMeta": {
     "@tsrx/oxc": {
