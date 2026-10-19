@@ -16,20 +16,20 @@ export type IndexOptions = Readonly<{ root: string; moduleDir: string }>;
 
 export class DocIndex {
   readonly #options: IndexOptions;
-  readonly #docs: ReadonlyMap<string, readonly Fence[]>;
-  readonly #fences: ReadonlyMap<string, Fence>;
-  readonly #sources: ReadonlyMap<string, string>;
+  readonly #docs: Map<string, readonly Fence[]>;
+  readonly #fences: Map<string, Fence>;
+  readonly #sources: Map<string, string>;
 
   private constructor(
     options: IndexOptions,
-    docs: ReadonlyMap<string, readonly Fence[]>,
-    sources: ReadonlyMap<string, string>,
+    docs: Map<string, readonly Fence[]>,
+    fences: Map<string, Fence>,
+    sources: Map<string, string>,
   ) {
     this.#options = options;
     this.#docs = docs;
+    this.#fences = fences;
     this.#sources = sources;
-    /** Transform docs map into a map of fence ids and code fences */
-    this.#fences = new Map([...docs.values()].flat().map((fence) => [fence.id, fence]));
   }
 
   public static fromSources(sources: ReadonlyMap<string, string>, options: IndexOptions): DocIndex {
@@ -38,15 +38,19 @@ export class DocIndex {
       const fences = parseFences(options, doc, source);
       if (fences.length > 0) docs.set(doc, fences);
     }
-    return new DocIndex(options, docs, sources);
+    return new DocIndex(options, docs, allFences(docs), new Map(sources));
   }
 
-  public withDoc(doc: string, source: string): DocIndex {
-    const docs = new Map(this.#docs);
-    docs.set(doc, parseFences(this.#options, doc, source));
-    const sources = new Map(this.#sources);
-    sources.set(doc, source);
-    return new DocIndex(this.#options, docs, sources);
+  public replaceDoc(doc: string, source: string): void {
+    this.#dropFences(doc);
+    const fences = parseFences(this.#options, doc, source);
+    this.#docs.set(doc, fences);
+    this.#sources.set(doc, source);
+    for (const fence of fences) this.#fences.set(fence.id, fence);
+  }
+
+  #dropFences(doc: string): void {
+    for (const fence of this.#docs.get(doc) ?? []) this.#fences.delete(fence.id);
   }
 
   public get root(): string {
@@ -96,6 +100,12 @@ export class DocIndex {
     const doc = id.slice(0, -ENTRY_QUERY.length);
     return this.hasDoc(doc) ? doc : undefined;
   }
+}
+
+function allFences(docs: ReadonlyMap<string, readonly Fence[]>): Map<string, Fence> {
+  const fences = new Map<string, Fence>();
+  for (const doc of docs.values()) for (const fence of doc) fences.set(fence.id, fence);
+  return fences;
 }
 
 function parseFences({ root, moduleDir }: IndexOptions, doc: string, source: string): Fence[] {

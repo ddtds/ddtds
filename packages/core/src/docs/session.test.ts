@@ -159,16 +159,16 @@ describe("DdtSession.refresh", () => {
   test("skips reindexing when a reread doc is unchanged", () => {
     const root = fixture({ "guide.md": doc("expect(1).toBe(1);") });
     const session = sessionOver(root);
-    const withDoc = vi.spyOn(DocIndex.prototype, "withDoc");
-    onTestFinished(() => withDoc.mockRestore());
+    const replaceDoc = vi.spyOn(DocIndex.prototype, "replaceDoc");
+    onTestFinished(() => replaceDoc.mockRestore());
 
     session.refresh(join(root, "guide.md"));
     session.entry("guide.md");
-    expect(withDoc).not.toHaveBeenCalled();
+    expect(replaceDoc).not.toHaveBeenCalled();
 
     writeFileSync(join(root, "guide.md"), doc("expect(2).toBe(2);"));
     session.refresh(join(root, "guide.md"));
-    expect(withDoc).toHaveBeenCalledTimes(1);
+    expect(replaceDoc).toHaveBeenCalledTimes(1);
   });
 });
 

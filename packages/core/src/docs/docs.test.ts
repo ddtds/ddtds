@@ -35,18 +35,34 @@ test("fromSources indexes runnable fences and skips docs without any", () => {
   `);
 });
 
-test("withDoc replaces one doc's fences and keeps docs that lose them all", () => {
-  const before = index({ "/repo/pkg/a.md": run("1"), "/repo/pkg/b.md": run("1") });
-  const after = before.withDoc("/repo/pkg/a.md", `\n\n${run("2")}`).withDoc("/repo/pkg/b.md", "");
-  expect(summary(after)).toMatchInlineSnapshot(`
+test("replaceDoc replaces one doc in place", () => {
+  const docs = index({ "/repo/pkg/a.md": run("1"), "/repo/pkg/b.md": run("2") });
+  const removed = docs.fencesOf("/repo/pkg/a.md")[0]!.id;
+
+  docs.replaceDoc("/repo/pkg/a.md", `\n\n${run("3")}`);
+
+  expect(summary(docs)).toMatchInlineSnapshot(`
     {
       "/repo/pkg/a.md": [
-        "3 /repo/pkg/__doctests__/a_md_3_d974e864.ts",
+        "3 /repo/pkg/__doctests__/a_md_3_b00973ef.ts",
       ],
-      "/repo/pkg/b.md": [],
+      "/repo/pkg/b.md": [
+        "1 /repo/pkg/__doctests__/b_md_1_d974e864.ts",
+      ],
     }
   `);
-  expect(summary(before)).toHaveProperty(["/repo/pkg/b.md"]);
+  expect(docs.fence(removed)).toBeUndefined();
+  expect(docs.fencesOf("/repo/pkg/b.md")).toHaveLength(1);
+});
+
+test("replaceDoc keeps a doc that loses all its fences", () => {
+  const docs = index({ "/repo/pkg/a.md": run("1") });
+
+  docs.replaceDoc("/repo/pkg/a.md", "# no code\n");
+
+  expect(docs.hasDoc("/repo/pkg/a.md")).toBe(true);
+  expect(docs.fencesOf("/repo/pkg/a.md")).toEqual([]);
+  expect(docs.size).toBe(0);
 });
 
 test("docModuleId flattens the doc path relative to the root", () => {
