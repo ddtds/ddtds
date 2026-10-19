@@ -312,7 +312,7 @@ catalogs:
   prod:
     '@logtape/logtape':
       specifier: ^2.4.0
-      version: 2.4.0
+      version: 2.4.1
 
 importers:
 
@@ -789,7 +789,7 @@ importers:
         version: link:../vitest
       '@logtape/logtape':
         specifier: catalog:prod
-        version: 2.4.0
+        version: 2.4.1
       cleye:
         specifier: ^2.6.0
         version: 2.7.0
@@ -802,7 +802,7 @@ importers:
     dependencies:
       '@logtape/logtape':
         specifier: catalog:prod
-        version: 2.4.0
+        version: 2.4.1
       magic-string:
         specifier: ^1.4.3
         version: 1.4.3
@@ -839,7 +839,7 @@ importers:
         version: link:../core
       '@logtape/logtape':
         specifier: catalog:prod
-        version: 2.4.0
+        version: 2.4.1
     devDependencies:
       '@ddtds/test-utils':
         specifier: workspace:*
@@ -858,14 +858,14 @@ importers:
         version: link:../core
       '@logtape/logtape':
         specifier: catalog:prod
-        version: 2.4.0
+        version: 2.4.1
     devDependencies:
       '@ddtds/test-utils':
         specifier: workspace:*
         version: link:../../test-utils
       '@logtape/testing':
         specifier: catalog:dev
-        version: 2.4.1(@logtape/logtape@2.4.0)
+        version: 2.4.1(@logtape/logtape@2.4.1)
       '@vitest/coverage-v8':
         specifier: catalog:dev
         version: 5.0.4(vitest@5.0.4)
@@ -2050,8 +2050,8 @@ packages:
       eslint:
         optional: true
 
-  '@logtape/logtape@2.4.0':
-    resolution: {integrity: sha512-xhvG/NwfBXs+a+oJxl6xOmqA4zX8giP1brvd5lVbL3qUHUkZfVt+4QE/+9p/Vf76JNwe/upH3XYTNItocKQ8Qg==}
+  '@logtape/logtape@2.4.1':
+    resolution: {integrity: sha512-faEZkjQf5pI8WsnCXbpBInC9SeWqYUNAtLviTLkCI3JLHFkV1bKrfxbIJc96TVqqVjSUz8LYtX0JWKdiBwEpCg==}
 
   '@logtape/testing@2.4.1':
     resolution: {integrity: sha512-EXCQTP+uc7X1U/G83pJ4mgKXdovLZrp9TFp8xM4L2FHB/OG0SG3O78EvSTJY4AiD+4+JneSIywH5XSYdkoadPQ==}
@@ -9472,11 +9472,11 @@ snapshots:
 
   '@logtape/lint@2.4.1': {}
 
-  '@logtape/logtape@2.4.0': {}
+  '@logtape/logtape@2.4.1': {}
 
-  '@logtape/testing@2.4.1(@logtape/logtape@2.4.0)':
+  '@logtape/testing@2.4.1(@logtape/logtape@2.4.1)':
     dependencies:
-      '@logtape/logtape': 2.4.0
+      '@logtape/logtape': 2.4.1
 
   '@modelcontextprotocol/core@2.3.1':
     dependencies:
@@ -15132,7 +15132,7 @@ snapshots:
       lightningcss: 1.33.0
       picomatch: 4.0.7
       postcss: 8.5.29
-      rolldown: 1.2.8
+      rolldown: 1.2.12
       tinyglobby: 0.2.17
     optionalDependencies:
       '@types/node': 24.19.1
