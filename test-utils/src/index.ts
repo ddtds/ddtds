@@ -1,6 +1,6 @@
 import { spawn as launch } from "node:child_process";
 import { EventEmitter, once } from "node:events";
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { tmpdir } from "node:os";
 import { createInterface } from "node:readline";
@@ -83,8 +83,15 @@ export function encode(outcomes: Outcomes, failures: Failures): string {
   return `${JSON.stringify({ type: "outcomes", outcomes, failures })}\n`;
 }
 
-// every case starts a fresh node process, so a shared compile cache skips recompiling ddtds each time
+// Every case starts a fresh node process, so a shared compile cache skips recompiling
+// ddtds each time. Node never prunes the cache and workers can be killed before exit
+// hooks run, so drop one that has gone unused for a while rather than keep it forever.
 const compileCache = join(tmpdir(), "ddtds-compile-cache");
+const CACHE_IDLE_LIMIT = 60 * 60 * 1000;
+if (!existsSync(compileCache) || statSync(compileCache).mtimeMs < Date.now() - CACHE_IDLE_LIMIT) {
+  rmSync(compileCache, { recursive: true, force: true });
+  mkdirSync(compileCache, { recursive: true });
+}
 
 function environment(env?: NodeJS.ProcessEnv): NodeJS.ProcessEnv {
   const result: NodeJS.ProcessEnv = {
