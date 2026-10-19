@@ -7,11 +7,9 @@ import {
   defaultOutDir,
   moduleFiles as generateModuleFiles,
   moduleFor,
-  resolveLogLevel,
+  type DdtOptions,
   type DocsOptions,
   type GeneratedModule,
-  type LogLevel,
-  type StaticImport,
 } from "@ddtds/core";
 import { getLogger } from "@logtape/logtape";
 import { defaultGlobals, vitestAdapter, vitestTestAdapter } from "./adapter.ts";
@@ -40,16 +38,7 @@ const logger = getLogger(["ddtds", "vitest"]);
 
 const WATCH_TRIGGER = /\.(?:mdx?|[cm]?[jt]sx?)$/;
 
-export type DdtPluginOptions = DocsOptions & {
-  /**
-   * Precedence (highest to lowest):
-   *   1. `DDT_LOG_LEVEL` environment variable
-   *   2. `logLevel` option
-   *   3. `"info"` (default)
-   */
-  logLevel?: LogLevel;
-  globals?: readonly StaticImport[];
-};
+export type DdtPluginOptions = DocsOptions & DdtOptions;
 
 export function ddtPlugin({
   logLevel,
@@ -57,7 +46,7 @@ export function ddtPlugin({
   ...docs
 }: DdtPluginOptions = {}): Plugin {
   const vite = createViteSink();
-  configureLogging(resolveLogLevel(logLevel), vite);
+  configureLogging(vite, logLevel);
   let project: TestProject | undefined;
   const adapter = vitestAdapter(globals);
   let session = DdtSession.fromSources(adapter, new Map(), process.cwd());
@@ -69,13 +58,6 @@ export function ddtPlugin({
     config(config) {
       const root = config.test?.root ?? config.root ?? process.cwd();
       session = DdtSession.fromFiles(adapter, { ...docs, root });
-      for (const { id, block } of session.index.fences()) {
-        logger.debug("{file}:{line} -> {id}", () => ({
-          file: block.details.file,
-          line: block.line,
-          id: relative(root, id),
-        }));
-      }
       const included = new Set(docFiles());
       return {
         test: {

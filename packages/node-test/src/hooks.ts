@@ -2,38 +2,35 @@ import { readFileSync } from "node:fs";
 import { findPackageJSON, setSourceMapsSupport, type RegisterHooksOptions } from "node:module";
 import { extname } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
-import { DdtSession, resolveLogLevel, type ModuleSystem, type StaticImport } from "@ddtds/core";
-import { configureSync, getLogger } from "@logtape/logtape";
+import {
+  DdtSession,
+  configureLogging,
+  type DdtOptions,
+  type ModuleSystem,
+  type StaticImport,
+} from "@ddtds/core";
+import { getConsoleSink, getLogger, getTextFormatter } from "@logtape/logtape";
 import { nodeTestAdapter } from "./adapter.ts";
 
 // works with both built and source
 const runtimeUrl = new URL(`./runtime${extname(import.meta.filename)}`, import.meta.url).href;
 
+const formatter = getTextFormatter({
+  value: "bare",
+  format: ({ level, message }) => `ddtds ${level}: ${message}`,
+});
+const sink = getConsoleSink({ formatter });
+
 const logger = getLogger(["ddtds", "hooks"]);
 
-function configureLogging(): void {
-  if (process.env.DDT_LOG_LEVEL === undefined) return;
-  configureSync({
-    reset: true,
-    sinks: {
-      stderr: (record) =>
-        process.stderr.write(`ddtds ${record.level}: ${record.message.join("")}\n`),
-    },
-    loggers: [
-      { category: ["ddtds"], lowestLevel: resolveLogLevel(), sinks: ["stderr"] },
-      { category: ["logtape", "meta"], lowestLevel: "warning", sinks: ["stderr"] },
-    ],
-  });
-}
-
-export type HookOptions = {
+export type HookOptions = DdtOptions & {
   module?: ModuleSystem;
   globals?: readonly StaticImport[];
 };
 
 export function ddtHooks(root: string, options: HookOptions = {}): RegisterHooksOptions {
   setSourceMapsSupport(true);
-  configureLogging();
+  configureLogging(sink, options.logLevel);
   const adapter = nodeTestAdapter(defaultModule(root, options), options.globals);
   const session = DdtSession.open(adapter, root);
 

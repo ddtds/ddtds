@@ -100,6 +100,16 @@ Module type served to your framework of choice resolves in the following order
 - Blank lines and other comments are ignored between comments
 - Setup applies to the next fence only
 
+## logging
+
+debug level helps troubleshoot what module type a fence resolves to and where's it's generated
+
+The log level is resolved like so
+
+1. `DDT_LOG_LEVEL` environment variable
+2. `logLevel` option
+3. Default (`"info"`)
+
 ## Vitest
 
 See [packages/vitest](packages/vitest/README.md)
