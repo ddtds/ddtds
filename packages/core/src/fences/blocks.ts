@@ -110,6 +110,10 @@ export class CodeBlock {
     return this.details.annotation === ANNOTATIONS.COMPILE_FAIL;
   }
 
+  public isCompileOnly(): boolean {
+    return this.details.annotation === ANNOTATIONS.COMPILE_ONLY;
+  }
+
   public splitImports(): PreparedBlock {
     return splitImportsAndBlock(this);
   }

@@ -77,7 +77,9 @@ function emitRun(
     ...injected.map((fenceImport) => renderImport(fenceImport, adapter.module ?? "esm")),
     ...outcome.imports,
   ];
-  const run = asyncFunction(outcome.body);
+  const run = outcome.compileOnly
+    ? wrap`(${asyncFunction(outcome.body)}, async () => {})`
+    : asyncFunction(outcome.body);
   if (!outcome.shouldFail) return { imports, ...run };
   return {
     imports: [...imports, runtimeImport(adapter)],

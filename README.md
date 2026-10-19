@@ -2,49 +2,27 @@
 
 [![CodSpeed](https://img.shields.io/endpoint?url=https://codspeed.io/badge.json)](https://codspeed.io/ddtds/ddtds?utm_source=badge)
 
-Imagine a world where you can just `vitest run README.md`!!! Well imagine no more, I just did that. Pretty cool right?
+Imagine a world where you can just `vitest run README.md`!!! Well now you can, ddtds uses your existing test framework to run markdown and JSDoc comments as tests
 
 ```bash
 ~/coding/ddtds pnpm exec vitest run README.md
 
- RUN  v5.0.3 /home/jacob/coding/ddtds
-
  ✓  readme  README.md (1 test) 49ms
-   ✓ README.md:29 49ms
+   ✓ README.md:23 49ms
 
  Test Files  1 passed (1)
       Tests  1 passed (1)
-Type Errors  no errors
-   Start at  02:02:01
-   Duration  477ms (environment 51%, import 26%, tests 13%, transform 9%, worker 1%)
 ```
 
-ddtds uses your existing test configs, if you already test react, just add the plugin!
+For example, here's some react
 
 <!-- ddt-setup
 import { render, screen } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
 -->
 
 ```tsx run
-import { useState } from "react";
-
-function CutestAnimal() {
-  const [animal, setAnimal] = useState("");
-  return (
-    <form>
-      <label>
-        Cutest animal
-        <input value={animal} onChange={(event) => setAnimal(event.target.value)} />
-      </label>
-      <output>The cutest animal is {animal || "..."}</output>
-    </form>
-  );
-}
-
-render(<CutestAnimal />);
-await userEvent.type(screen.getByLabelText("Cutest animal"), "otter");
-expect(screen.getByRole("status").textContent).toBe("The cutest animal is otter");
+render(<p>Hello</p>);
+expect(screen.getByText("Hello")).toBeTruthy();
 ```
 
 A comment starting with `ddt-setup` above a fence runs as code before the fence
@@ -52,38 +30,48 @@ A comment starting with `ddt-setup` above a fence runs as code before the fence
 ````md
 <!-- ddt-setup
 import { render, screen } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
 -->
 
 ```tsx run
-import { useState } from "react";
-
-function CutestAnimal() {
-  // ...
-}
-
-render(<CutestAnimal />);
-await userEvent.type(screen.getByLabelText("Cutest animal"), "otter");
-expect(screen.getByRole("status").textContent).toBe("The cutest animal is otter");
+render(<p>Hello</p>);
+expect(screen.getByText("Hello")).toBeTruthy();
 ```
 ````
 
-Can extract code from these files
+## plugins
 
-- md
-- mdx
+ddtds plugs into your test runner, so the docs run alongside your other tests
 
-Can extract and run these languages
+- [node test](packages/node-test/README.md)
+- [vitest](packages/vitest/README.md)
 
-- js
-- ts
-- jsx
-- tsx
-- tsrx
-- mjs
-- mts
-- cjs
-- cts
+See the plugin documentation for how to get started!
+
+## annotations
+
+Annotations after the fence's language define how a fence is handled
+
+| Annotation     | Should compile | Passes when              |
+| -------------- | -------------- | ------------------------ |
+| `run`          | yes            | the fence does not throw |
+| `fail`         | yes            | the fence throws         |
+| `compile_only` | yes            | not run                  |
+| `compile_fail` | no             | not run                  |
+| `skip`         | not compiled   | not run                  |
+
+For example, this fence has a `fail` annotation. It must compile, and it passes because it throws
+
+````md
+```ts fail
+expect(1).toBe(2);
+```
+````
+
+## supported files
+
+Can extract code from `md` and `mdx` files, and from JSDoc comments in `js`, `ts`, `jsx`, `tsx`, `mjs`, `mts`, `cjs` and `cts` source files
+
+Can extract and run these languages: `js`, `ts`, `jsx`, `tsx`, `tsrx`, `mjs`, `mts`, `cjs`, `cts`
 
 Module type served to your framework of choice resolves in the following order
 
@@ -109,22 +97,6 @@ The log level is resolved like so
 1. `DDT_LOG_LEVEL` environment variable
 2. `logLevel` option
 3. Default (`"info"`)
-
-## Vitest
-
-See [packages/vitest](packages/vitest/README.md)
-
-## Node
-
-See [packages/node-test](packages/node-test/README.md)
-
-## Packages
-
-- `./packages` has ddtdts library and cli code
-  - core has agnostic logic for finding and parsing codefences and test codegen
-  - vitest is vitest specific logic and plugin
-  - cli is an experimental tool eventually meant to help with incremental converstion of your codebase
-- `./examples` has react, typescript, javascript examples
 
 ## Alternatives
 

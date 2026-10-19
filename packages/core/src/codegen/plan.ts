@@ -19,6 +19,7 @@ export type FenceOutcome =
       importedNames: string[];
       body: Fragment[];
       shouldFail: boolean;
+      compileOnly: boolean;
       syntax: ModuleSyntax;
     }
   | { tag: "missingCompileError"; fileName: string; position: Position }
@@ -61,6 +62,7 @@ export function planFence({ doc, block }: Fence): FenceOutcome {
     importedNames: runtimeNames(split.bindings),
     body: split.body,
     shouldFail: block.shouldFail(),
+    compileOnly: block.isCompileOnly(),
     syntax: split.syntax,
   };
 }

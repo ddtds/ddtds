@@ -128,6 +128,7 @@ export function conformance(name: string, runner: Runner, dialect: Dialect): voi
   const missingPackage = `${importNames("x", "missing-package")}\nx;`;
   const passing = dialect.equal("1", "1");
   const failing = dialect.equal("1", "2");
+  const throwingBody = 'throw new Error("boom");';
   const isRequireDefined = (expected: "function" | "undefined"): string =>
     dialect.equal("typeof require", JSON.stringify(expected));
 
@@ -161,6 +162,42 @@ export function conformance(name: string, runner: Runner, dialect: Dialect): voi
       "a compile_fail fence that does not compile",
       fence("const = 1;", "compile_fail"),
       { "doc.md:1": PASSED },
+    ],
+    [
+      "a compile_only fence that throws",
+      fence(throwingBody, "compile_only"),
+      { "doc.md:1": PASSED },
+    ],
+    [
+      "a compile_only fence that never ends",
+      fence("while (true) {}", "compile_only"),
+      { "doc.md:1": PASSED },
+    ],
+    [
+      "a compile_only fence with a failing assertion",
+      fence(failing, "compile_only"),
+      { "doc.md:1": PASSED },
+    ],
+    [
+      "a compile_only fence with a syntax error",
+      fence("const = 1;", "compile_only"),
+      { "doc.md:1": FAILED },
+    ],
+    // a CommonJS fence requires its imports from inside its body
+    ...(commonjs
+      ? []
+      : [
+          [
+            "a compile_only fence with a missing import",
+            fence(missingPackage, "compile_only"),
+            { "doc.md:1": FAILED },
+          ] satisfies [string, string, Verdicts],
+        ]),
+    [
+      "a compile_only fence that does not run its code",
+      fence(`globalThis.__ddtdsCompileOnly = true;`, "compile_only") +
+        fence(dialect.equal("typeof globalThis.__ddtdsCompileOnly", '"undefined"')),
+      { "doc.md:1": PASSED, "doc.md:5": PASSED },
     ],
     [
       "a top level await",
