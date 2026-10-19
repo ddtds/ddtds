@@ -32,7 +32,11 @@ export function fenceModule(
     fallback: defaultAdapter.module ?? "esm",
   });
   const adapter = adapterFor(defaultAdapter, module);
-  const { imports, ...expression } = emitFence(adapter, outcome);
+  const { imports, ...expression } = emitFence(
+    adapter,
+    outcome,
+    `${fence.block.details.file}:${fence.block.line}`,
+  );
   const exported =
     adapter.module === "cjs"
       ? wrap`module.exports = ${expression};`

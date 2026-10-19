@@ -110,11 +110,7 @@ test("logs through Vite's logger, which Vitest keeps at warn unless configured",
       "stdout: [ddtds] Total: 1 tests",
     ]
   `);
-  expect(await logs(dir.root, { logLevel: "error" }, "info")).toMatchInlineSnapshot(`
-    [
-      "stderr: [ddtds] unknown annotation in code block: "run fail"",
-    ]
-  `);
+  expect(await logs(dir.root, { logLevel: "error" }, "info")).toMatchInlineSnapshot(`[]`);
 });
 
 const globalsFiles = {

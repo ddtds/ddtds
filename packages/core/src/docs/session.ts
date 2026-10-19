@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs";
 import { join, relative, resolve } from "node:path";
 import { getLogger } from "@logtape/logtape";
 import type { TestAdapter } from "../codegen/adapter.ts";
+import { localName } from "../codegen/static-import.ts";
 import { moduleFor, type GeneratedModule } from "../codegen/modules.ts";
 import { type DocsConfig, readDocs, resolveDocsOptions } from "./discovery.ts";
 import { isMarkdownFile, isSourceFile } from "../fences/doc-kinds.ts";
@@ -23,8 +24,11 @@ export class DdtSession {
   ) {
     this.#adapter = adapter;
     this.#tracked = tracked;
+    logger.debug("injecting {globals} into every fence", () => ({
+      globals: adapter.fenceImports.map(localName),
+    }));
     this.#index = DocIndex.fromSources(sources, { root, moduleDir: join(root, "__ddtds__") });
-    for (const [doc] of this.#index.docs()) this.#logFences(doc);
+    for (const doc of sources.keys()) this.#logFences(doc);
   }
 
   public static open(adapter: TestAdapter, root: string): DdtSession {
@@ -41,7 +45,14 @@ export class DdtSession {
 
   public static fromFiles(adapter: TestAdapter, config: DocsConfig): DdtSession {
     const { root, include, exclude } = resolveDocsOptions(config);
-    return DdtSession.fromSources(adapter, readDocs(root, include, exclude), root);
+    logger.debug("looking for docs in {root} including {include} excluding {exclude}", {
+      root,
+      include,
+      exclude,
+    });
+    const docs = readDocs(root, include, exclude);
+    logger.debug("found {count} docs", { count: docs.size });
+    return DdtSession.fromSources(adapter, docs, root);
   }
 
   public get index(): DocIndex {
@@ -70,6 +81,9 @@ export class DdtSession {
   }
 
   #logFences(doc: string): void {
+    if (this.#index.fencesOf(doc).length === 0) {
+      logger.trace("{doc} has no fences", () => ({ doc: relative(this.root, doc) }));
+    }
     for (const { id, block } of this.#index.fencesOf(doc)) {
       logger.debug("{file}:{line} -> {id}", () => ({
         file: block.details.file,

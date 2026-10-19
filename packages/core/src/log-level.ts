@@ -1,4 +1,10 @@
-import { configureSync, parseLogLevel, type LogLevel, type Sink } from "@logtape/logtape";
+import {
+  configureSync,
+  getLogger,
+  parseLogLevel,
+  type LogLevel,
+  type Sink,
+} from "@logtape/logtape";
 
 export type { LogLevel };
 
@@ -16,4 +22,14 @@ export function configureLogging(sink: Sink, logLevel?: LogLevel): void {
       { category: ["logtape", "meta"], lowestLevel: "warning", sinks: ["ddtds"] },
     ],
   });
+  const source =
+    process.env.DDT_LOG_LEVEL !== undefined
+      ? "DDT_LOG_LEVEL"
+      : logLevel === undefined
+        ? "the default"
+        : "the logLevel option";
+  getLogger(["ddtds", "logging"]).debug("log level is {level} from {source}", () => ({
+    level: resolveLogLevel(logLevel),
+    source,
+  }));
 }

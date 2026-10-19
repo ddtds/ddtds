@@ -1,10 +1,13 @@
+import { getLogger } from "@logtape/logtape";
 import { MagicString } from "magic-string";
 import type { FenceRuntime } from "../runtime.ts";
 import { serialize } from "seroval";
 import type { TestAdapter } from "./adapter.ts";
 import { runtimeImport } from "./module-system.ts";
-import { renderImport, unshadowed } from "./static-import.ts";
+import { localName, renderImport, unshadowed } from "./static-import.ts";
 import type { FenceOutcome, Fragment } from "./plan.ts";
+
+const logger = getLogger(["ddtds", "emit"]);
 
 /** One line of code, or a block whose body keeps fragments for source maps */
 export type Expression =
@@ -54,8 +57,22 @@ function asyncFunction(body: readonly Fragment[]): Expression {
   return { tag: "block", open: "async () => {", body: body.map(indent), close: "}" };
 }
 
-function emitRun(adapter: TestAdapter, outcome: Extract<FenceOutcome, { tag: "run" }>): FenceCode {
+function emitRun(
+  adapter: TestAdapter,
+  outcome: Extract<FenceOutcome, { tag: "run" }>,
+  where: string,
+): FenceCode {
   const injected = unshadowed(adapter.fenceImports, outcome.importedNames);
+  const shadowed = adapter.fenceImports.filter((fenceImport) => !injected.includes(fenceImport));
+  for (const fenceImport of shadowed) {
+    logger.debug(
+      "{where}: fence already statically imports {name}: skipping injecting global fence import",
+      () => ({
+        where,
+        name: localName(fenceImport),
+      }),
+    );
+  }
   const imports = [
     ...injected.map((fenceImport) => renderImport(fenceImport, adapter.module ?? "esm")),
     ...outcome.imports,
@@ -68,7 +85,7 @@ function emitRun(adapter: TestAdapter, outcome: Extract<FenceOutcome, { tag: "ru
   };
 }
 
-export function emitFence(adapter: TestAdapter, outcome: FenceOutcome): FenceCode {
+export function emitFence(adapter: TestAdapter, outcome: FenceOutcome, where: string): FenceCode {
   if (outcome.tag === "emptyPass") return { imports: [], ...asyncFunction([]) };
   if (outcome.tag === "missingCompileError") {
     return runtimeCall(adapter, "missingCompileError", {
@@ -83,5 +100,5 @@ export function emitFence(adapter: TestAdapter, outcome: FenceOutcome): FenceCod
       cause: outcome.cause,
     });
   }
-  return emitRun(adapter, outcome);
+  return emitRun(adapter, outcome, where);
 }
