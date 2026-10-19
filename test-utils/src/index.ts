@@ -58,6 +58,12 @@ export type Watcher = {
   close(): Promise<void>;
 };
 
+/** Imports a runner injects into fences: the defaults, or only `extra` without them */
+export type Globals = {
+  defaults: boolean;
+  extra: readonly { module: string; name: string; alias?: string }[];
+};
+
 export type Runner = {
   name: string;
   prepare?(root: string): void;

@@ -3,7 +3,18 @@ import type { ImportBinding } from "../fences/parse.ts";
 import type { ModuleSystem } from "./adapter.ts";
 import { importStatement } from "./module-system.ts";
 
-/** Only `typedImports` builds one for users, so the module and its names always agree */
+/**
+ * Only `typedImports` builds one for users, so the module and its names always agree
+ *
+ * @example
+ * ```ts run
+ * import { typedImports, type StaticImport } from "@ddtds/core";
+ *
+ * const importFromPath = typedImports<typeof import("node:path")>("node:path");
+ * const basename: StaticImport = importFromPath("basename");
+ * expect(basename).toEqual({ module: "node:path", name: "basename" });
+ * ```
+ */
 export type StaticImport = Brand<
   Readonly<{ module: string; name: string; alias?: string }>,
   "StaticImport"
