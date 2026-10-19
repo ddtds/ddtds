@@ -6,6 +6,7 @@ import { vitestAdapter } from "./adapter.ts";
 import { configureLogging } from "./logging.ts";
 
 const UNKNOWN_ANNOTATION = /unknown annotation/;
+const FENCE_MAPPING = /guide\.md.:1 -> .__ddtds__\/guide_md_1/;
 
 afterEach(() => resetSync());
 
@@ -22,7 +23,7 @@ test("debug logs where each fence is generated", () => {
   configureLogging(recorder.sink, "debug");
   const sources = new Map([["/root/guide.md", "```ts run\n1;\n```\n"]]);
   DdtSession.fromSources(vitestAdapter(), sources, "/root");
-  recorder.assertLogged({ level: "debug", message: /guide\.md.:1 -> .__ddtds__\/guide_md_1/ });
+  recorder.assertLogged({ level: "debug", message: FENCE_MAPPING });
 });
 
 test("leaves LogTape alone when the application configured it", () => {
