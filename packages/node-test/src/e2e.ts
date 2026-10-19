@@ -1,9 +1,10 @@
 import { writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { cli, type Globals, type Mode, type Runner } from "@ddtds/test-utils";
+import { defaultGlobals } from "./index.ts";
 
 const register = join(import.meta.dirname, "register.ts");
-const index = join(import.meta.dirname, "index.ts");
+const registerGlobals = join(import.meta.dirname, "register-globals.ts");
 const reporter = join(import.meta.dirname, "reporter.ts");
 
 const command = (hooks: string) =>
@@ -16,21 +17,12 @@ const command = (hooks: string) =>
 export const nodeTest: Runner = cli({ name: "node:test", command: command(register) });
 
 export function nodeTestWithGlobals({ defaults, extra }: Globals): Runner {
-  const globals = defaults
-    ? `[...defaultGlobals, ...${JSON.stringify(extra)}]`
-    : JSON.stringify(extra);
   return cli({
     name: "node:test with globals",
     prepare(root) {
-      writeFileSync(
-        join(root, "register.mts"),
-        [
-          `import { registerHooks } from "node:module";`,
-          `import { ddtHooks, defaultGlobals } from ${JSON.stringify(index)};`,
-          `registerHooks(ddtHooks(process.cwd(), { globals: ${globals} }));`,
-        ].join("\n"),
-      );
+      const globals = [...(defaults ? defaultGlobals : []), ...extra];
+      writeFileSync(join(root, "globals.json"), JSON.stringify(globals));
     },
-    command: command("./register.mts"),
+    command: command(registerGlobals),
   });
 }

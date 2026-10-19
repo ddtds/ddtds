@@ -53,8 +53,8 @@ const config: KnipConfig = {
       ignoreDependencies: ["shadow-dom-testing-library"],
     },
     "packages/node-test": {
-      // loaded by `node --test --test-reporter`, not imported
-      entry: ["src/reporter.ts"],
+      // loaded by `node --test`, not imported
+      entry: ["src/reporter.ts", "src/register-globals.ts"],
     },
   },
 };
