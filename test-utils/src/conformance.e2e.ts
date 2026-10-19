@@ -4,6 +4,7 @@
  */
 
 import { describe, expect, test } from "vitest";
+import { typedImports } from "@ddtds/core";
 import {
   fence,
   jsdoc,
@@ -653,8 +654,9 @@ export function conformance(name: string, runner: Runner, dialect: Dialect): voi
   describe.concurrent.each(dialect.globals ? [dialect.globals] : [])(
     `${name} globals conformance`,
     ({ names, runner: withGlobals }) => {
-      const basename = { module: "node:path", name: "basename" };
-      const sep = { module: "node:path", name: "sep" };
+      const importFromPath = typedImports<typeof import("node:path")>("node:path");
+      const basename = importFromPath("basename");
+      const sep = importFromPath("sep");
       const isFunction = (global: string): string =>
         dialect.equal(`typeof ${global}`, '"function"');
 
@@ -673,7 +675,7 @@ export function conformance(name: string, runner: Runner, dialect: Dialect): voi
         ],
         [
           "injects a global under its alias",
-          { defaults: true, extra: [{ ...basename, alias: "base" }] },
+          { defaults: true, extra: [importFromPath("basename", { alias: "base" })] },
           fence(lines(isFunction("base"), notInjected("basename"))),
           { "doc.md:1": PASSED },
         ],

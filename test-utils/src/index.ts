@@ -7,6 +7,7 @@ import { createInterface } from "node:readline";
 import type { Readable } from "node:stream";
 import { setTimeout as delay } from "node:timers/promises";
 import * as v from "valibot";
+import type { StaticImport } from "@ddtds/core";
 import { frame, type Frame } from "./frames.ts";
 
 export { framesOf, projectFrames, type Frame } from "./frames.ts";
@@ -61,7 +62,7 @@ export type Watcher = {
 /** Imports a runner injects into fences: the defaults, or only `extra` without them */
 export type Globals = {
   defaults: boolean;
-  extra: readonly { module: string; name: string; alias?: string }[];
+  extra: readonly StaticImport[];
 };
 
 export type Runner = {
