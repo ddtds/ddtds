@@ -8,9 +8,10 @@ import {
   moduleFiles as generateModuleFiles,
   moduleFor,
   resolveLogLevel,
-  type DdtOptions,
   type DocsOptions,
   type GeneratedModule,
+  type LogLevel,
+  type StaticImport,
 } from "@ddtds/core";
 import { getLogger } from "@logtape/logtape";
 import { defaultGlobals, vitestAdapter, vitestTestAdapter } from "./adapter.ts";
@@ -39,7 +40,16 @@ const logger = getLogger(["ddtds", "vitest"]);
 
 const WATCH_TRIGGER = /\.(?:mdx?|[cm]?[jt]sx?)$/;
 
-export type DdtPluginOptions = DocsOptions & DdtOptions;
+export type DdtPluginOptions = DocsOptions & {
+  /**
+   * Precedence (highest to lowest):
+   *   1. `DDT_LOG_LEVEL` environment variable
+   *   2. `logLevel` option
+   *   3. `"info"` (default)
+   */
+  logLevel?: LogLevel;
+  globals?: readonly StaticImport[];
+};
 
 export function ddtPlugin({
   logLevel,

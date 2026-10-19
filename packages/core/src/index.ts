@@ -3,7 +3,6 @@ export { defaultDocsInclude, defaultDocsExclude, defaultOutDir } from "./constan
 export { DocIndex, type Fence, type IndexOptions } from "./docs/docs.ts";
 export { DdtCompileError } from "./fences/compile-error.ts";
 export { resolveLogLevel, type LogLevel } from "./log-level.ts";
-export type { DdtOptions } from "./options.ts";
 export {
   moduleFiles,
   moduleFor,
