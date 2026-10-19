@@ -15,7 +15,7 @@ import { getLogger } from "@logtape/logtape";
 import { defaultGlobals, vitestAdapter, vitestTestAdapter } from "./adapter.ts";
 import { configureLogging, createViteSink } from "./logging.ts";
 
-export { defaultGlobals, vitestImports } from "./adapter.ts";
+export { defaultGlobals, vitestImports, vitestTestAdapter } from "./adapter.ts";
 export type { CodeBlock, DocIndex, DocsOptions, Fence, LogLevel, StaticImport } from "@ddtds/core";
 export {
   DdtCompileError,
