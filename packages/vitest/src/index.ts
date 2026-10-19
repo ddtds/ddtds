@@ -58,13 +58,6 @@ export function ddtPlugin({
     config(config) {
       const root = config.test?.root ?? config.root ?? process.cwd();
       session = DdtSession.fromFiles(adapter, { ...docs, root });
-      for (const { id, block } of session.index.fences()) {
-        logger.debug("{file}:{line} -> {id}", () => ({
-          file: block.details.file,
-          line: block.line,
-          id: relative(root, id),
-        }));
-      }
       const included = new Set(docFiles());
       return {
         test: {

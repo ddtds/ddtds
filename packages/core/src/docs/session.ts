@@ -1,10 +1,13 @@
 import { readFileSync } from "node:fs";
-import { join, resolve } from "node:path";
+import { join, relative, resolve } from "node:path";
+import { getLogger } from "@logtape/logtape";
 import type { TestAdapter } from "../codegen/adapter.ts";
 import { moduleFor, type GeneratedModule } from "../codegen/modules.ts";
 import { type DocsConfig, readDocs, resolveDocsOptions } from "./discovery.ts";
 import { isMarkdownFile, isSourceFile } from "../fences/doc-kinds.ts";
 import { DocIndex } from "./docs.ts";
+
+const logger = getLogger(["ddtds", "session"]);
 
 export class DdtSession {
   readonly #adapter: TestAdapter;
@@ -21,6 +24,7 @@ export class DdtSession {
     this.#adapter = adapter;
     this.#tracked = tracked;
     this.#index = DocIndex.fromSources(sources, { root, moduleDir: join(root, "__ddtds__") });
+    for (const [doc] of this.#index.docs()) this.#logFences(doc);
   }
 
   public static open(adapter: TestAdapter, root: string): DdtSession {
@@ -62,6 +66,17 @@ export class DdtSession {
     // indexing is pure in the source, so an unchanged doc needs no work
     if (this.#index.sourceOf(doc) === source) return;
     this.#index = this.#index.withDoc(doc, source);
+    this.#logFences(doc);
+  }
+
+  #logFences(doc: string): void {
+    for (const { id, block } of this.#index.fencesOf(doc)) {
+      logger.debug("{file}:{line} -> {id}", () => ({
+        file: block.details.file,
+        line: block.line,
+        id: relative(this.root, id),
+      }));
+    }
   }
 
   /** Rereads a tracked doc and returns the id to run in its place, if it has fences */
