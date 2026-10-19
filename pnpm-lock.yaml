@@ -875,6 +875,9 @@ importers:
 
   test-utils:
     dependencies:
+      '@ddtds/core':
+        specifier: workspace:*
+        version: link:../packages/core
       stack-utils:
         specifier: catalog:dev
         version: 2.0.6
