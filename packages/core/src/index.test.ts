@@ -287,6 +287,14 @@ describe("findDocs", () => {
     expect(find(fixture())).toEqual(["guide.md", "nested/guide.md"]);
   });
 
+  test("skips declaration files by default", () => {
+    const root = fixture();
+    for (const doc of ["types.d.ts", "types.d.mts", "types.d.cts"]) {
+      writeFileSync(join(root, doc), "");
+    }
+    expect(find(root)).toEqual(["guide.md", "nested/guide.md"]);
+  });
+
   test("only finds docs matching include", () => {
     expect(find(fixture(), ["nested/*.md"])).toEqual(["nested/guide.md"]);
   });
