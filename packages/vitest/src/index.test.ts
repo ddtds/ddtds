@@ -1,4 +1,4 @@
-import { writeFileSync } from "node:fs";
+import { rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { expect, test } from "vitest";
 import { fence, fixture } from "@ddtds/test-utils";
@@ -82,6 +82,18 @@ test("refreshes a changed doc before loading its test module again", async () =>
   writeFileSync(doc, fence("expect(1).toBe(2);"));
 
   expect(await instance.vite.pluginContainer.load(id)).not.toEqual(before);
+});
+
+test("forgets a doc whose file is gone before loading its test module again", async () => {
+  await using dir = fixture({ "guide.md": fence("expect(1).toBe(1);") });
+  await using instance = await create(dir.root, { plugin: { include: ["guide.md"] } });
+
+  const doc = join(dir.root, "guide.md");
+  const id = `${doc}?ddtds`;
+  await instance.vite.pluginContainer.load(id);
+  rmSync(doc);
+
+  expect(await instance.vite.pluginContainer.load(id)).toBeNull();
 });
 
 test("keeps the user's test.exclude and still skips ddt build output", async () => {

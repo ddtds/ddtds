@@ -49,6 +49,12 @@ export class DocIndex {
     for (const fence of fences) this.#fences.set(fence.id, fence);
   }
 
+  public removeDoc(doc: string): void {
+    this.#dropFences(doc);
+    this.#docs.delete(doc);
+    this.#sources.delete(doc);
+  }
+
   #dropFences(doc: string): void {
     for (const fence of this.#docs.get(doc) ?? []) this.#fences.delete(fence.id);
   }
