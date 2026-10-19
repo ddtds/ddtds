@@ -1,5 +1,5 @@
+import { configureLogging as configure } from "@ddtds/core";
 import {
-  configureSync,
   getConfig,
   getTextFormatter,
   type LogLevel,
@@ -40,16 +40,9 @@ export function createViteSink(): ViteSink {
 
 let ours: ReturnType<typeof getConfig> = null;
 
-export function configureLogging(level: LogLevel, sink: Sink): void {
+export function configureLogging(sink: Sink, logLevel?: LogLevel): void {
   const current = getConfig();
   if (current !== null && current !== ours) return;
-  configureSync({
-    reset: true,
-    sinks: { ddtds: sink },
-    loggers: [
-      { category: ["ddtds"], lowestLevel: level, sinks: ["ddtds"] },
-      { category: ["logtape", "meta"], lowestLevel: "warning", sinks: ["ddtds"] },
-    ],
-  });
+  configure(sink, logLevel);
   ours = getConfig();
 }

@@ -7,7 +7,6 @@ import {
   defaultOutDir,
   moduleFiles as generateModuleFiles,
   moduleFor,
-  resolveLogLevel,
   type DdtOptions,
   type DocsOptions,
   type GeneratedModule,
@@ -47,7 +46,7 @@ export function ddtPlugin({
   ...docs
 }: DdtPluginOptions = {}): Plugin {
   const vite = createViteSink();
-  configureLogging(resolveLogLevel(logLevel), vite);
+  configureLogging(vite, logLevel);
   let project: TestProject | undefined;
   const adapter = vitestAdapter(globals);
   let session = DdtSession.fromSources(adapter, new Map(), process.cwd());

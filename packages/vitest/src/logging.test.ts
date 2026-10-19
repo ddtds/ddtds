@@ -10,7 +10,7 @@ afterEach(() => resetSync());
 
 test("routes core logs to the configured sink", () => {
   const recorder = createLogRecorder();
-  configureLogging("info", recorder.sink);
+  configureLogging(recorder.sink, "info");
   parseCodeFences("```ts rnu\n1;\n```\n", "t.md");
   expect(recorder.records).toHaveLength(1);
   recorder.assertLogged({ level: "error", message: UNKNOWN_ANNOTATION });
@@ -26,7 +26,7 @@ test("leaves LogTape alone when the application configured it", () => {
     ],
   });
   const ours = createLogRecorder();
-  configureLogging("info", ours.sink);
+  configureLogging(ours.sink, "info");
   getLogger(["ddtds", "test"]).debug("routed by the app");
   app.assertLogged({ level: "debug", message: "routed by the app" });
   expect(ours.records).toEqual([]);
