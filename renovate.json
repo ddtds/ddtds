@@ -56,6 +56,18 @@
       "groupName": "oxc (major)",
       "matchUpdateTypes": ["major"],
       "automerge": false
+    },
+    {
+      "matchPackageNames": ["/^@logtape//"],
+      "groupName": "logtape (minor + patch)",
+      "matchUpdateTypes": ["patch", "minor"],
+      "automerge": false
+    },
+    {
+      "matchPackageNames": ["/^@logtape//"],
+      "groupName": "logtape (major)",
+      "matchUpdateTypes": ["major"],
+      "automerge": false
     }
   ],
   "lockFileMaintenance": {
