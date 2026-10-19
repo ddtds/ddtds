@@ -151,11 +151,19 @@ export function parseCodeFences(
 
     const result = parseAnnotation(meta);
     if (result.tag === "unknown") {
-      logger.error('unknown annotation in code block: "{raw}"', { raw: result.raw });
+      logger.warn('unknown annotation in code block: "{raw}"', { raw: result.raw });
       return;
     }
     if (result.annotation === ANNOTATIONS.SKIP) return;
     if (!node.position) throw new Error("code block has no position");
+    const setup = setupBefore(siblings, index);
+    if (setup.length > 0) {
+      logger.debug("{path}:{line} uses {count} setup comments", {
+        path,
+        line: node.position.start.line,
+        count: setup.length,
+      });
+    }
     blocks.push(
       new CodeBlock({
         code: node.value,
@@ -164,7 +172,7 @@ export function parseCodeFences(
         path,
         rangeInText: node.position,
         placement,
-        setup: setupBefore(siblings, index),
+        setup,
       }),
     );
   });
