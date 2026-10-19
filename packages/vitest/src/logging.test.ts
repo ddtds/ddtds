@@ -27,15 +27,6 @@ test("debug logs where each fence is generated", () => {
   recorder.assertLogged({ level: "debug", message: FENCE_MAPPING });
 });
 
-test("debug logs where each fence is generated", () => {
-  const recorder = createLogRecorder();
-  configureLogging(recorder.sink, "debug");
-  const sources = new Map([["/root/guide.md", "```ts run\n1;\n```\n"]]);
-  DdtSession.fromSources(vitestAdapter(defaultGlobals), sources, "/root");
-  expect(recorder.records).toHaveLength(1);
-  recorder.assertLogged({ level: "debug", message: FENCE_MAPPING });
-});
-
 test("leaves LogTape alone when the application configured it", () => {
   const app = createLogRecorder();
   configureSync({
