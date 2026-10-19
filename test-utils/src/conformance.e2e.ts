@@ -4,7 +4,7 @@
  */
 
 import { describe, expect, test } from "vitest";
-import { typedImports } from "@ddtds/core";
+import { typedImports, type StaticImport } from "@ddtds/core";
 import {
   fence,
   jsdoc,
@@ -12,13 +12,18 @@ import {
   markdown,
   spawn,
   type Failures,
-  type Globals,
   type Kind,
   type Outcomes,
   type Runner,
 } from "./index.ts";
 
 const LINE_SUFFIX = /:\d+$/;
+
+/** Imports a runner injects into fences: the defaults, or only `extra` without them */
+export type Globals = {
+  defaults: boolean;
+  extra: readonly StaticImport[];
+};
 
 export type Dialect = {
   /** An assertion that passes when `actual` equals `expected` */

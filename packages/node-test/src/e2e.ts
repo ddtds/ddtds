@@ -1,6 +1,7 @@
 import { writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { cli, type Globals, type Mode, type Runner } from "@ddtds/test-utils";
+import type { Globals } from "@ddtds/test-utils/conformance";
+import { cli, type Mode, type Runner } from "@ddtds/test-utils";
 import { defaultGlobals } from "./index.ts";
 
 const register = join(import.meta.dirname, "register.ts");

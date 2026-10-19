@@ -7,7 +7,6 @@ import { createInterface } from "node:readline";
 import type { Readable } from "node:stream";
 import { setTimeout as delay } from "node:timers/promises";
 import * as v from "valibot";
-import type { StaticImport } from "@ddtds/core";
 import { frame, type Frame } from "./frames.ts";
 
 export { framesOf, projectFrames, type Frame } from "./frames.ts";
@@ -57,12 +56,6 @@ export class Lines extends EventEmitter {
 export type Watcher = {
   next(): Promise<Report>;
   close(): Promise<void>;
-};
-
-/** Imports a runner injects into fences: the defaults, or only `extra` without them */
-export type Globals = {
-  defaults: boolean;
-  extra: readonly StaticImport[];
 };
 
 export type Runner = {

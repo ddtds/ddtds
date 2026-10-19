@@ -1,10 +1,5 @@
-import {
-  emptyReport,
-  type Globals,
-  type Report,
-  type Runner,
-  type Watcher,
-} from "@ddtds/test-utils";
+import { emptyReport, type Report, type Runner, type Watcher } from "@ddtds/test-utils";
+import type { Globals } from "@ddtds/test-utils/conformance";
 import type { ViteUserConfig } from "vitest/config";
 import type { Reporter, TestModule } from "vitest/node";
 import { create, failureFrames, outcomes } from "./test-utils.ts";
