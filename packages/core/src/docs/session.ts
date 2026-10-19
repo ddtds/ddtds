@@ -9,13 +9,22 @@ import { isMarkdownFile, isSourceFile } from "../fences/doc-kinds.ts";
 import { DocIndex } from "./docs.ts";
 
 const logger = getLogger(["ddtds", "session"]);
-const readFromDisk = (doc: string): string => readFileSync(doc, "utf8");
+/** Reads a doc, or `undefined` when the file is gone */
+const readFromDisk = (doc: string): string | undefined => {
+  try {
+    return readFileSync(doc, "utf8");
+  } catch (error) {
+    // only a missing file is "gone"; permission and IO errors should surface
+    if (error instanceof Error && "code" in error && error.code === "ENOENT") return undefined;
+    throw error;
+  }
+};
 
 export class DdtSession {
   readonly #adapter: TestAdapter;
   /** `"all"` tracks any doc a host asks about */
   readonly #tracked: Set<string> | "all";
-  readonly #read: (doc: string) => string;
+  readonly #read: (doc: string) => string | undefined;
   #index: DocIndex;
 
   private constructor(
@@ -23,7 +32,7 @@ export class DdtSession {
     sources: ReadonlyMap<string, string>,
     root: string,
     tracked: Set<string> | "all",
-    read: (doc: string) => string,
+    read: (doc: string) => string | undefined,
   ) {
     this.#adapter = adapter;
     this.#tracked = tracked;
@@ -43,7 +52,7 @@ export class DdtSession {
     adapter: TestAdapter,
     sources: ReadonlyMap<string, string>,
     root: string,
-    read: (doc: string) => string = readFromDisk,
+    read: (doc: string) => string | undefined = readFromDisk,
   ): DdtSession {
     return new DdtSession(adapter, sources, root, new Set(sources.keys()), read);
   }
@@ -73,12 +82,13 @@ export class DdtSession {
     return this.#tracked.has(doc) || this.#index.hasDoc(doc);
   }
 
-  /** Rereads a doc from disk */
+  /** Rereads a doc from disk, forgetting it if the file is gone */
   public refresh(id: string): void {
     const doc = resolve(this.root, id);
     if (!isMarkdownFile(doc) && !this.#tracks(doc)) return;
     if (this.#tracked !== "all") this.#tracked.add(doc);
     const source = this.#read(doc);
+    if (source === undefined) return this.#index.removeDoc(doc);
     // indexing is pure in the source, so an unchanged doc needs no work
     if (this.#index.sourceOf(doc) === source) return;
     this.#index.replaceDoc(doc, source);

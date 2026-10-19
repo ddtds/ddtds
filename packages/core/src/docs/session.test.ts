@@ -42,7 +42,7 @@ function memorySession(files: Record<string, string> = {}): {
   const contents = new Map(
     Object.entries(files).map(([file, content]) => [join(ROOT, file), content] as const),
   );
-  const session = DdtSession.fromSources(adapter, contents, ROOT, (doc) => contents.get(doc)!);
+  const session = DdtSession.fromSources(adapter, contents, ROOT, (doc) => contents.get(doc));
   return {
     session,
     edit: (file, content) => {
@@ -128,6 +128,23 @@ describe("DdtSession.refresh", () => {
   test("does not run a doc it was never given", () => {
     const { session } = memorySession();
     expect(session.entry("guide.md")).toBeUndefined();
+  });
+
+  test("forgets a doc whose file is gone, and picks it up again when it returns", () => {
+    const path = join(ROOT, "guide.md");
+    const first = doc("expect(1).toBe(1);");
+    let source: string | undefined = first;
+    const session = DdtSession.fromSources(adapter, new Map([[path, first]]), ROOT, () => source);
+
+    source = undefined;
+    session.refresh(path);
+    expect(session.index.hasDoc(path)).toBe(false);
+    expect(session.index.size).toBe(0);
+
+    source = doc("expect(2).toBe(2);");
+    session.refresh(path);
+    expect(session.index.hasDoc(path)).toBe(true);
+    expect(session.index.size).toBe(1);
   });
 
   test("indexes a doc it has not seen yet", () => {
