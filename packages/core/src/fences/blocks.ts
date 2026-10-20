@@ -28,7 +28,7 @@ import {
   type Segment,
 } from "./segments.ts";
 import { setupBefore } from "./hidden.ts";
-import { parseInfo } from "./info.ts";
+import { parseInfo, type FenceInfo } from "./info.ts";
 import { splitImportsAndBlock, type PreparedBlock } from "./parse.ts";
 
 const logger = getLogger(["ddtds", "blocks"]);
@@ -38,8 +38,11 @@ type AnnotationResult =
   | { tag: "none" }
   | { tag: "conflict"; annotations: Annotation[] };
 
-function parseAnnotation(meta: string): AnnotationResult {
-  const annotations = parseInfo(meta).words.filter(isAnnotation);
+const nonEmpty = (value: string | undefined): string | undefined =>
+  value === "" ? undefined : value;
+
+function parseAnnotation({ words }: FenceInfo): AnnotationResult {
+  const annotations = words.filter(isAnnotation);
   const [annotation] = annotations;
   if (annotation === undefined) return { tag: "none" };
   if (annotations.length > 1) return { tag: "conflict", annotations };
@@ -50,6 +53,7 @@ export type CodeBlockInit = {
   code: string;
   lang: Lang;
   annotation: Annotation | null;
+  title?: string;
   path: string;
   rangeInText: SourceRange;
   placement?: Placement;
@@ -60,11 +64,14 @@ export class CodeBlock {
   readonly #code: string;
   readonly #segments: readonly Segment[];
   public readonly details: BlockDetails;
+  /** Names the fence's test, from `title="…"` in its info string */
+  public readonly title: string | null;
   readonly #placement: Placement;
 
   public constructor(init: CodeBlockInit) {
     const { code, setup = [], placement = WHOLE_FILE, rangeInText } = init;
     this.#placement = placement;
+    this.title = init.title ?? null;
     this.#code = codeWithSetup(setup, code);
     this.#segments = segmentsOf(setup, zeroBased(rangeInText.start));
     this.details = {
@@ -160,7 +167,8 @@ export function parseCodeFences(
     const { lang, meta } = node;
     if (!meta || !lang || !isLang(lang)) return;
 
-    const result = parseAnnotation(meta);
+    const info = parseInfo(meta);
+    const result = parseAnnotation(info);
     if (result.tag === "conflict") {
       logger.warn("code block has more than one annotation: {annotations}", () => ({
         annotations: result.annotations.join(", "),
@@ -182,6 +190,7 @@ export function parseCodeFences(
         code: node.value,
         lang,
         annotation: result.annotation,
+        title: nonEmpty(info.attributes.get("title")),
         path,
         rangeInText: node.position,
         placement,
