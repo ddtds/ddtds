@@ -9,7 +9,7 @@
   },
   "devDependencies": {
     "@ddtds/vitest": "workspace:*",
-    "@types/node": "catalog:dev",
-    "vitest": "catalog:dev"
+    "@types/node": "catalog:examples",
+    "vitest": "catalog:examples"
   }
 }
