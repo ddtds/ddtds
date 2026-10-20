@@ -23,7 +23,6 @@ const adapter: TestAdapter = {
 const compileErrorModule = /runtime\.compileError.*phase:"typecheck"/;
 const compileErrorCall = /compileError/;
 const missingTypeScript = /typecheck needs "typescript" installed/;
-const nativeTypeScript = /supports TypeScript 5 and 6, found 7\.0\.0/;
 const fence = (code: string, annotation = "run", lang = "ts"): string =>
   `\`\`\`${lang} ${annotation}\n${code}\n\`\`\`\n`;
 const typescript = dirname(
@@ -35,21 +34,13 @@ after(() => roots.forEach((root) => rmSync(root, { recursive: true, force: true 
 function project(
   guide: string,
   files: Record<string, string> = {},
-  installed: "version-under-test" | "none" | "native" = "version-under-test",
+  installed: "version-under-test" | "none" = "version-under-test",
 ): string {
   const root = mkdtempSync(join(tmpdir(), "ddtds-typecheck-"));
   roots.push(root);
   const modules = join(root, "node_modules");
   mkdirSync(join(modules, "test-stub"), { recursive: true });
   if (installed === "version-under-test") symlinkSync(typescript, join(modules, "typescript"));
-  if (installed === "native") {
-    mkdirSync(join(modules, "typescript"));
-    writeFileSync(
-      join(modules, "typescript/package.json"),
-      '{ "name": "typescript", "main": "index.js" }',
-    );
-    writeFileSync(join(modules, "typescript/index.js"), 'module.exports = { version: "7.0.0" };');
-  }
   writeFileSync(join(root, "package.json"), '{ "type": "module" }');
   writeFileSync(
     join(modules, "test-stub/package.json"),
@@ -206,11 +197,6 @@ describe("unsupported installs", () => {
   test("typecheck needs typescript installed", () => {
     const session = DdtSession.fromFiles(adapter, { root: project(fence("1;"), {}, "none") });
     assert.throws(() => session.typeErrors(), missingTypeScript);
-  });
-
-  test("typecheck rejects the native TypeScript", () => {
-    const session = DdtSession.fromFiles(adapter, { root: project(fence("1;"), {}, "native") });
-    assert.throws(() => session.typeErrors(), nativeTypeScript);
   });
 });
 

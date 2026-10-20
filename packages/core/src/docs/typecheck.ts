@@ -95,17 +95,12 @@ function fenceSource({ block }: Fence, adapter: TestAdapter): string {
 
 function loadTypeScript(root: string): CompilerApi {
   const require = createRequire(join(root, "package.json"));
-  const requireTypeScript: (id: "typescript") => CompilerApi | { version: string } = require;
-  let ts: CompilerApi | { version: string };
+  const requireTypeScript: (id: "typescript") => CompilerApi = require;
   try {
-    ts = requireTypeScript("typescript");
+    return requireTypeScript("typescript");
   } catch (error) {
     throw new Error('typecheck needs "typescript" installed', { cause: error });
   }
-  if (!("createProgram" in ts)) {
-    throw new Error(`typecheck supports TypeScript 5 and 6, found ${ts.version}`);
-  }
-  return ts;
 }
 
 function compilerOptions(ts: CompilerApi, configFile: string): TypeScript.CompilerOptions {
