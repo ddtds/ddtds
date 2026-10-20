@@ -22,6 +22,15 @@ const adapter: TestAdapter = {
 
 const compileErrorModule = /runtime\.compileError.*phase:"typecheck"/;
 const compileErrorCall = /compileError/;
+const projectOptions = {
+  strict: true,
+  target: "esnext",
+  module: "preserve",
+  moduleResolution: "bundler",
+  jsx: "react-jsx",
+  skipLibCheck: true,
+};
+const missingTsconfig = /typecheck needs a tsconfig\.json/;
 const missingTypeScript = /typecheck needs "typescript" installed/;
 const fence = (code: string, annotation = "run", lang = "ts"): string =>
   `\`\`\`${lang} ${annotation}\n${code}\n\`\`\`\n`;
@@ -42,6 +51,7 @@ function project(
   mkdirSync(join(modules, "test-stub"), { recursive: true });
   if (installed === "version-under-test") symlinkSync(typescript, join(modules, "typescript"));
   writeFileSync(join(root, "package.json"), '{ "type": "module" }');
+  writeFileSync(join(root, "tsconfig.json"), JSON.stringify({ compilerOptions: projectOptions }));
   writeFileSync(
     join(modules, "test-stub/package.json"),
     '{ "name": "test-stub", "types": "index.d.ts" }',
@@ -197,6 +207,12 @@ describe("unsupported installs", () => {
   test("typecheck needs typescript installed", () => {
     const session = DdtSession.fromFiles(adapter, { root: project(fence("1;"), {}, "none") });
     assert.throws(() => session.typeErrors(), missingTypeScript);
+  });
+
+  test("typecheck needs a tsconfig", () => {
+    const root = project(fence("1;"));
+    rmSync(join(root, "tsconfig.json"));
+    assert.throws(() => DdtSession.fromFiles(adapter, { root }).typeErrors(), missingTsconfig);
   });
 });
 

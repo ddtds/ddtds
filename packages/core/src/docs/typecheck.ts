@@ -14,15 +14,6 @@ type Compiler = { ts: CompilerApi; service: TypeScript.LanguageService };
 
 const TYPED_PARSERS: ReadonlySet<Parser> = new Set(["ts", "tsx"]);
 
-const defaultCompilerOptions = {
-  strict: true,
-  target: "esnext",
-  module: "preserve",
-  moduleResolution: "bundler",
-  jsx: "react-jsx",
-  skipLibCheck: true,
-};
-
 export class TypeChecker {
   readonly #root: string;
   readonly #adapter: TestAdapter;
@@ -109,15 +100,16 @@ function loadTypeScript(root: string): CompilerApi {
 
 function compilerOptions(ts: CompilerApi, root: string): TypeScript.CompilerOptions {
   const configFile = ts.findConfigFile(root, (file) => ts.sys.fileExists(file));
-  const options =
-    configFile === undefined
-      ? ts.convertCompilerOptionsFromJson(defaultCompilerOptions, root).options
-      : ts.getParsedCommandLineOfConfigFile(
-          configFile,
-          {},
-          { ...ts.sys, onUnRecoverableConfigFileDiagnostic: () => {} },
-        )?.options;
-  return { ...options, noEmit: true };
+  if (configFile === undefined) throw new Error(`typecheck needs a tsconfig.json in ${root}`);
+  const config = ts.getParsedCommandLineOfConfigFile(
+    configFile,
+    {},
+    {
+      ...ts.sys,
+      onUnRecoverableConfigFileDiagnostic: () => {},
+    },
+  );
+  return { ...config?.options, noEmit: true };
 }
 
 function typeError(
