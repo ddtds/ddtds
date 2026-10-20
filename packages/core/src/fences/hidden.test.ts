@@ -2,6 +2,7 @@ import { describe, expect, test } from "vitest";
 import { markdown } from "../test-utils.ts";
 import { parseCodeFences } from "./blocks.ts";
 import { parseJsDocFences } from "./jsdoc.ts";
+import { splitImportsAndBlock } from "./parse.ts";
 
 const AT_COMMENT = /doc\.md:1:/;
 
@@ -10,7 +11,7 @@ const fence = (...lines: string[]): string => markdown(lines.join("\n"));
 function split(source: string, path = "doc.md") {
   const [block] = parseCodeFences(source, path);
   if (!block) throw new Error("no fence");
-  const { imports, body } = block.splitImports();
+  const { imports, body } = splitImportsAndBlock(block);
   return { block, imports: imports.map(String), body: body.map(String) };
 }
 
@@ -75,7 +76,9 @@ describe("ddt-setup comments above a fence", () => {
       "export function f() {}",
     ].join("\n");
     const [block] = parseJsDocFences(source, "src/f.ts");
-    expect(block?.splitImports().imports.map(String)).toEqual(["import { x } from 'pkg'"]);
+    expect(block && splitImportsAndBlock(block).imports.map(String)).toEqual([
+      "import { x } from 'pkg'",
+    ]);
   });
 
   test.each([
@@ -173,7 +176,7 @@ describe("ddt-setup comments above a fence", () => {
 
   test("an empty setup comment adds nothing that moves the fence", () => {
     const [block] = parseCodeFences(["<!-- ddt-setup -->", fence("run();")].join("\n"), "doc.md");
-    const { body } = block?.splitImports() ?? { body: [] };
+    const { body } = (block && splitImportsAndBlock(block)) ?? { body: [] };
     expect(body.map(String)).toEqual(["run();"]);
     expect(block?.positionAt(block.code.indexOf("run"))).toEqual({ line: 3, column: 1 });
   });
@@ -262,6 +265,6 @@ describe("ddt-setup comments above a fence", () => {
       ["<!-- ddt-setup const = ; -->", fence("run();")].join("\n"),
       "doc.md",
     );
-    expect(() => block?.splitImports()).toThrowError(AT_COMMENT);
+    expect(() => block && splitImportsAndBlock(block)).toThrowError(AT_COMMENT);
   });
 });

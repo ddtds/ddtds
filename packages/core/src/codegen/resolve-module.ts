@@ -1,5 +1,5 @@
 import { getLogger } from "@logtape/logtape";
-import { moduleOfLang, moduleOfPath } from "../constants.ts";
+import { moduleOfLang, moduleOfPath } from "../language-registry.ts";
 import type { CodeBlock } from "../fences/blocks.ts";
 import type { ModuleSyntax } from "../fences/parse.ts";
 import type { ModuleSystem } from "./adapter.ts";

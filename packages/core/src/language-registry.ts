@@ -1,29 +1,9 @@
 import type { ModuleSystem } from "./codegen/adapter.ts";
-import { DOC_GLOB } from "./fences/doc-kinds.ts";
-
-/** Markdown docs, and source files whose JSDoc comments hold code fences */
-export const defaultDocsInclude: string[] = [DOC_GLOB];
-export const defaultDocsExclude: string[] = [
-  "**/node_modules/**",
-  "**/CHANGELOG.md",
-  "**/dist/**",
-  "**/*.d.ts",
-  "**/*.d.mts",
-  "**/*.d.cts",
-  "**/__ddtds__/**",
-];
-export const defaultOutDir = "__doctests__";
-
-const PARSERS = ["ts", "js", "tsx", "jsx", "tsrx"] as const;
-export type Parser = (typeof PARSERS)[number];
-
-const OUTPUT_EXTENSIONS = ["ts", "tsx", "tsrx"] as const;
-export type OutputExtension = (typeof OUTPUT_EXTENSIONS)[number];
+import type { Lang, OutputExtension, Parser } from "./languages.ts";
 
 type LangInfo = { parser: Parser; extension: OutputExtension; module?: ModuleSystem };
 
-/** Code fence languages, the parser for each, and the extension of its generated test file. */
-const LANGS = {
+const LANGS: Record<Lang, LangInfo> = {
   ts: { parser: "ts", extension: "ts" },
   typescript: { parser: "ts", extension: "ts" },
   js: { parser: "js", extension: "ts" },
@@ -35,9 +15,7 @@ const LANGS = {
   mts: { parser: "ts", extension: "ts", module: "esm" },
   cjs: { parser: "js", extension: "ts", module: "cjs" },
   cts: { parser: "ts", extension: "ts", module: "cjs" },
-} as const;
-
-export type Lang = keyof typeof LANGS;
+};
 
 export function isLang(s: string): s is Lang {
   return Object.hasOwn(LANGS, s);
@@ -52,8 +30,7 @@ export function extensionOf(lang: Lang): OutputExtension {
 }
 
 export function moduleOfLang(lang: Lang): ModuleSystem | undefined {
-  const entry: LangInfo = LANGS[lang];
-  return entry.module;
+  return LANGS[lang].module;
 }
 
 const ESM_PATH = /\.m[jt]s$/;
@@ -63,18 +40,4 @@ export function moduleOfPath(path: string): ModuleSystem | undefined {
   if (ESM_PATH.test(path)) return "esm";
   if (CJS_PATH.test(path)) return "cjs";
   return undefined;
-}
-
-export const ANNOTATIONS = {
-  SKIP: "skip",
-  RUN: "run",
-  FAIL: "fail",
-  COMPILE_FAIL: "compile_fail",
-  COMPILE_ONLY: "compile_only",
-} as const;
-
-export type Annotation = (typeof ANNOTATIONS)[keyof typeof ANNOTATIONS];
-
-export function isAnnotation(s: unknown): s is Annotation {
-  return Object.values(ANNOTATIONS).some((x) => x === s);
 }

@@ -1,4 +1,4 @@
-import { configureLogging as configure } from "@ddtds/core";
+import { configureLogging as configure } from "@ddtds/core/log";
 import {
   getConfig,
   getTextFormatter,

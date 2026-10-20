@@ -1,4 +1,5 @@
-import { typedImports, type StaticImport, type TestAdapter } from "@ddtds/core";
+import type { TestAdapter } from "@ddtds/core/adapter";
+import { typedImports, type StaticImport } from "@ddtds/core/imports";
 
 export const vitestImports: ReturnType<typeof typedImports<typeof import("vitest")>> =
   typedImports("vitest");
@@ -15,5 +16,3 @@ export function vitestAdapter(globals: readonly StaticImport[]): TestAdapter {
     fenceImports: globals,
   };
 }
-
-export const vitestTestAdapter: TestAdapter = vitestAdapter(defaultGlobals);

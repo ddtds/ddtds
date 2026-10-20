@@ -1,8 +1,10 @@
 import { test } from "vitest";
-import { DocIndex } from "@ddtds/core";
-import { loadModule } from "@ddtds/vitest";
+import { moduleFor } from "@ddtds/core/codegen";
+import { DocIndex } from "@ddtds/core/docs";
+import { defaultGlobals, vitestAdapter } from "@ddtds/vitest/adapter";
 import { fenceSources, options } from "./fixtures.ts";
 
+const adapter = vitestAdapter(defaultGlobals);
 const index = DocIndex.fromSources(fenceSources(10, 20), options);
 
 const fenceIds = Array.from(index.fences(), (fence) => fence.id);
@@ -14,10 +16,10 @@ const docIds = index
 /** What `ddtPlugin`'s `load` serves during a test run: one module per doc and fence. */
 test("vitest plugin load", async ({ bench }) => {
   await bench("serve every fence module", () => {
-    for (const id of fenceIds) loadModule(index, id);
+    for (const id of fenceIds) moduleFor(adapter, index, id);
   }).run();
 
   await bench("serve every doc module", () => {
-    for (const id of docIds) loadModule(index, id);
+    for (const id of docIds) moduleFor(adapter, index, id);
   }).run();
 });

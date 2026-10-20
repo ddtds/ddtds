@@ -4,7 +4,8 @@ import { getLogger } from "@logtape/logtape";
 import type { TestAdapter } from "../codegen/adapter.ts";
 import { localName } from "../codegen/static-import.ts";
 import { moduleFor, type GeneratedModule } from "../codegen/modules.ts";
-import { type DocsConfig, readDocs, resolveDocsOptions } from "./discovery.ts";
+import type { DocsConfig } from "../config.ts";
+import { readDocs, resolveDocsOptions } from "./discovery.ts";
 import { isMarkdownFile, isSourceFile } from "../fences/doc-kinds.ts";
 import { DocIndex } from "./docs.ts";
 

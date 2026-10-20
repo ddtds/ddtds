@@ -2,7 +2,8 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { onTestFinished } from "vitest";
-import { ANNOTATIONS, type Lang } from "./constants.ts";
+import { ANNOTATIONS } from "./annotations.ts";
+import type { Lang } from "./languages.ts";
 
 /** Writes `files` under a temporary directory, removed when the test finishes. */
 export function tempFixture(files: Record<string, string>): string {

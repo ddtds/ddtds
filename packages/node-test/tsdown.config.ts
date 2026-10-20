@@ -1,3 +1,10 @@
 import { defineConfig } from "tsdown";
 
-export default defineConfig({ entry: ["src/index.ts", "src/register.ts", "src/runtime.ts"] });
+export default defineConfig({
+  entry: {
+    index: "src/index.ts",
+    adapter: "src/adapter.ts",
+    register: "src/register.ts",
+    runtime: "src/runtime.ts",
+  },
+});

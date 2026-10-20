@@ -5,7 +5,7 @@ import {
   type CompileErrorDetails,
   type Position,
 } from "../fences/compile-error.ts";
-import type { ModuleSyntax, PreparedBlock } from "../fences/parse.ts";
+import { splitImportsAndBlock, type ModuleSyntax, type PreparedBlock } from "../fences/parse.ts";
 import type { Fence } from "../docs/docs.ts";
 import type { SerializedCause } from "../runtime.ts";
 import { runtimeNames } from "./static-import.ts";
@@ -38,11 +38,16 @@ function serializeCause(cause: unknown): SerializedCause | undefined {
   return { name: cause.name, message: cause.message, code, stack: cause.stack };
 }
 
-export function planFence({ doc, block }: Fence): FenceOutcome {
+type SplitBlock = (block: Fence["block"]) => PreparedBlock;
+
+export function planFence(
+  { doc, block }: Fence,
+  splitBlock: SplitBlock = splitImportsAndBlock,
+): FenceOutcome {
   const expectsCompileFailure = block.shouldFailToCompile();
   let split: PreparedBlock;
   try {
-    split = block.splitImports();
+    split = splitBlock(block);
   } catch (error) {
     if (!(error instanceof DdtCompileError)) throw error;
     if (expectsCompileFailure && error.details.phase === "parse") return { tag: "emptyPass" };
