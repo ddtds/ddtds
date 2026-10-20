@@ -70,8 +70,6 @@ export class TypeChecker {
           const text = sources.get(file) ?? ts.sys.readFile(file);
           return text === undefined ? undefined : ts.ScriptSnapshot.fromString(text);
         },
-        fileExists: (file) => sources.has(file) || ts.sys.fileExists(file),
-        readFile: (file) => sources.get(file) ?? ts.sys.readFile(file),
       };
       this.#compiler = { ts, service: ts.createLanguageService(host) };
     }
