@@ -37,13 +37,12 @@ type AnnotationResult =
   | { tag: "none" }
   | { tag: "conflict"; annotations: Annotation[] };
 
-/** Words of an info string, which other tools share (`twoslash`, `title="…"`, `{1-3}`). Quoted values and `{…}` ranges stay whole, so a word inside them is never an annotation */
-const metaWords = /\S*?(?:"[^"]*"|\{[^}]*\})\S*|\S+/g;
+/** Quoted values and `{…}` ranges of other tools (`title="run"`, `{1-3}`), which never hold an annotation */
+const otherToolsValues = /"[^"]*"|\{[^}]*\}/g;
+const whitespace = /\s+/;
 
 function parseAnnotation(meta: string): AnnotationResult {
-  const annotations = (meta.match(metaWords) ?? []).flatMap((word) =>
-    isAnnotation(word) ? [word] : [],
-  );
+  const annotations = meta.replace(otherToolsValues, "").split(whitespace).filter(isAnnotation);
   const [annotation] = annotations;
   if (annotation === undefined) return { tag: "none" };
   if (annotations.length > 1) return { tag: "conflict", annotations };
