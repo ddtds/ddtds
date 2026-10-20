@@ -5,7 +5,6 @@ export { DdtCompileError } from "./fences/compile-error.ts";
 export { configureLogging, resolveLogLevel, type LogLevel } from "./log-level.ts";
 export type { DdtOptions } from "./options.ts";
 export {
-  moduleFiles,
   moduleFor,
   typedImports,
   type GeneratedModule,
