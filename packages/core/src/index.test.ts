@@ -61,6 +61,19 @@ describe("fence info strings shared with other tools", () => {
   });
 });
 
+const titleOf = (meta: string) =>
+  parseCodeFences(`\`\`\`ts ${meta}\nconst x = 1\n\`\`\``, "t.md")[0]?.title ?? null;
+
+describe("fence titles", () => {
+  test.each([
+    ['title="adds numbers" run', "adds numbers"],
+    ['title="" run', null],
+    ["run", null],
+  ])("%s is titled %j", (meta, title) => {
+    expect(titleOf(meta)).toBe(title);
+  });
+});
+
 describe("CodeBlock.shouldFail / shouldFailToCompile", () => {
   test.each([
     [ANNOTATIONS.RUN, false, false],

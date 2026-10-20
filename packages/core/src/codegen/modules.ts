@@ -64,7 +64,7 @@ export function fenceModule(
 }
 
 const testName = ({ block }: Fence): string =>
-  JSON.stringify(`${block.details.file}:${block.line}`);
+  JSON.stringify(block.title ?? `${block.details.file}:${block.line}`);
 
 const importFences = (fences: readonly Fence[]): string[] =>
   fences.map(({ id }) => `  () => import(${JSON.stringify(id)}),`);

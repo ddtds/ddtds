@@ -17,7 +17,8 @@ import {
   type Runner,
 } from "./index.ts";
 
-const LINE_SUFFIX = /:\d+$/;
+/** Tests are named by line, or by title, which has no file extension or directory */
+const TEST_ID = /:\d+$|^[^./]+$/;
 
 /** Imports a runner injects into fences: the defaults, or only `extra` without them */
 export type Globals = {
@@ -46,7 +47,7 @@ type Verdicts = Record<string, typeof PASSED | typeof FAILED>;
 const verdicts = (outcomes: Outcomes): Verdicts =>
   Object.fromEntries(
     Object.entries(outcomes)
-      .filter(([id]) => LINE_SUFFIX.test(id))
+      .filter(([id]) => TEST_ID.test(id))
       .map(([id, outcome]) => [id, outcome === PASSED ? PASSED : FAILED]),
   );
 
@@ -62,9 +63,15 @@ const splitId = (id: string): [name: string, line: number] => {
   return [id.slice(0, colon), Number(id.slice(colon + 1))];
 };
 
+const endsWithLine = /:\d+$/;
+
+/** Ids without a line are test titles, which name tests as written */
 const located = (kind: Kind, expected: Verdicts): Verdicts =>
   Object.fromEntries(
-    Object.entries(expected).map(([id, verdict]) => [kind.id(...splitId(id)), verdict]),
+    Object.entries(expected).map(([id, verdict]) => [
+      endsWithLine.test(id) ? kind.id(...splitId(id)) : id,
+      verdict,
+    ]),
   );
 
 type Where = readonly [line: number, column: number];
@@ -399,8 +406,8 @@ export function conformance(name: string, runner: Runner, dialect: Dialect): voi
     ],
     [
       "a fence with other tools' words",
-      fence(passing, 'twoslash title="a run.ts" {1} run'),
-      { "doc.md:1": PASSED },
+      fence(passing, 'twoslash title="a run" {1} run'),
+      { "a run": PASSED },
     ],
     [
       "a fence with only other tools' words",
@@ -410,12 +417,22 @@ export function conformance(name: string, runner: Runner, dialect: Dialect): voi
     [
       "a failing fence with other tools' words",
       fence(failing, "title=hi {1} fail"),
-      { "doc.md:1": PASSED },
+      { hi: PASSED },
     ],
     [
       "a compile_only fence with other tools' words",
       fence(failing, "title=hi compile_only"),
-      { "doc.md:1": PASSED },
+      { hi: PASSED },
+    ],
+    [
+      "a fence titled as its test",
+      fence(passing, 'title="adds numbers" run') + fence(passing, "title=two run"),
+      { "adds numbers": PASSED, two: PASSED },
+    ],
+    [
+      "a failing fence titled as its test",
+      fence(failing, "title='does not work' run"),
+      { "does not work": FAILED },
     ],
     [
       "a fence with two annotations",

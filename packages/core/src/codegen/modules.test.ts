@@ -1,6 +1,7 @@
 import { expect, test } from "vitest";
 import { TraceMap, generatedPositionFor, originalPositionFor } from "@jridgewell/trace-mapping";
 import { docModule, fenceModule } from "./modules.ts";
+import { parseCodeFences } from "../fences/blocks.ts";
 import { parseJsDocFences } from "../fences/jsdoc.ts";
 import type { TestAdapter } from "./adapter.ts";
 import { staticImport } from "./static-import.ts";
@@ -102,6 +103,14 @@ test("a fence module embeds the doc for debuggers that cannot resolve the path",
   const { map } = fenceModule(adapter, fence("a();", null, { line: 3 }), "# Title\n");
   expect(map.file).toBe("/repo/docs/t.md");
   expect(map.sourcesContent).toEqual(["# Title\n"]);
+});
+
+test("a doc module names a test after its fence's title", () => {
+  const [block] = parseCodeFences("```ts title='say \"hi\"' run\n1;\n```\n", "t.md");
+  const titled = { ...fence("1;"), block: block! };
+  expect(docModule(adapter, "/repo/docs/t.md", [titled]).code).toContain(
+    'test("say \\"hi\\"", fences[0]);',
+  );
 });
 
 test("a doc module loads each fence before it registers one test per fence", () => {
