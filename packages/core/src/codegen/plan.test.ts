@@ -53,12 +53,12 @@ describe("planFence: compile errors", () => {
     });
   });
 
-  test("an Error cause becomes plain name, message, and code", () => {
+  test("an Error cause keeps its name, message, code, and stack", () => {
     const cause = Object.assign(new TypeError("crashed"), { code: "E_CRASH" });
     const outcome = planFence(failingWithCause(fence("1;"), cause));
     expect(outcome).toMatchObject({
       tag: "compileError",
-      cause: { name: "TypeError", message: "crashed", code: "E_CRASH" },
+      cause: { name: "TypeError", message: "crashed", code: "E_CRASH", stack: cause.stack },
     });
     const plain = planFence(failingWithCause(fence("1;"), new Error("crashed")));
     expect(plain).toMatchObject({ cause: { name: "Error", message: "crashed", code: undefined } });
