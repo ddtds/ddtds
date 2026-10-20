@@ -22,7 +22,7 @@ test("vitest plugin load", async ({ bench }) => {
   }).run();
 });
 
-/** What `moduleFiles` serves to `ddt build`: every module up front. */
+/** What writing every module up front costs. */
 test("vitest plugin moduleFiles", async ({ bench }) => {
   await bench("generate every module for 10 docs", () => {
     moduleFiles(index);

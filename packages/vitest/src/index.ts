@@ -25,7 +25,7 @@ export {
   defaultOutDir,
 } from "@ddtds/core";
 
-/** Generated doc and fence modules for `ddt build`. */
+/** Generated doc and fence modules for writing up front. */
 export function moduleFiles(index: DocIndex): Map<string, string> {
   return generateModuleFiles(vitestTestAdapter, index);
 }

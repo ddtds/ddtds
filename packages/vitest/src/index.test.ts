@@ -57,7 +57,7 @@ test("passes include and exclude to findDocs", async () => {
   `);
 });
 
-test("ignores stale files from ddt build", async () => {
+test("ignores stale generated files", async () => {
   await using dir = fixture({ ...files, "__doctests__/stale.test.ts": "" });
   expect(await collect(dir.root)).not.toContain("__doctests__/stale.test.ts");
 });
@@ -96,7 +96,7 @@ test("forgets a doc whose file is gone before loading its test module again", as
   expect(await instance.vite.pluginContainer.load(id)).toBeNull();
 });
 
-test("keeps the user's test.exclude and still skips ddt build output", async () => {
+test("keeps the user's test.exclude and still skips generated output", async () => {
   await using dir = fixture({ ...files, "__doctests__/stale.test.ts": "" });
   expect(await collect(dir.root, {}, { exclude: ["unit.test.ts"] })).toMatchInlineSnapshot(`
     [
