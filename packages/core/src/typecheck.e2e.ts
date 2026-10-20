@@ -6,7 +6,7 @@ import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { after, describe, test } from "node:test";
 import type { TestAdapter } from "./codegen/adapter.ts";
-import { typedImports } from "./codegen/imports.ts";
+import { typedImports } from "./config.ts";
 import { DdtSession } from "./docs/session.ts";
 
 const major = process.env["TYPESCRIPT"];
