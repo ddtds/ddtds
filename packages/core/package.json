@@ -10,14 +10,6 @@
       "@ddtds/source": "./src/docs/session.ts",
       "default": "./dist/index.mjs"
     },
-    "./adapter": {
-      "@ddtds/source": "./src/codegen/adapter.ts",
-      "default": "./dist/adapter.mjs"
-    },
-    "./annotations": {
-      "@ddtds/source": "./src/annotations.ts",
-      "default": "./dist/annotations.mjs"
-    },
     "./codegen": {
       "@ddtds/source": "./src/codegen/modules.ts",
       "default": "./dist/codegen.mjs"
@@ -38,14 +30,6 @@
       "@ddtds/source": "./src/fences/blocks.ts",
       "default": "./dist/fences.mjs"
     },
-    "./imports": {
-      "@ddtds/source": "./src/codegen/imports.ts",
-      "default": "./dist/imports.mjs"
-    },
-    "./languages": {
-      "@ddtds/source": "./src/languages.ts",
-      "default": "./dist/languages.mjs"
-    },
     "./log": {
       "@ddtds/source": "./src/log-level.ts",
       "default": "./dist/log.mjs"
@@ -59,15 +43,11 @@
   "publishConfig": {
     "exports": {
       ".": "./dist/index.mjs",
-      "./adapter": "./dist/adapter.mjs",
-      "./annotations": "./dist/annotations.mjs",
       "./codegen": "./dist/codegen.mjs",
       "./config": "./dist/config.mjs",
       "./docs": "./dist/docs.mjs",
       "./errors": "./dist/errors.mjs",
       "./fences": "./dist/fences.mjs",
-      "./imports": "./dist/imports.mjs",
-      "./languages": "./dist/languages.mjs",
       "./log": "./dist/log.mjs",
       "./runtime": "./dist/runtime.mjs",
       "./package.json": "./package.json"

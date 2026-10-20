@@ -1,5 +1,5 @@
 import { expect, test } from "vitest";
-import { typedImports } from "@ddtds/core/imports";
+import { typedImports } from "@ddtds/core/config";
 import { defaultGlobals, vitestAdapter, vitestImports } from "./adapter.ts";
 
 test("the default globals are expect and vi", () => {

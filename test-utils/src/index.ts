@@ -6,8 +6,7 @@ import { tmpdir } from "node:os";
 import { createInterface } from "node:readline";
 import type { Readable } from "node:stream";
 import { setTimeout as delay } from "node:timers/promises";
-import { ANNOTATIONS } from "@ddtds/core/annotations";
-import type { Lang } from "@ddtds/core/languages";
+import { ANNOTATIONS, type Lang } from "@ddtds/core/fences";
 import * as v from "valibot";
 import { frame, type Frame } from "./frames.ts";
 

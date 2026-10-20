@@ -9,7 +9,7 @@ import { configureLogging, createViteSink } from "./logging.ts";
 
 export { defaultGlobals, vitestImports } from "./adapter.ts";
 export { defaultDocsExclude, defaultDocsInclude } from "@ddtds/core/config";
-export { typedImports, type StaticImport } from "@ddtds/core/imports";
+export { typedImports, type StaticImport } from "@ddtds/core/config";
 
 const logger = getLogger(["ddtds", "vitest"]);
 

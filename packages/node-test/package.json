@@ -10,10 +10,6 @@
       "@ddtds/source": "./src/index.ts",
       "default": "./dist/index.mjs"
     },
-    "./adapter": {
-      "@ddtds/source": "./src/adapter.ts",
-      "default": "./dist/adapter.mjs"
-    },
     "./register": {
       "@ddtds/source": "./src/register.ts",
       "default": "./dist/register.mjs"
@@ -27,7 +23,6 @@
   "publishConfig": {
     "exports": {
       ".": "./dist/index.mjs",
-      "./adapter": "./dist/adapter.mjs",
       "./register": "./dist/register.mjs",
       "./runtime": "./dist/runtime.mjs",
       "./package.json": "./package.json"

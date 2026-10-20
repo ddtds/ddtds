@@ -4,9 +4,8 @@
  */
 
 import { describe, expect, test } from "vitest";
-import { ANNOTATIONS } from "@ddtds/core/annotations";
-import { typedImports, type StaticImport } from "@ddtds/core/imports";
-import type { Lang } from "@ddtds/core/languages";
+import { ANNOTATIONS, type Lang } from "@ddtds/core/fences";
+import { typedImports, type StaticImport } from "@ddtds/core/config";
 import {
   fence,
   jsdoc,
