@@ -28,15 +28,22 @@ import {
   type Segment,
 } from "./segments.ts";
 import { setupBefore } from "./hidden.ts";
+import { parseInfo } from "./info.ts";
 import { splitImportsAndBlock, type PreparedBlock } from "./parse.ts";
 
 const logger = getLogger(["ddtds", "blocks"]);
 
-type AnnotationResult = { tag: "ok"; annotation: Annotation } | { tag: "unknown"; raw: string };
+type AnnotationResult =
+  | { tag: "ok"; annotation: Annotation }
+  | { tag: "none" }
+  | { tag: "conflict"; annotations: Annotation[] };
 
 function parseAnnotation(meta: string): AnnotationResult {
-  if (isAnnotation(meta)) return { tag: "ok", annotation: meta };
-  return { tag: "unknown", raw: meta };
+  const annotations = parseInfo(meta).words.filter(isAnnotation);
+  const [annotation] = annotations;
+  if (annotation === undefined) return { tag: "none" };
+  if (annotations.length > 1) return { tag: "conflict", annotations };
+  return { tag: "ok", annotation };
 }
 
 export type CodeBlockInit = {
@@ -154,11 +161,13 @@ export function parseCodeFences(
     if (!meta || !lang || !isLang(lang)) return;
 
     const result = parseAnnotation(meta);
-    if (result.tag === "unknown") {
-      logger.warn('unknown annotation in code block: "{raw}"', { raw: result.raw });
+    if (result.tag === "conflict") {
+      logger.warn("code block has more than one annotation: {annotations}", () => ({
+        annotations: result.annotations.join(", "),
+      }));
       return;
     }
-    if (result.annotation === ANNOTATIONS.SKIP) return;
+    if (result.tag === "none" || result.annotation === ANNOTATIONS.SKIP) return;
     if (!node.position) throw new Error("code block has no position");
     const setup = setupBefore(siblings, index);
     if (setup.length > 0) {

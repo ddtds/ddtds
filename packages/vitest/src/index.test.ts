@@ -113,12 +113,12 @@ test("logs through Vite's logger, which Vitest keeps at warn unless configured",
   });
   expect(await logs(dir.root, { logLevel: "info" })).toMatchInlineSnapshot(`
     [
-      "stderr: [ddtds] unknown annotation in code block: "run fail"",
+      "stderr: [ddtds] code block has more than one annotation: run, fail",
     ]
   `);
   expect(await logs(dir.root, { logLevel: "info" }, "info")).toMatchInlineSnapshot(`
     [
-      "stderr: [ddtds] unknown annotation in code block: "run fail"",
+      "stderr: [ddtds] code block has more than one annotation: run, fail",
       "stdout: [ddtds] Total: 1 tests",
     ]
   `);

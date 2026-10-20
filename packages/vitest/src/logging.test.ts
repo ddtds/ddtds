@@ -5,7 +5,7 @@ import { DdtSession, parseCodeFences } from "@ddtds/core";
 import { defaultGlobals, vitestAdapter } from "./adapter.ts";
 import { configureLogging } from "./logging.ts";
 
-const UNKNOWN_ANNOTATION = /unknown annotation/;
+const CONFLICTING_ANNOTATIONS = /more than one annotation/;
 const FENCE_MAPPING = /guide\.md.:1 -> .__ddtds__\/guide\.md_1/;
 
 afterEach(() => resetSync());
@@ -13,9 +13,9 @@ afterEach(() => resetSync());
 test("routes core logs to the configured sink", () => {
   const recorder = createLogRecorder();
   configureLogging(recorder.sink, "info");
-  parseCodeFences("```ts rnu\n1;\n```\n", "t.md");
+  parseCodeFences("```ts run fail\n1;\n```\n", "t.md");
   expect(recorder.records).toHaveLength(1);
-  recorder.assertLogged({ level: "warning", message: UNKNOWN_ANNOTATION });
+  recorder.assertLogged({ level: "warning", message: CONFLICTING_ANNOTATIONS });
 });
 
 test("debug logs where each fence is generated", () => {
