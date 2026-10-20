@@ -1,6 +1,14 @@
 import { spawn as launch } from "node:child_process";
 import { EventEmitter, once } from "node:events";
-import { existsSync, mkdirSync, mkdtempSync, rmSync, statSync, writeFileSync } from "node:fs";
+import {
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  rmSync,
+  statSync,
+  symlinkSync,
+  writeFileSync,
+} from "node:fs";
 import { dirname, join } from "node:path";
 import { tmpdir } from "node:os";
 import { createInterface } from "node:readline";
@@ -58,6 +66,12 @@ export type Watcher = {
   next(): Promise<Report>;
   close(): Promise<void>;
 };
+
+/** Makes `typescript` resolvable from a fixture project by linking an installed copy into it */
+export function linkTypeScript(root: string, typescriptDir: string): void {
+  mkdirSync(join(root, "node_modules"), { recursive: true });
+  symlinkSync(typescriptDir, join(root, "node_modules/typescript"));
+}
 
 export type Runner = {
   name: string;

@@ -1,0 +1,54 @@
+import { describe, expect, test } from "vitest";
+import { fence, spawn } from "@ddtds/test-utils";
+import { vitest, vitestTypechecking } from "./e2e.ts";
+
+const tsconfig = JSON.stringify({
+  compilerOptions: { strict: true, module: "preserve", moduleResolution: "bundler" },
+});
+const guide = [
+  "# Guide",
+  "",
+  fence('const count: number = "one";\nexpect(count).toBe("one");'),
+  fence("const count: number = 1;\nexpect(count).toBe(1);"),
+  fence("const name: string = 1;", "compile_fail"),
+].join("\n");
+
+describe("typecheck", () => {
+  test("type errors only fail fences when typecheck is on", async () => {
+    await using plain = spawn(vitest(), { "guide.md": guide });
+    expect(await plain.run()).toMatchInlineSnapshot(`
+      {
+        "guide.md:15": "Error",
+        "guide.md:3": "passed",
+        "guide.md:9": "passed",
+      }
+    `);
+    await using checked = spawn(vitestTypechecking(), {
+      "tsconfig.json": tsconfig,
+      "guide.md": guide,
+    });
+    expect(await checked.run()).toMatchInlineSnapshot(`
+      {
+        "guide.md:15": "passed",
+        "guide.md:3": "DdtCompileError",
+        "guide.md:9": "passed",
+      }
+    `);
+  });
+
+  test("type errors point at the markdown", async () => {
+    await using ddt = spawn(vitestTypechecking(), { "tsconfig.json": tsconfig, "guide.md": guide });
+    await ddt.run();
+    expect(ddt.failures).toMatchInlineSnapshot(`
+      {
+        "guide.md:3": [
+          {
+            "column": 7,
+            "file": "guide.md",
+            "line": 4,
+          },
+        ],
+      }
+    `);
+  });
+});

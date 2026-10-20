@@ -23,6 +23,7 @@ const logger = getLogger(["ddtds", "hooks"]);
 export type HookOptions = DdtOptions & {
   module?: ModuleSystem;
   globals?: readonly StaticImport[];
+  typecheck?: boolean;
 };
 
 export function ddtHooks(root: string, options: HookOptions = {}): RegisterHooksOptions {
@@ -48,7 +49,8 @@ export function ddtHooks(root: string, options: HookOptions = {}): RegisterHooks
       const parsed = URL.parse(url);
       if (parsed?.protocol !== "file:") return next(url, context);
       const id = fileURLToPath(parsed) + parsed.search;
-      const module = session.load(id);
+      const checked = options.typecheck && session.resolve(id) !== undefined;
+      const module = session.load(id, checked ? session.typeErrors() : undefined);
       if (!module) return next(url, context);
 
       const commonjs = module.module === "cjs" && !session.isEntry(id);

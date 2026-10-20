@@ -1,0 +1,16 @@
+{
+  "name": "@ddtds/example-globals",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc"
+  },
+  "devDependencies": {
+    "@ddtds/vitest": "workspace:*",
+    "@types/node": "catalog:dev",
+    "typescript": "^6.0.3",
+    "vitest": "catalog:dev"
+  }
+}

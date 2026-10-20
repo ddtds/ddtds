@@ -15,11 +15,12 @@ const logger = getLogger(["ddtds", "vitest"]);
 
 const WATCH_TRIGGER = /\.(?:mdx?|[cm]?[jt]sx?)$/;
 
-export type DdtPluginOptions = DocsOptions & DdtOptions;
+export type DdtPluginOptions = DocsOptions & DdtOptions & { typecheck?: boolean };
 
 export function ddtPlugin({
   logLevel,
   globals = defaultGlobals,
+  typecheck = false,
   ...docs
 }: DdtPluginOptions = {}): Plugin {
   const vite = createViteSink();
@@ -83,7 +84,7 @@ export function ddtPlugin({
     load(id) {
       const fence = session.index.fence(id);
       if (fence) this.addWatchFile(fence.doc);
-      return session.load(id);
+      return session.load(id, fence && typecheck ? session.typeErrors() : undefined);
     },
   };
 }

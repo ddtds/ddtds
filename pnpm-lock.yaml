@@ -433,6 +433,21 @@ importers:
         specifier: catalog:dev
         version: 24.19.2
 
+  examples/vitest/globals:
+    devDependencies:
+      '@ddtds/vitest':
+        specifier: workspace:*
+        version: link:../../../packages/vitest
+      '@types/node':
+        specifier: catalog:dev
+        version: 24.19.2
+      typescript:
+        specifier: ^6.0.3
+        version: 6.0.3
+      vitest:
+        specifier: catalog:dev
+        version: 5.0.5(@opentelemetry/api@1.9.1)(@types/node@24.19.2)(@vitest/coverage-v8@5.0.5)(happy-dom@21.0.3)(vite@8.3.0(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1))
+
   examples/vitest/js:
     devDependencies:
       '@ddtds/vitest':
@@ -775,6 +790,9 @@ importers:
       '@types/node':
         specifier: catalog:dev
         version: 24.19.2
+      typescript:
+        specifier: ^6.0.3
+        version: 6.0.3
       vitest:
         specifier: catalog:dev
         version: 5.0.5(@opentelemetry/api@1.9.1)(@types/node@24.19.2)(@vitest/coverage-v8@5.0.5)(happy-dom@21.0.3)(vite@8.3.0(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1))
@@ -837,6 +855,9 @@ importers:
       '@types/node':
         specifier: catalog:dev
         version: 24.19.2
+      typescript6:
+        specifier: npm:typescript@^6.0.3
+        version: typescript@6.0.3
       vitest:
         specifier: catalog:dev
         version: 5.0.5(@opentelemetry/api@1.9.1)(@types/node@24.19.2)(@vitest/coverage-v8@5.0.5)(happy-dom@21.0.3)(vite@8.3.0(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1))
@@ -859,6 +880,9 @@ importers:
       '@vitest/coverage-v8':
         specifier: catalog:dev
         version: 5.0.5(vitest@5.0.5)
+      typescript6:
+        specifier: npm:typescript@^6.0.3
+        version: typescript@6.0.3
       vitest:
         specifier: catalog:dev
         version: 5.0.5(@opentelemetry/api@1.9.1)(@types/node@24.19.2)(@vitest/coverage-v8@5.0.5)(happy-dom@21.0.3)(vite@8.3.0(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1))
