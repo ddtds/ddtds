@@ -4,7 +4,7 @@ import { docModule, fenceModule } from "./render-module.ts";
 import { parseCodeFences } from "../fences/blocks.ts";
 import { parseJsDocFences } from "../fences/jsdoc.ts";
 import type { TestAdapter } from "./adapter.ts";
-import { typedImports } from "./imports.ts";
+import { typedImports } from "../config.ts";
 import { adapter, fence } from "./test-utils.ts";
 
 /** The 1-based line and text of the first generated line matching `matches` */

@@ -1,9 +1,33 @@
-import type { StaticImport } from "./codegen/imports.ts";
+import { brand, type Brand } from "./brand.ts";
 import { DOC_GLOB } from "./fences/doc-kinds.ts";
 import type { LogLevel } from "./log-level.ts";
 
-export { typedImports } from "./codegen/imports.ts";
-export type { StaticImport } from "./codegen/imports.ts";
+/**
+ * Only `typedImports` builds one for users, so the module and its names always agree
+ *
+ * @example
+ * ```ts run
+ * import { typedImports, type StaticImport } from "@ddtds/core/config";
+ *
+ * const importFromPath = typedImports<typeof import("node:path")>("node:path");
+ * const basename: StaticImport = importFromPath("basename");
+ * expect(basename).toEqual({ module: "node:path", name: "basename" });
+ * ```
+ */
+export type StaticImport = Brand<
+  Readonly<{ module: string; name: string; alias?: string }>,
+  "StaticImport"
+>;
+
+type TypedImporter<Module> = (name: keyof Module, options?: { alias?: string }) => StaticImport;
+
+export function typedImports<Module>(module: string): TypedImporter<Module> {
+  return (name, { alias } = {}) => {
+    const imported =
+      alias === undefined ? { module, name: String(name) } : { module, name: String(name), alias };
+    return brand<StaticImport>(imported);
+  };
+}
 
 /** Markdown docs, and source files whose JSDoc comments hold code fences */
 export const defaultDocsInclude: string[] = [DOC_GLOB];

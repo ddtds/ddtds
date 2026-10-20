@@ -1,6 +1,6 @@
 import type { ImportBinding } from "../fences/parse.ts";
 import type { ModuleSystem } from "./adapter.ts";
-import type { StaticImport } from "./imports.ts";
+import type { StaticImport } from "../config.ts";
 import { importStatement } from "./module-system.ts";
 
 export function localName({ name, alias }: StaticImport): string {
