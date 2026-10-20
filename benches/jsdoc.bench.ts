@@ -1,6 +1,6 @@
 import { test } from "vitest";
 import { DdtSession } from "@ddtds/core";
-import { defaultGlobals, vitestAdapter } from "@ddtds/vitest/adapter";
+import { adapter } from "./adapter.ts";
 import {
   markdownSources,
   root,
@@ -16,7 +16,6 @@ const mixed = new Map([...markdownSources(10, 10), ...withFences]);
 
 // Bypass Vite's export getter: indexing a fence-free repo is fast enough that the
 // getter would dominate. https://vitest.dev/guide/benchmarking#module-runner-overhead
-const adapter = vitestAdapter(defaultGlobals);
 const fromSources = DdtSession.fromSources.bind(DdtSession);
 
 /**

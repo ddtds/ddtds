@@ -1,5 +1,5 @@
 import { expect, test } from "vitest";
-import { typedImports, type StaticImport } from "./imports.ts";
+import { typedImports, type StaticImport } from "../config.ts";
 import { localName, renderImport, runtimeNames, unshadowed } from "./static-import.ts";
 
 const xImports = typedImports<Record<string, unknown>>("x");

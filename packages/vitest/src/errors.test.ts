@@ -1,5 +1,5 @@
 import { expect, test } from "vitest";
-import { ANNOTATIONS } from "@ddtds/core/annotations";
+import { ANNOTATIONS } from "@ddtds/core/fences";
 import { fence, fixture, spawn } from "@ddtds/test-utils";
 import { failures } from "./test-utils.ts";
 import { vitest } from "./e2e.ts";

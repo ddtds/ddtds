@@ -5,7 +5,7 @@ import type { Lang } from "../languages.ts";
 import type { Fence } from "../docs/docs.ts";
 import { splitImportsAndBlock, type ParseableBlock, type PreparedBlock } from "../fences/parse.ts";
 import type { TestAdapter } from "./adapter.ts";
-import { typedImports } from "./imports.ts";
+import { typedImports } from "../config.ts";
 
 const testImports = typedImports<Record<string, unknown>>("test");
 const expectImports = typedImports<Record<string, unknown>>("expect");
