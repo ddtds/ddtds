@@ -23,6 +23,6 @@
     "happy-dom": "catalog:examples",
     "svelte-check": "catalog:examples",
     "typescript": "catalog:examples",
-    "vitest": "catalog:dev"
+    "vitest": "catalog:examples"
   }
 }

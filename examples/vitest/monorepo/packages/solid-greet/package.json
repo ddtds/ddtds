@@ -21,6 +21,6 @@
     "@testing-library/jest-dom": "catalog:examples",
     "happy-dom": "catalog:examples",
     "vite-plugin-solid": "catalog:examples",
-    "vitest": "catalog:dev"
+    "vitest": "catalog:examples"
   }
 }
