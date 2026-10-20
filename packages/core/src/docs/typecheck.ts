@@ -14,7 +14,6 @@ type CompilerApi = typeof TypeScript;
 
 const TYPED_PARSERS: ReadonlySet<Parser> = new Set(["ts", "tsx"]);
 
-/** Used when the project has no tsconfig.json */
 const defaultCompilerOptions = {
   strict: true,
   target: "esnext",
@@ -24,21 +23,10 @@ const defaultCompilerOptions = {
   skipLibCheck: true,
 };
 
-/**
- * Type errors of every TypeScript fence, checked in memory with the project's TypeScript and
- * tsconfig. Each fence is checked as its own code followed by the adapter's fence imports (what
- * fences use without importing, like `expect`), so diagnostic offsets are offsets into the fence
- * and map straight back to the markdown. `export {}` makes each fence a module, so fences do not
- * share declarations.
- *
- * One checker serves a whole watch session through a language service, which reuses parsed files
- * and unchanged fences between checks. TypeScript and the tsconfig are read once per checker.
- */
 export class TypeChecker {
   readonly #root: string;
   readonly #tsconfig: string;
   readonly #adapter: TestAdapter;
-  /** Source of each fence being checked by id, which doubles as its version */
   readonly #sources = new Map<string, string>();
   #compiler: { ts: CompilerApi; service: TypeScript.LanguageService } | undefined;
 
@@ -93,25 +81,20 @@ export class TypeChecker {
   }
 }
 
-/** A project file's version is its mtime; installed packages do not change within a session */
 const versionOf = (ts: CompilerApi, file: string): string =>
   file.includes("/node_modules/") ? "" : String(ts.sys.getModifiedTime?.(file)?.getTime());
 
-/** A fence's code, then the adapter's fence imports it does not already import itself */
 function fenceSource({ block }: Fence, adapter: TestAdapter): string {
   let taken: string[] = [];
   try {
     taken = runtimeNames(splitImportsAndBlock(block).bindings);
-  } catch {
-    // a fence that does not parse reports its own error
-  }
+  } catch {}
   const globals = unshadowed(adapter.fenceImports, taken).map((fenceImport) =>
     renderImport(fenceImport, "esm"),
   );
   return [block.code, "export {};", ...globals].join("\n");
 }
 
-/** The project's own TypeScript, so fences check with the version the project uses */
 function loadTypeScript(root: string): CompilerApi {
   const require = createRequire(join(root, "package.json"));
   const requireTypeScript: (id: "typescript") => CompilerApi | { version: string } = require;

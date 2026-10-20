@@ -30,7 +30,6 @@ export class DdtSession {
   readonly #read: (doc: string) => string | undefined;
   #index: DocIndex;
   #typeChecker: TypeChecker | undefined;
-  /** Bumped whenever the index changes, so cached type errors know to go stale */
   #revision = 0;
   #typed: { revision: number; errors: Map<string, DdtCompileError> } | undefined;
 
@@ -140,7 +139,6 @@ export class DdtSession {
     return this.#index.fence(fromRoot) ? fromRoot : undefined;
   }
 
-  /** Type errors by fence id; a result stays valid until a doc changes */
   public typeErrors(): Map<string, DdtCompileError> {
     if (this.#typed?.revision !== this.#revision) {
       this.#typeChecker ??= new TypeChecker(this.root, this.#adapter);
@@ -149,7 +147,7 @@ export class DdtSession {
     return this.#typed.errors;
   }
 
-  /** Module for an entry or fence id, rereading an entry's doc. Fences in `typeErrors` fail to compile */
+  /** Module for an entry or fence id, rereading an entry's doc */
   public load(
     id: string,
     typeErrors?: ReadonlyMap<string, DdtCompileError>,

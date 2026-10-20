@@ -32,7 +32,6 @@ const typescript = dirname(
 const roots: string[] = [];
 after(() => roots.forEach((root) => rmSync(root, { recursive: true, force: true })));
 
-/** A project whose `typescript` is the version under test, with `guide.md` and `files` */
 function project(
   guide: string,
   files: Record<string, string> = {},
@@ -66,7 +65,6 @@ function project(
   return root;
 }
 
-/** Type errors by 1-indexed markdown line of the fence's first diagnostic */
 async function errorLines(root: string): Promise<Record<number, number | undefined>> {
   const session = DdtSession.fromFiles(adapter, { root });
   const errors = session.typeErrors();
@@ -78,7 +76,6 @@ async function errorLines(root: string): Promise<Record<number, number | undefin
   );
 }
 
-/** The generated module of the only fence in `guide`, given the session's type errors */
 function loadFence(guide: string): string {
   const session = DdtSession.fromFiles(adapter, { root: project(guide) });
   const id = [...session.index.fences()][0]?.id;
