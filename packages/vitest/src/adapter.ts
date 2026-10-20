@@ -1,5 +1,5 @@
-import type { TestAdapter } from "@ddtds/core/adapter";
-import { typedImports, type StaticImport } from "@ddtds/core/imports";
+import type { TestAdapter } from "@ddtds/core/codegen";
+import { typedImports, type StaticImport } from "@ddtds/core/config";
 
 export const vitestImports: ReturnType<typeof typedImports<typeof import("vitest")>> =
   typedImports("vitest");

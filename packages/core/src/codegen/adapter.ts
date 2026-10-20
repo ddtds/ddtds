@@ -1,4 +1,4 @@
-import type { StaticImport } from "./imports.ts";
+import type { StaticImport } from "../config.ts";
 
 export type ModuleSystem = "esm" | "cjs";
 

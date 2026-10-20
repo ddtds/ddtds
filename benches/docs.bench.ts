@@ -1,10 +1,8 @@
 import { test } from "vitest";
 import { DdtSession } from "@ddtds/core";
 import { parseCodeFences } from "@ddtds/core/fences";
-import { defaultGlobals, vitestAdapter } from "@ddtds/vitest/adapter";
+import { adapter } from "./adapter.ts";
 import { guide, markdownSources, mdxGuide, root } from "./fixtures.ts";
-
-const adapter = vitestAdapter(defaultGlobals);
 
 const doc = guide(50);
 const mdx = mdxGuide(50);

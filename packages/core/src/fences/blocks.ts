@@ -4,6 +4,9 @@ import { ANNOTATIONS, type Annotation } from "../annotations.ts";
 import { isAnnotation } from "./annotation.ts";
 import { extensionOf, isLang } from "../language-registry.ts";
 import type { Lang, OutputExtension } from "../languages.ts";
+
+export { ANNOTATIONS, type Annotation } from "../annotations.ts";
+export type { Lang, OutputExtension, Parser } from "../languages.ts";
 import type { BlockDetails, Position, SourceRange } from "./compile-error.ts";
 import {
   columnsBeforeOffset,
@@ -24,6 +27,7 @@ import {
 } from "./segments.ts";
 import { setupBefore } from "./hidden.ts";
 import { parseInfo, type FenceInfo } from "./info.ts";
+import { splitImportsAndBlock, type PreparedBlock } from "./parse.ts";
 
 const logger = getLogger(["ddtds", "blocks"]);
 
@@ -120,6 +124,10 @@ export class CodeBlock {
 
   public isCompileOnly(): boolean {
     return this.details.annotation === ANNOTATIONS.COMPILE_ONLY;
+  }
+
+  public splitImports(): PreparedBlock {
+    return splitImportsAndBlock(this);
   }
 }
 

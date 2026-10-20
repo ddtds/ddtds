@@ -3,9 +3,8 @@ import { findPackageJSON, setSourceMapsSupport, type RegisterHooksOptions } from
 import { extname } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { DdtSession } from "@ddtds/core";
-import type { ModuleSystem } from "@ddtds/core/adapter";
-import type { DdtOptions } from "@ddtds/core/config";
-import type { StaticImport } from "@ddtds/core/imports";
+import type { ModuleSystem } from "@ddtds/core/codegen";
+import type { DdtOptions, StaticImport } from "@ddtds/core/config";
 import { configureLogging } from "@ddtds/core/log";
 import { getConsoleSink, getLogger, getTextFormatter } from "@logtape/logtape";
 import { nodeTestAdapter } from "./adapter.ts";
