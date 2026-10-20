@@ -28,6 +28,7 @@ import {
   type Segment,
 } from "./segments.ts";
 import { setupBefore } from "./hidden.ts";
+import { parseInfo } from "./info.ts";
 import { splitImportsAndBlock, type PreparedBlock } from "./parse.ts";
 
 const logger = getLogger(["ddtds", "blocks"]);
@@ -37,12 +38,8 @@ type AnnotationResult =
   | { tag: "none" }
   | { tag: "conflict"; annotations: Annotation[] };
 
-/** Quoted values and `{…}` ranges of other tools (`title="run"`, `{1-3}`), which never hold an annotation */
-const otherToolsValues = /"[^"]*"|\{[^}]*\}/g;
-const whitespace = /\s+/;
-
 function parseAnnotation(meta: string): AnnotationResult {
-  const annotations = meta.replace(otherToolsValues, "").split(whitespace).filter(isAnnotation);
+  const annotations = parseInfo(meta).words.filter(isAnnotation);
   const [annotation] = annotations;
   if (annotation === undefined) return { tag: "none" };
   if (annotations.length > 1) return { tag: "conflict", annotations };
