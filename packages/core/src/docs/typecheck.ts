@@ -1,4 +1,4 @@
-import { existsSync, statSync } from "node:fs";
+import { existsSync } from "node:fs";
 import { createRequire } from "node:module";
 import { dirname, join } from "node:path";
 import type * as TypeScript from "typescript6";
@@ -9,7 +9,6 @@ import { renderImport, runtimeNames, unshadowed } from "../codegen/static-import
 import type { DocIndex, Fence } from "./docs.ts";
 
 type CompilerApi = typeof TypeScript;
-type TypeDiagnostic = { start: number; end: number; message: string };
 
 const TYPED_PARSERS: ReadonlySet<Parser> = new Set(["ts", "tsx"]);
 
@@ -60,13 +59,8 @@ export class TypeChecker {
     for (const fence of typed) {
       const diagnostics = service
         .getSemanticDiagnostics(fence.id)
-        .map(({ start = 0, length = 0, messageText }) => ({
-          start,
-          end: start + length,
-          message: ts.flattenDiagnosticMessageText(messageText, "\n"),
-        }))
-        .filter(({ start }) => start < fence.block.code.length);
-      if (diagnostics.length > 0) errors.set(fence.id, typeError(ts.version, fence, diagnostics));
+        .filter(({ start = 0 }) => start < fence.block.code.length);
+      if (diagnostics.length > 0) errors.set(fence.id, typeError(ts, fence, diagnostics));
     }
     return errors;
   }
@@ -83,7 +77,7 @@ export class TypeChecker {
         getCurrentDirectory: () => this.#root,
         getDefaultLibFileName: ts.getDefaultLibFilePath,
         getScriptFileNames: () => [...sources.keys()],
-        getScriptVersion: (file) => sources.get(file) ?? versionOf(file),
+        getScriptVersion: (file) => sources.get(file) ?? versionOf(ts, file),
         getScriptSnapshot: (file) => {
           const text = sources.get(file) ?? ts.sys.readFile(file);
           return text === undefined ? undefined : ts.ScriptSnapshot.fromString(text);
@@ -98,14 +92,8 @@ export class TypeChecker {
 }
 
 /** A project file's version is its mtime; installed packages do not change within a session */
-function versionOf(file: string): string {
-  if (file.includes("/node_modules/")) return "";
-  try {
-    return String(statSync(file).mtimeMs);
-  } catch {
-    return "";
-  }
-}
+const versionOf = (ts: CompilerApi, file: string): string =>
+  file.includes("/node_modules/") ? "" : String(ts.sys.getModifiedTime?.(file)?.getTime());
 
 /** A fence's code, then the adapter's fence imports it does not already import itself */
 function fenceSource({ block }: Fence, adapter: TestAdapter): string {
@@ -148,17 +136,17 @@ function compilerOptions(ts: CompilerApi, configFile: string): TypeScript.Compil
 }
 
 function typeError(
-  version: string,
+  ts: CompilerApi,
   { block }: Fence,
-  diagnostics: readonly TypeDiagnostic[],
+  diagnostics: readonly TypeScript.Diagnostic[],
 ): DdtCompileError {
   return new DdtCompileError({
     block: block.details,
-    parser: { name: parserOf(block.lang), package: "typescript", version },
+    parser: { name: parserOf(block.lang), package: "typescript", version: ts.version },
     phase: "typecheck",
-    diagnostics: diagnostics.map(({ start, end, message }): CompileDiagnostic => ({
-      message,
-      labels: [{ start: block.positionAt(start), end: block.positionAt(end) }],
+    diagnostics: diagnostics.map(({ start = 0, length = 0, messageText }): CompileDiagnostic => ({
+      message: ts.flattenDiagnosticMessageText(messageText, "\n"),
+      labels: [{ start: block.positionAt(start), end: block.positionAt(start + length) }],
     })),
   });
 }
