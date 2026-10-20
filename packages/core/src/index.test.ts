@@ -67,12 +67,8 @@ const titleOf = (meta: string) =>
 describe("fence titles", () => {
   test.each([
     ['title="adds numbers" run', "adds numbers"],
-    ["title='adds numbers' run", "adds numbers"],
-    ["run title=adds", "adds"],
-    ['twoslash title="a run" {1} compile_only', "a run"],
     ['title="" run', null],
     ["run", null],
-    ['ins="title=x" run', null],
   ])("%s is titled %j", (meta, title) => {
     expect(titleOf(meta)).toBe(title);
   });

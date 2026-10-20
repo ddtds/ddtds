@@ -25,19 +25,6 @@ render(<p>Hello</p>);
 expect(screen.getByText("Hello")).toBeTruthy();
 ```
 
-A comment starting with `ddt-setup` above a fence runs as code before the fence
-
-````md
-<!-- ddt-setup
-import { render, screen } from "@testing-library/react";
--->
-
-```tsx run
-render(<p>Hello</p>);
-expect(screen.getByText("Hello")).toBeTruthy();
-```
-````
-
 ## plugins
 
 ddtds plugs into your test runner, so the docs run alongside your other tests
@@ -64,6 +51,39 @@ For example, this fence has a `fail` annotation. It must compile, and it passes 
 ````md
 ```ts fail
 expect(1).toBe(2);
+```
+````
+
+By default, test names are file locations. Use a title to set a name for easier filtering
+
+````md
+```ts title="adds numbers" run
+expect(1 + 1).toBe(2);
+```
+````
+
+```bash
+~/coding/ddtds pnpm exec vitest run README.md
+
+ ✓  readme  README.md (1 test) 49ms
+   ✓ adds numbers 49ms
+
+ Test Files  1 passed (1)
+      Tests  1 passed (1)
+```
+
+## setup comments
+
+A comment starting with `ddt-setup` above a fence runs as code before the fence
+
+````md
+<!-- ddt-setup
+import { render, screen } from "@testing-library/react";
+-->
+
+```tsx run
+render(<p>Hello</p>);
+expect(screen.getByText("Hello")).toBeTruthy();
 ```
 ````
 
