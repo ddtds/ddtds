@@ -1,4 +1,4 @@
-import type { IndexOptions } from "@ddtds/core";
+import type { IndexOptions } from "@ddtds/core/docs";
 
 export const root = "/repo";
 export const options: IndexOptions = { root, moduleDir: `${root}/__ddtds__` };

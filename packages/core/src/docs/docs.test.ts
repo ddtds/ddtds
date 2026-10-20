@@ -1,5 +1,5 @@
 import { expect, test } from "vitest";
-import { ANNOTATIONS } from "../constants.ts";
+import { ANNOTATIONS } from "../annotations.ts";
 import { markdown } from "../test-utils.ts";
 import { DocIndex } from "./docs.ts";
 
@@ -64,19 +64,6 @@ test("replaceDoc keeps a doc that loses all its fences", () => {
   expect(docs.hasDoc("/repo/pkg/a.md")).toBe(true);
   expect(docs.fencesOf("/repo/pkg/a.md")).toEqual([]);
   expect(docs.size).toBe(0);
-});
-
-test("docModuleId flattens the doc path relative to the root", () => {
-  expect(index({}).docModuleId("/repo/docs/guide.md")).toBe(
-    "/repo/pkg/__doctests__/.._sdocs_sguide.md.test.ts",
-  );
-});
-
-test("docs whose flattened paths collide get distinct ids", () => {
-  const paths = ["/repo/pkg/a/b.md", "/repo/pkg/a_b.md", "/repo/pkg/a.b.md"];
-  const ids = paths.map((doc) => index({ [doc]: markdown("1") }).docModuleId(doc));
-
-  expect(new Set(ids).size).toBe(paths.length);
 });
 
 test("sourceOf returns the doc's original text", () => {

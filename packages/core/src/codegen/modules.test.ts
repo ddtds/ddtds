@@ -1,10 +1,10 @@
 import { expect, test } from "vitest";
 import { TraceMap, generatedPositionFor, originalPositionFor } from "@jridgewell/trace-mapping";
-import { docModule, fenceModule } from "./modules.ts";
+import { docModule, fenceModule } from "./render-module.ts";
 import { parseCodeFences } from "../fences/blocks.ts";
 import { parseJsDocFences } from "../fences/jsdoc.ts";
 import type { TestAdapter } from "./adapter.ts";
-import { staticImport } from "./static-import.ts";
+import { typedImports } from "./imports.ts";
 import { adapter, fence } from "./test-utils.ts";
 
 /** The 1-based line and text of the first generated line matching `matches` */
@@ -18,7 +18,7 @@ function generatedLine(code: string, matches: (line: string) => boolean) {
 
 const cjs: TestAdapter = {
   ...adapter,
-  fenceImports: [staticImport("expect", "expect")],
+  fenceImports: [typedImports<Record<string, unknown>>("expect")("expect")],
   module: "cjs",
 };
 

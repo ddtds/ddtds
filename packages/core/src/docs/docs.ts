@@ -91,10 +91,6 @@ export class DocIndex {
     return this.#sources.get(doc);
   }
 
-  public docModuleId(doc: string): string {
-    return join(this.#options.moduleDir, `${flatName(this.#options.root, doc)}.test.ts`);
-  }
-
   /** Doc path plus a query, so watchers see the doc and importers get the file */
   public entryId(doc: string): string {
     return `${doc}${ENTRY_QUERY}`;

@@ -1,5 +1,6 @@
 import { test } from "vitest";
-import { CodeBlock } from "@ddtds/core";
+import { CodeBlock } from "@ddtds/core/fences";
+import { splitImportsAndBlock } from "../packages/core/src/fences/parse.ts";
 
 const code = `import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -35,14 +36,15 @@ expect(join(dir, users.a.id)).toContain("a");
 expect(addOne(base)).toBe(3);
 expect(new Greeter("world").greet()).toBe("hello world");`;
 
-test("CodeBlock.splitImports", async ({ bench }) => {
+test("splitImportsAndBlock", async ({ bench }) => {
+  const block = new CodeBlock({
+    code,
+    lang: "ts",
+    annotation: null,
+    path: "bench.md",
+    rangeInText: { start: { line: 1, column: 1 }, end: { line: 1, column: 1 } },
+  });
   await bench("split imports and sanitize block", () => {
-    new CodeBlock({
-      code,
-      lang: "ts",
-      annotation: null,
-      path: "bench.md",
-      rangeInText: { start: { line: 1, column: 1 }, end: { line: 1, column: 1 } },
-    }).splitImports();
+    splitImportsAndBlock(block);
   }).run();
 });

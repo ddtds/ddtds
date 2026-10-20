@@ -46,7 +46,7 @@ test("finds docs when the user sets test.dir", async () => {
   `);
 });
 
-test("passes include and exclude to findDocs", async () => {
+test("passes include and exclude to discovery", async () => {
   await using dir = fixture(files);
   const plugin = { include: ["**/*.md"], exclude: ["nested/**"] };
   expect(await collect(dir.root, plugin)).toMatchInlineSnapshot(`
@@ -58,8 +58,8 @@ test("passes include and exclude to findDocs", async () => {
 });
 
 test("ignores stale generated files", async () => {
-  await using dir = fixture({ ...files, "__doctests__/stale.test.ts": "" });
-  expect(await collect(dir.root)).not.toContain("__doctests__/stale.test.ts");
+  await using dir = fixture({ ...files, "__ddtds__/stale.test.ts": "" });
+  expect(await collect(dir.root)).not.toContain("__ddtds__/stale.test.ts");
 });
 
 test("resolves packages from the root for docs outside it", async () => {
@@ -97,7 +97,7 @@ test("forgets a doc whose file is gone before loading its test module again", as
 });
 
 test("keeps the user's test.exclude and still skips generated output", async () => {
-  await using dir = fixture({ ...files, "__doctests__/stale.test.ts": "" });
+  await using dir = fixture({ ...files, "__ddtds__/stale.test.ts": "" });
   expect(await collect(dir.root, {}, { exclude: ["unit.test.ts"] })).toMatchInlineSnapshot(`
     [
       "guide.md",

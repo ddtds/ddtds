@@ -32,6 +32,8 @@ ddtds plugs into your test runner, so the docs run alongside your other tests
 - [node test](packages/node-test/README.md)
 - [vitest](packages/vitest/README.md)
 
+See [architecture](architecture.md) if you are interested in how it all works!
+
 See the plugin documentation for how to get started!
 
 ## annotations

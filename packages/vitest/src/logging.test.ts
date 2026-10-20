@@ -1,7 +1,8 @@
 import { configureSync, getLogger, resetSync } from "@logtape/logtape";
 import { createLogRecorder } from "@logtape/testing/recorder";
 import { afterEach, expect, test } from "vitest";
-import { DdtSession, parseCodeFences } from "@ddtds/core";
+import { DdtSession } from "@ddtds/core";
+import { parseCodeFences } from "@ddtds/core/fences";
 import { defaultGlobals, vitestAdapter } from "./adapter.ts";
 import { configureLogging } from "./logging.ts";
 

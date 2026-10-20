@@ -1,13 +1,13 @@
 import { expect, test } from "vitest";
-import { typedImports } from "@ddtds/core";
-import { defaultGlobals, vitestAdapter, vitestImports, vitestTestAdapter } from "./adapter.ts";
+import { typedImports } from "@ddtds/core/imports";
+import { defaultGlobals, vitestAdapter, vitestImports } from "./adapter.ts";
 
 test("the default globals are expect and vi", () => {
   expect(defaultGlobals).toEqual([
     { module: "vitest", name: "expect" },
     { module: "vitest", name: "vi" },
   ]);
-  expect(vitestTestAdapter.fenceImports).toBe(defaultGlobals);
+  expect(vitestAdapter(defaultGlobals).fenceImports).toBe(defaultGlobals);
 });
 
 test("an adapter injects exactly the globals it is given", () => {

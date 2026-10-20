@@ -1,15 +1,20 @@
 import { CodeBlock } from "../fences/blocks.ts";
 import { DdtCompileError } from "../fences/compile-error.ts";
-import type { Annotation, Lang } from "../constants.ts";
+import type { Annotation } from "../annotations.ts";
+import type { Lang } from "../languages.ts";
 import type { Fence } from "../docs/docs.ts";
+import { splitImportsAndBlock, type ParseableBlock, type PreparedBlock } from "../fences/parse.ts";
 import type { TestAdapter } from "./adapter.ts";
-import { staticImport } from "./static-import.ts";
+import { typedImports } from "./imports.ts";
+
+const testImports = typedImports<Record<string, unknown>>("test");
+const expectImports = typedImports<Record<string, unknown>>("expect");
 
 // these are unit tests and don't need to resolve
 export const adapter: TestAdapter = {
   runtime: "@ddtds/test/runtime",
-  testImport: staticImport("test", "test"),
-  fenceImports: [staticImport("expect", "expect")],
+  testImport: testImports("test"),
+  fenceImports: [expectImports("expect")],
 };
 
 export function fence(
@@ -30,20 +35,23 @@ export function fence(
   };
 }
 
-export function failingWithCause(f: Fence, cause: unknown): Fence {
+export function failingWithCause(
+  f: Fence,
+  cause: unknown,
+): { fence: Fence; split: (block: ParseableBlock) => PreparedBlock } {
   const parseError = captureParseError(fence("const = 1;"));
   const error = new DdtCompileError(parseError.details, { cause });
-  Object.assign(f.block, {
-    splitImports: () => {
+  return {
+    fence: f,
+    split: () => {
       throw error;
     },
-  });
-  return f;
+  };
 }
 
 export function captureParseError(f: Fence): DdtCompileError {
   try {
-    f.block.splitImports();
+    splitImportsAndBlock(f.block);
   } catch (error) {
     if (error instanceof DdtCompileError) return error;
     throw error;
