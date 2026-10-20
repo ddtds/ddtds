@@ -171,6 +171,17 @@ describe("CodeBlock.splitImports", () => {
     expect(body).toMatchInlineSnapshot(`"const ______default_that_does_not_conflict = 1;"`);
   });
 
+  test("rewrites anonymous default declarations as expressions", () => {
+    const fn = block("export default function () { return 1; }");
+    expect(split(fn).body).toMatchInlineSnapshot(
+      `"const ______default_that_does_not_conflict = function () { return 1; };"`,
+    );
+    const cls = block("export default class {}");
+    expect(split(cls).body).toMatchInlineSnapshot(
+      `"const ______default_that_does_not_conflict = class {};"`,
+    );
+  });
+
   test("parses tsrx with @tsrx/oxc", () => {
     const b = block("import { x } from './x'\nfunction A() @{\n  <p>{x}</p>\n}", null, 1, "tsrx");
     expect(split(b)).toEqual({
