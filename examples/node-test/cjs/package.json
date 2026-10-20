@@ -12,6 +12,6 @@
   },
   "devDependencies": {
     "@ddtds/node-test": "workspace:*",
-    "@types/node": "catalog:examples"
+    "@types/node": "catalog:dev"
   }
 }

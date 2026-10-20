@@ -16,6 +16,6 @@
     "happy-dom": "catalog:examples",
     "react": "catalog:examples",
     "react-dom": "catalog:examples",
-    "vitest": "catalog:examples"
+    "vitest": "catalog:dev"
   }
 }

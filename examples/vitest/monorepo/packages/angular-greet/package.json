@@ -29,6 +29,6 @@
     "@testing-library/jest-dom": "catalog:examples",
     "happy-dom": "catalog:examples",
     "typescript": "catalog:examples",
-    "vitest": "catalog:examples"
+    "vitest": "catalog:dev"
   }
 }

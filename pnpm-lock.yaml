@@ -252,9 +252,6 @@ catalogs:
     '@testing-library/vue':
       specifier: ^8.1.0
       version: 8.1.0
-    '@types/node':
-      specifier: 24.19.2
-      version: 24.19.2
     '@types/react':
       specifier: ^19.3.0
       version: 19.3.0
@@ -306,9 +303,6 @@ catalogs:
     vite-plugin-solid:
       specifier: ^2.11.14
       version: 2.11.14
-    vitest:
-      specifier: ^5.0.4
-      version: 5.0.5
     vue:
       specifier: ^3.5.44
       version: 3.5.44
@@ -427,7 +421,7 @@ importers:
         specifier: workspace:*
         version: link:../../../packages/node-test
       '@types/node':
-        specifier: catalog:examples
+        specifier: catalog:dev
         version: 24.19.2
 
   examples/node-test/ts:
@@ -436,7 +430,7 @@ importers:
         specifier: workspace:*
         version: link:../../../packages/node-test
       '@types/node':
-        specifier: catalog:examples
+        specifier: catalog:dev
         version: 24.19.2
 
   examples/vitest/js:
@@ -445,7 +439,7 @@ importers:
         specifier: workspace:*
         version: link:../../../packages/vitest
       vitest:
-        specifier: catalog:examples
+        specifier: catalog:dev
         version: 5.0.5(@opentelemetry/api@1.9.1)(@types/node@24.19.2)(@vitest/coverage-v8@5.0.5)(happy-dom@21.0.3)(vite@8.3.0(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1))
 
   examples/vitest/monorepo: {}
@@ -502,7 +496,7 @@ importers:
         specifier: catalog:examples
         version: 6.0.3
       vitest:
-        specifier: catalog:examples
+        specifier: catalog:dev
         version: 5.0.5(@opentelemetry/api@1.9.1)(@types/node@24.19.2)(@vitest/coverage-v8@5.0.5)(happy-dom@21.0.3)(vite@8.3.0(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1))
 
   examples/vitest/monorepo/packages/greet:
@@ -511,7 +505,7 @@ importers:
         specifier: workspace:*
         version: link:../../../../../packages/vitest
       vitest:
-        specifier: catalog:examples
+        specifier: catalog:dev
         version: 5.0.5(@opentelemetry/api@1.9.1)(@types/node@24.19.2)(@vitest/coverage-v8@5.0.5)(happy-dom@21.0.3)(vite@8.3.0(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1))
 
   examples/vitest/monorepo/packages/lit-greet:
@@ -539,7 +533,7 @@ importers:
         specifier: catalog:examples
         version: 1.14.2(@testing-library/dom@10.4.2)
       vitest:
-        specifier: catalog:examples
+        specifier: catalog:dev
         version: 5.0.5(@opentelemetry/api@1.9.1)(@types/node@24.19.2)(@vitest/coverage-v8@5.0.5)(happy-dom@21.0.3)(vite@8.3.0(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1))
 
   examples/vitest/monorepo/packages/octane-greet:
@@ -564,7 +558,7 @@ importers:
         specifier: catalog:examples
         version: 21.0.3
       vitest:
-        specifier: catalog:examples
+        specifier: catalog:dev
         version: 5.0.5(@opentelemetry/api@1.9.1)(@types/node@24.19.2)(@vitest/coverage-v8@5.0.5)(happy-dom@21.0.3)(vite@8.3.0(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1))
 
   examples/vitest/monorepo/packages/preact-greet:
@@ -595,7 +589,7 @@ importers:
         specifier: catalog:examples
         version: 21.0.3
       vitest:
-        specifier: catalog:examples
+        specifier: catalog:dev
         version: 5.0.5(@opentelemetry/api@1.9.1)(@types/node@24.19.2)(@vitest/coverage-v8@5.0.5)(happy-dom@21.0.3)(vite@8.3.0(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1))
 
   examples/vitest/monorepo/packages/react-greet:
@@ -635,7 +629,7 @@ importers:
         specifier: catalog:examples
         version: 21.0.3
       vitest:
-        specifier: catalog:examples
+        specifier: catalog:dev
         version: 5.0.5(@opentelemetry/api@1.9.1)(@types/node@24.19.2)(@vitest/coverage-v8@5.0.5)(happy-dom@21.0.3)(vite@8.3.0(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1))
 
   examples/vitest/monorepo/packages/solid-greet:
@@ -666,7 +660,7 @@ importers:
         specifier: catalog:examples
         version: 2.11.14(@testing-library/jest-dom@7.0.1(@testing-library/dom@10.4.2)(vitest@5.0.5))(solid-js@1.9.17)(supports-color@8.1.1)(vite@8.3.0(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1))
       vitest:
-        specifier: catalog:examples
+        specifier: catalog:dev
         version: 5.0.5(@opentelemetry/api@1.9.1)(@types/node@24.19.2)(@vitest/coverage-v8@5.0.5)(happy-dom@21.0.3)(vite@8.3.0(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1))
 
   examples/vitest/monorepo/packages/svelte-greet:
@@ -703,7 +697,7 @@ importers:
         specifier: catalog:examples
         version: 6.0.3
       vitest:
-        specifier: catalog:examples
+        specifier: catalog:dev
         version: 5.0.5(@opentelemetry/api@1.9.1)(@types/node@24.19.2)(@vitest/coverage-v8@5.0.5)(happy-dom@21.0.3)(vite@8.3.0(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1))
 
   examples/vitest/monorepo/packages/vue-greet:
@@ -737,7 +731,7 @@ importers:
         specifier: catalog:examples
         version: 6.0.3
       vitest:
-        specifier: catalog:examples
+        specifier: catalog:dev
         version: 5.0.5(@opentelemetry/api@1.9.1)(@types/node@24.19.2)(@vitest/coverage-v8@5.0.5)(happy-dom@21.0.3)(vite@8.3.0(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1))
       vue-tsc:
         specifier: catalog:examples
@@ -770,7 +764,7 @@ importers:
         specifier: catalog:examples
         version: 19.3.1(react@19.3.1)
       vitest:
-        specifier: catalog:examples
+        specifier: catalog:dev
         version: 5.0.5(@opentelemetry/api@1.9.1)(@types/node@24.19.2)(@vitest/coverage-v8@5.0.5)(happy-dom@21.0.3)(vite@8.3.0(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1))
 
   examples/vitest/ts:
@@ -779,10 +773,10 @@ importers:
         specifier: workspace:*
         version: link:../../../packages/vitest
       '@types/node':
-        specifier: catalog:examples
+        specifier: catalog:dev
         version: 24.19.2
       vitest:
-        specifier: catalog:examples
+        specifier: catalog:dev
         version: 5.0.5(@opentelemetry/api@1.9.1)(@types/node@24.19.2)(@vitest/coverage-v8@5.0.5)(happy-dom@21.0.3)(vite@8.3.0(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1))
 
   packages/core:

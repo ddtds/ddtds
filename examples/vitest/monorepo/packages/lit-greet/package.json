@@ -20,6 +20,6 @@
     "@testing-library/jest-dom": "catalog:examples",
     "happy-dom": "catalog:examples",
     "shadow-dom-testing-library": "catalog:examples",
-    "vitest": "catalog:examples"
+    "vitest": "catalog:dev"
   }
 }

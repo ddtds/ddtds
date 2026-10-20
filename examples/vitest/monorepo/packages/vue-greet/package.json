@@ -22,7 +22,7 @@
     "@vitejs/plugin-vue": "catalog:examples",
     "happy-dom": "catalog:examples",
     "typescript": "catalog:examples",
-    "vitest": "catalog:examples",
+    "vitest": "catalog:dev",
     "vue-tsc": "catalog:examples"
   }
 }

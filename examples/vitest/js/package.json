@@ -9,6 +9,6 @@
   },
   "devDependencies": {
     "@ddtds/vitest": "workspace:*",
-    "vitest": "catalog:examples"
+    "vitest": "catalog:dev"
   }
 }

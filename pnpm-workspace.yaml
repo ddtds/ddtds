@@ -52,7 +52,6 @@ catalogs:
     "@testing-library/svelte": ^5.4.2
     "@testing-library/user-event": ^14.6.8
     "@testing-library/vue": ^8.1.0
-    "@types/node": 24.19.2
     "@types/react": ^19.3.0
     "@types/react-dom": ^19.3.0
     "@vitejs/plugin-react": ^6.1.2
@@ -70,7 +69,6 @@ catalogs:
     svelte-check: ^4.7.6
     typescript: ~6.0.3
     vite-plugin-solid: ^2.11.14
-    vitest: ^5.0.4
     vue: ^3.5.44
     vue-tsc: ^3.3.13
   prod:
