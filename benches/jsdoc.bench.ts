@@ -1,6 +1,6 @@
 import { test } from "vitest";
 import { DdtSession } from "@ddtds/core";
-import { vitestTestAdapter } from "@ddtds/vitest";
+import { defaultGlobals, vitestAdapter } from "@ddtds/vitest/adapter";
 import {
   markdownSources,
   root,
@@ -16,6 +16,7 @@ const mixed = new Map([...markdownSources(10, 10), ...withFences]);
 
 // Bypass Vite's export getter: indexing a fence-free repo is fast enough that the
 // getter would dominate. https://vitest.dev/guide/benchmarking#module-runner-overhead
+const adapter = vitestAdapter(defaultGlobals);
 const fromSources = DdtSession.fromSources.bind(DdtSession);
 
 /**
@@ -24,14 +25,14 @@ const fromSources = DdtSession.fromSources.bind(DdtSession);
  */
 test("DdtSession source docs", async ({ bench }) => {
   await bench("index 20 source docs with 5 example fences", () => {
-    fromSources(vitestTestAdapter, withFences, root);
+    fromSources(adapter, withFences, root);
   }).run();
 
   await bench("index 20 source docs with no fences", () => {
-    fromSources(vitestTestAdapter, withoutFences, root);
+    fromSources(adapter, withoutFences, root);
   }).run();
 
   await bench("index a mixed markdown and source repo", () => {
-    fromSources(vitestTestAdapter, mixed, root);
+    fromSources(adapter, mixed, root);
   }).run();
 });

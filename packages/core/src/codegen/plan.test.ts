@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { ANNOTATIONS } from "../constants.ts";
+import { ANNOTATIONS } from "../annotations.ts";
 import { planFence } from "./plan.ts";
 import { DdtCompileError } from "../fences/compile-error.ts";
 import { captureParseError, failingWithCause, fence } from "./test-utils.ts";
@@ -56,17 +56,20 @@ describe("planFence: compile errors", () => {
 
   test("an Error cause keeps its name, message, code, and stack", () => {
     const cause = Object.assign(new TypeError("crashed"), { code: "E_CRASH" });
-    const outcome = planFence(failingWithCause(fence("1;"), cause));
+    const failed = failingWithCause(fence("1;"), cause);
+    const outcome = planFence(failed.fence, failed.split);
     expect(outcome).toMatchObject({
       tag: "compileError",
       cause: { name: "TypeError", message: "crashed", code: "E_CRASH", stack: cause.stack },
     });
-    const plain = planFence(failingWithCause(fence("1;"), new Error("crashed")));
+    const plainFailure = failingWithCause(fence("1;"), new Error("crashed"));
+    const plain = planFence(plainFailure.fence, plainFailure.split);
     expect(plain).toMatchObject({ cause: { name: "Error", message: "crashed", code: undefined } });
   });
 
   test("a non-Error cause is inspected so it serializes", () => {
-    const outcome = planFence(failingWithCause(fence("1;"), "boom"));
+    const failed = failingWithCause(fence("1;"), "boom");
+    const outcome = planFence(failed.fence, failed.split);
     expect(outcome).toMatchObject({
       tag: "compileError",
       cause: { name: "UnknownCause", message: "'boom'" },
@@ -75,12 +78,11 @@ describe("planFence: compile errors", () => {
 
   test("errors that are not compile errors are rethrown", () => {
     const f = fence("1;");
-    Object.assign(f.block, {
-      splitImports: () => {
+    expect(() =>
+      planFence(f, () => {
         throw new RangeError("not ours");
-      },
-    });
-    expect(() => planFence(f)).toThrow(RangeError);
+      }),
+    ).toThrow(RangeError);
   });
 });
 
@@ -89,14 +91,14 @@ describe("planFence: type errors", () => {
   const typeError = new DdtCompileError({ ...details, phase: "typecheck" });
 
   test("a type error in a run fence is a compile error", () => {
-    expect(planFence(fence("1;"), typeError)).toMatchObject({
+    expect(planFence(fence("1;"), undefined, typeError)).toMatchObject({
       tag: "compileError",
       details: { phase: "typecheck" },
     });
   });
 
   test("a type error is the expected failure of a compile_fail fence", () => {
-    expect(planFence(fence("1;", ANNOTATIONS.COMPILE_FAIL), typeError)).toEqual({
+    expect(planFence(fence("1;", ANNOTATIONS.COMPILE_FAIL), undefined, typeError)).toEqual({
       tag: "emptyPass",
     });
   });

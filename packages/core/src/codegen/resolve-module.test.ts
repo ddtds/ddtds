@@ -1,11 +1,12 @@
 import { describe, expect, test } from "vitest";
 import { parseCodeFences } from "../fences/blocks.ts";
+import { splitImportsAndBlock } from "../fences/parse.ts";
 import { resolveModule } from "./resolve-module.ts";
 
 function resolve(lang: string, code: string, file = "doc.md", fallback: "esm" | "cjs" = "esm") {
   const [block] = parseCodeFences(`\`\`\`${lang} run\n${code}\n\`\`\`\n`, file);
   if (!block) throw new Error("no block");
-  const { syntax } = block.splitImports();
+  const { syntax } = splitImportsAndBlock(block);
   return resolveModule(block, { syntax, fallback });
 }
 

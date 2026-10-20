@@ -1,4 +1,5 @@
-import { typedImports, type ModuleSystem, type StaticImport, type TestAdapter } from "@ddtds/core";
+import type { ModuleSystem, TestAdapter } from "@ddtds/core/adapter";
+import { typedImports, type StaticImport } from "@ddtds/core/imports";
 
 export const nodeTestImports: ReturnType<typeof typedImports<typeof import("node:test")>> =
   typedImports("node:test");

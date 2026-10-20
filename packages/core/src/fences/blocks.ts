@@ -1,14 +1,9 @@
 import { getLogger } from "@logtape/logtape";
 import { markdownToMdast, mdxToMdast, type MdastNode } from "satteri";
-import {
-  ANNOTATIONS,
-  extensionOf,
-  type Annotation,
-  type Lang,
-  type OutputExtension,
-  isAnnotation,
-  isLang,
-} from "../constants.ts";
+import { ANNOTATIONS, type Annotation } from "../annotations.ts";
+import { isAnnotation } from "./annotation.ts";
+import { extensionOf, isLang } from "../language-registry.ts";
+import type { Lang, OutputExtension } from "../languages.ts";
 import type { BlockDetails, Position, SourceRange } from "./compile-error.ts";
 import {
   columnsBeforeOffset,
@@ -29,7 +24,6 @@ import {
 } from "./segments.ts";
 import { setupBefore } from "./hidden.ts";
 import { parseInfo, type FenceInfo } from "./info.ts";
-import { splitImportsAndBlock, type PreparedBlock } from "./parse.ts";
 
 const logger = getLogger(["ddtds", "blocks"]);
 
@@ -49,7 +43,7 @@ function parseAnnotation({ words }: FenceInfo): AnnotationResult {
   return { tag: "ok", annotation };
 }
 
-export type CodeBlockInit = {
+type CodeBlockInit = {
   code: string;
   lang: Lang;
   annotation: Annotation | null;
@@ -126,10 +120,6 @@ export class CodeBlock {
 
   public isCompileOnly(): boolean {
     return this.details.annotation === ANNOTATIONS.COMPILE_ONLY;
-  }
-
-  public splitImports(): PreparedBlock {
-    return splitImportsAndBlock(this);
   }
 }
 

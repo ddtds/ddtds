@@ -1,17 +1,15 @@
 import { writeFileSync } from "node:fs";
 import { join, relative } from "node:path";
 import { describe, test, expect } from "vitest";
-import {
-  CodeBlock,
-  DdtCompileError,
-  parseCodeFences,
-  defaultDocsExclude,
-  defaultDocsInclude,
-  findDocs,
-  resolveDocsOptions,
-} from "./index";
-import { ANNOTATIONS, isLang, type Annotation, type Lang } from "./constants";
-import { tempFixture } from "./test-utils";
+import { ANNOTATIONS, type Annotation } from "./annotations.ts";
+import { defaultDocsExclude, defaultDocsInclude } from "./config.ts";
+import { findDocs, resolveDocsOptions } from "./docs/discovery.ts";
+import { CodeBlock, parseCodeFences } from "./fences/blocks.ts";
+import { DdtCompileError } from "./fences/compile-error.ts";
+import { splitImportsAndBlock } from "./fences/parse.ts";
+import { isLang } from "./language-registry.ts";
+import type { Lang } from "./languages.ts";
+import { tempFixture } from "./test-utils.ts";
 
 describe("parseBlocks", () => {
   test.each([
@@ -141,7 +139,7 @@ function block(
 
 function compileError(b: CodeBlock): DdtCompileError {
   try {
-    b.splitImports();
+    splitImportsAndBlock(b);
   } catch (error) {
     if (error instanceof DdtCompileError) return error;
     throw error;
@@ -150,11 +148,11 @@ function compileError(b: CodeBlock): DdtCompileError {
 }
 
 function split(b: CodeBlock): { imports: string[]; body: string } {
-  const { imports, body } = b.splitImports();
+  const { imports, body } = splitImportsAndBlock(b);
   return { imports: imports.map(String), body: body.join("\n") };
 }
 
-describe("CodeBlock.splitImports", () => {
+describe("splitImportsAndBlock", () => {
   test("hoists static imports to file level", () => {
     const b = block("import { foo } from './foo'\nexpect(foo).toBe(1)");
     const { imports, body } = split(b);

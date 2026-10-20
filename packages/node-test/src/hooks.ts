@@ -2,13 +2,11 @@ import { readFileSync } from "node:fs";
 import { findPackageJSON, setSourceMapsSupport, type RegisterHooksOptions } from "node:module";
 import { extname } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
-import {
-  DdtSession,
-  configureLogging,
-  type DdtOptions,
-  type ModuleSystem,
-  type StaticImport,
-} from "@ddtds/core";
+import { DdtSession } from "@ddtds/core";
+import type { ModuleSystem } from "@ddtds/core/adapter";
+import type { DdtOptions } from "@ddtds/core/config";
+import type { StaticImport } from "@ddtds/core/imports";
+import { configureLogging } from "@ddtds/core/log";
 import { getConsoleSink, getLogger, getTextFormatter } from "@logtape/logtape";
 import { nodeTestAdapter } from "./adapter.ts";
 

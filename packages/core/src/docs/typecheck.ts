@@ -3,7 +3,9 @@ import { createRequire } from "node:module";
 import { dirname, join } from "node:path";
 import type * as TypeScript from "typescript6";
 import { DdtCompileError, type CompileDiagnostic } from "../fences/compile-error.ts";
-import { parserOf, type Parser } from "../constants.ts";
+import { parserOf } from "../language-registry.ts";
+import type { Parser } from "../languages.ts";
+import { splitImportsAndBlock } from "../fences/parse.ts";
 import type { TestAdapter } from "../codegen/adapter.ts";
 import { renderImport, runtimeNames, unshadowed } from "../codegen/static-import.ts";
 import type { DocIndex, Fence } from "./docs.ts";
@@ -99,7 +101,7 @@ const versionOf = (ts: CompilerApi, file: string): string =>
 function fenceSource({ block }: Fence, adapter: TestAdapter): string {
   let taken: string[] = [];
   try {
-    taken = runtimeNames(block.splitImports().bindings);
+    taken = runtimeNames(splitImportsAndBlock(block).bindings);
   } catch {
     // a fence that does not parse reports its own error
   }

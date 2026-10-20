@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { ANNOTATIONS } from "../constants.ts";
+import { ANNOTATIONS } from "../annotations.ts";
 import type { Position } from "./compile-error.ts";
 import { DocIndex } from "../docs/docs.ts";
 import { parseJsDocFences } from "./jsdoc.ts";

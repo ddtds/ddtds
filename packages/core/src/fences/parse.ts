@@ -3,15 +3,24 @@ import { MagicString } from "magic-string";
 import { parseSync } from "oxc-parser";
 import type * as TsrxParser from "@tsrx/oxc/parser";
 import type { ExportDefaultDeclarationKind, Program } from "@oxc-project/types";
-import type { CodeBlock } from "./blocks.ts";
-import { parserOf, type Parser } from "../constants.ts";
+import { parserOf } from "../language-registry.ts";
+import type { Lang, Parser } from "../languages.ts";
 import {
   DdtCompileError,
+  type BlockDetails,
   type CompileDiagnostic,
   type CompilePhase,
   type ParserDetails,
   type ParserError,
+  type Position,
 } from "./compile-error.ts";
+
+export type ParseableBlock = {
+  readonly code: string;
+  readonly lang: Lang;
+  readonly details: BlockDetails;
+  positionAt(offset: number): Position;
+};
 
 type ParsedBodyNode = Program["body"][number];
 type SyntheticDefaultNode = {
@@ -27,7 +36,7 @@ export type PreparedBlock = {
   syntax: ModuleSyntax;
 };
 
-export function splitImportsAndBlock(block: CodeBlock): PreparedBlock {
+export function splitImportsAndBlock(block: ParseableBlock): PreparedBlock {
   const { program, staticImports, syntax } = parse(block);
   const source = new MagicString(block.code);
 
@@ -57,7 +66,7 @@ function bindingsOf(staticImports: readonly ParsedImport[]): ImportBinding[] {
 
 type ParsedBlock = { program: Program; staticImports: ParsedImport[]; syntax: ModuleSyntax };
 
-function parse(block: CodeBlock): ParsedBlock {
+function parse(block: ParseableBlock): ParsedBlock {
   const parser = parserOf(block.lang);
   const { program, module, errors } = runParser(block, parser);
   if (errors.length > 0 || !program || !module) {
@@ -89,7 +98,7 @@ function syntaxOf({ staticImports, staticExports, importMetas }: ModuleRecord): 
 
 type ParseResult = ReturnType<typeof parseSync> | ReturnType<typeof TsrxParser.parseSync>;
 
-function runParser(block: CodeBlock, parser: Parser): ParseResult {
+function runParser(block: ParseableBlock, parser: Parser): ParseResult {
   const filename = `block.${parser}`;
   const options = { sourceType: "module", showSemanticErrors: true } as const;
   if (parser !== "tsrx") return parseSync(filename, block.code, { ...options, lang: parser });
@@ -107,7 +116,7 @@ function runParser(block: CodeBlock, parser: Parser): ParseResult {
 }
 
 function compileError(
-  block: CodeBlock,
+  block: ParseableBlock,
   parser: Parser,
   phase: CompilePhase,
   diagnostics: CompileDiagnostic[],
@@ -132,7 +141,7 @@ function parserDetails(name: Parser): ParserDetails {
   return { name, package: pkg, version: requirePackageJson(`${pkg}/package.json`).version };
 }
 
-function toDiagnostic(block: CodeBlock, error: ParserError): CompileDiagnostic {
+function toDiagnostic(block: ParseableBlock, error: ParserError): CompileDiagnostic {
   const labels = error.labels.map((label) => ({
     ...(label.message ? { message: label.message } : {}),
     start: block.positionAt(label.start),

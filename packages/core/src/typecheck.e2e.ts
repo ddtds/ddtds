@@ -6,16 +6,18 @@ import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { after, describe, test } from "node:test";
 import type { TestAdapter } from "./codegen/adapter.ts";
-import { staticImport } from "./codegen/static-import.ts";
+import { typedImports } from "./codegen/imports.ts";
 import { DdtSession } from "./docs/session.ts";
 
 const major = process.env["TYPESCRIPT"];
 assert(major === "5" || major === "6", "set TYPESCRIPT to 5 or 6");
 
+const stub = typedImports<Record<string, unknown>>("test-stub");
+
 const adapter: TestAdapter = {
   runtime: "@ddtds/vitest/runtime",
-  testImport: staticImport("test-stub", "test"),
-  fenceImports: [staticImport("test-stub", "expect")],
+  testImport: stub("test"),
+  fenceImports: [stub("expect")],
 };
 
 const missingTypeScript = /typecheck needs "typescript" installed/;
