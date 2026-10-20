@@ -1,22 +1,11 @@
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
-import { tmpdir } from "node:os";
-import { dirname, join } from "node:path";
+import { join } from "node:path";
 import { describe, expect, onTestFinished, test, vi } from "vitest";
 import { adapter } from "../codegen/test-utils.ts";
+import { tempFixture } from "../test-utils.ts";
 import { DocIndex } from "./docs.ts";
 import { DdtSession } from "./session.ts";
 
 const ROOT = "/repo";
-
-function fixture(files: Record<string, string>): string {
-  const root = mkdtempSync(join(tmpdir(), "ddtds-session-"));
-  onTestFinished(() => rmSync(root, { recursive: true, force: true }));
-  for (const [file, content] of Object.entries(files)) {
-    mkdirSync(dirname(join(root, file)), { recursive: true });
-    writeFileSync(join(root, file), content);
-  }
-  return root;
-}
 
 function doc(code: string): string {
   return `\`\`\`ts run\n${code}\n\`\`\`\n`;
@@ -53,7 +42,7 @@ function memorySession(files: Record<string, string> = {}): {
 
 describe("DdtSession.fromFiles", () => {
   test("indexes each doc and serves both its doc and fence modules", () => {
-    const root = fixture({ "guide.md": doc("expect(1).toBe(1);") });
+    const root = tempFixture({ "guide.md": doc("expect(1).toBe(1);") });
     const session = sessionOver(root);
     const [fence] = session.index.fences();
 
@@ -78,12 +67,12 @@ describe("DdtSession.fromFiles source files", () => {
   };
 
   test("scans source files by default, skipping dependencies and build output", () => {
-    const root = fixture(files);
+    const root = tempFixture(files);
     expect(docsOf(sessionOver(root), root)).toEqual(["src/a.ts", "src/b.ts"]);
   });
 
   test("scans only the given include", () => {
-    const root = fixture(files);
+    const root = tempFixture(files);
     const session = DdtSession.fromFiles(adapter, { root, include: ["src/a.ts"] });
     expect(docsOf(session, root)).toEqual(["src/a.ts"]);
   });

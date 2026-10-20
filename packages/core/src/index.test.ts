@@ -1,7 +1,6 @@
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
-import { tmpdir } from "node:os";
-import { dirname, join, relative } from "node:path";
-import { describe, test, expect, onTestFinished } from "vitest";
+import { writeFileSync } from "node:fs";
+import { join, relative } from "node:path";
+import { describe, test, expect } from "vitest";
 import {
   CodeBlock,
   DdtCompileError,
@@ -12,6 +11,7 @@ import {
   resolveDocsOptions,
 } from "./index";
 import { ANNOTATIONS, isLang, type Annotation, type Lang } from "./constants";
+import { tempFixture } from "./test-utils";
 
 describe("parseBlocks", () => {
   test.each([
@@ -377,13 +377,12 @@ describe("resolveDocsOptions", () => {
 });
 
 function fixture(): string {
-  const dir = mkdtempSync(join(tmpdir(), "ddtds-"));
-  onTestFinished(() => rmSync(dir, { recursive: true, force: true }));
-  for (const doc of ["guide.md", "nested/guide.md", "CHANGELOG.md", "node_modules/pkg/README.md"]) {
-    mkdirSync(dirname(join(dir, doc)), { recursive: true });
-    writeFileSync(join(dir, doc), "");
-  }
-  return dir;
+  return tempFixture({
+    "guide.md": "",
+    "nested/guide.md": "",
+    "CHANGELOG.md": "",
+    "node_modules/pkg/README.md": "",
+  });
 }
 
 function find(root: string, include = defaultDocsInclude, exclude = defaultDocsExclude): string[] {
