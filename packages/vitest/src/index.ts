@@ -5,7 +5,6 @@ import {
   DdtSession,
   DocIndex,
   defaultOutDir,
-  moduleFiles as generateModuleFiles,
   moduleFor,
   type DdtOptions,
   type DocsOptions,
@@ -24,11 +23,6 @@ export {
   defaultDocsExclude,
   defaultOutDir,
 } from "@ddtds/core";
-
-/** Generated doc and fence modules for `ddt build`. */
-export function moduleFiles(index: DocIndex): Map<string, string> {
-  return generateModuleFiles(vitestTestAdapter, index);
-}
 
 export function loadModule(index: DocIndex, id: string): GeneratedModule | undefined {
   return moduleFor(vitestTestAdapter, index, id);

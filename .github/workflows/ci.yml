@@ -27,7 +27,7 @@ jobs:
       - run: pnpm run format:check
       - run: pnpm run typecheck
       - run: pnpm run publint
-      - run: pnpm --filter @ddtds/core --filter ddtds --filter @ddtds/vitest --filter @ddtds/node-test publish --dry-run --no-git-checks
+      - run: pnpm --filter @ddtds/core --filter @ddtds/vitest --filter @ddtds/node-test publish --dry-run --no-git-checks
 
   test:
     name: ${{ matrix.name }}

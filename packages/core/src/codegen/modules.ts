@@ -107,16 +107,6 @@ export function docModule(
   return { code: lines.join("\n"), map, module: "esm" };
 }
 
-export function moduleFiles(adapter: TestAdapter, index: DocIndex): Map<string, string> {
-  const files = new Map<string, string>();
-  for (const [doc, fences] of index.docs()) {
-    const source = index.sourceOf(doc);
-    for (const fence of fences) files.set(fence.id, fenceModule(adapter, fence, source).code);
-    files.set(index.docModuleId(doc), docModule(adapter, doc, fences, { source }).code);
-  }
-  return files;
-}
-
 /** Module for an entry or fence id */
 export function moduleFor(
   adapter: TestAdapter,
