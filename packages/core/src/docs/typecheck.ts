@@ -11,14 +11,6 @@ import type { DocIndex, Fence } from "./docs.ts";
 type CompilerApi = typeof TypeScript;
 type TypeDiagnostic = { start: number; end: number; message: string };
 
-/** What was last checked for a fence: its code, the program input, and the result */
-type CheckedFence = {
-  code: string;
-  source: string;
-  file?: TypeScript.SourceFile;
-  diagnostics?: TypeDiagnostic[];
-};
-
 const TYPED_PARSERS: ReadonlySet<Parser> = new Set(["ts", "tsx"]);
 
 /** Used when the project has no tsconfig.json */
@@ -38,21 +30,16 @@ const defaultCompilerOptions = {
  * and map straight back to the markdown. `export {}` makes each fence a module, so fences do not
  * share declarations.
  *
- * One checker serves a whole watch session. Fences are isolated modules, so a fence whose code is
- * unchanged keeps its diagnostics, and parsed library files and unchanged fences are reused.
- * TypeScript and the tsconfig are read once per checker.
+ * One checker serves a whole watch session through a language service, which reuses parsed files
+ * and unchanged fences between checks. TypeScript and the tsconfig are read once per checker.
  */
 export class TypeChecker {
   readonly #root: string;
   readonly #tsconfig: string;
   readonly #adapter: TestAdapter;
-  readonly #fences = new Map<string, CheckedFence>();
-  readonly #byFileName = new Map<string, CheckedFence>();
-  readonly #parsedFiles = new Map<string, { file: TypeScript.SourceFile; modified?: number }>();
-  /** Counts project files that changed on disk, which can change any fence's result */
-  #changes = 0;
-  #compiler: { ts: CompilerApi; options: TypeScript.CompilerOptions } | undefined;
-  #program: TypeScript.Program | undefined;
+  /** Source of each fence being checked by id, which doubles as its version */
+  readonly #sources = new Map<string, string>();
+  #compiler: { ts: CompilerApi; service: TypeScript.LanguageService } | undefined;
 
   public constructor(root: string, adapter: TestAdapter) {
     this.#tsconfig = join(root, "tsconfig.json");
@@ -61,102 +48,63 @@ export class TypeChecker {
   }
 
   public check(index: DocIndex): Map<string, DdtCompileError> {
-    const fences = [...index.fences()];
-    if (fences.length === 0) {
-      this.#fences.clear();
-      return new Map();
-    }
-    const { ts, options } = this.#load();
-    const typed = fences.filter(({ block }) => TYPED_PARSERS.has(parserOf(block.lang)));
-    const typedIds = new Set(typed.map(({ id }) => id));
-    for (const id of this.#fences.keys()) if (!typedIds.has(id)) this.#fences.delete(id);
+    const typed = [...index.fences()].filter(({ block }) =>
+      TYPED_PARSERS.has(parserOf(block.lang)),
+    );
+    this.#sources.clear();
+    for (const fence of typed) this.#sources.set(fence.id, fenceSource(fence, this.#adapter));
     if (typed.length === 0) return new Map();
 
-    this.#byFileName.clear();
-    for (const fence of typed) {
-      const { code } = fence.block;
-      let checked = this.#fences.get(fence.id);
-      if (checked?.code !== code) {
-        checked = { code, source: fenceSource(fence, this.#adapter) };
-        this.#fences.set(fence.id, checked);
-      }
-      this.#byFileName.set(fence.id, checked);
-    }
-    const changesBefore = this.#changes;
-    const program = this.#createProgram(ts, options);
-    if (this.#changes !== changesBefore)
-      for (const checked of this.#fences.values()) checked.diagnostics = undefined;
-
+    const { ts, service } = this.#load();
     const errors = new Map<string, DdtCompileError>();
     for (const fence of typed) {
-      const checked = this.#fences.get(fence.id);
-      if (checked === undefined) continue;
-      checked.diagnostics ??= diagnosticsOf(ts, program, fence.id);
-      const inFence = checked.diagnostics.filter(({ start }) => start < fence.block.code.length);
-      if (inFence.length > 0) errors.set(fence.id, typeError(ts.version, fence, inFence));
+      const diagnostics = service
+        .getSemanticDiagnostics(fence.id)
+        .map(({ start = 0, length = 0, messageText }) => ({
+          start,
+          end: start + length,
+          message: ts.flattenDiagnosticMessageText(messageText, "\n"),
+        }))
+        .filter(({ start }) => start < fence.block.code.length);
+      if (diagnostics.length > 0) errors.set(fence.id, typeError(ts.version, fence, diagnostics));
     }
     return errors;
   }
 
-  /** A file's parsed source, reused until a project file changes on disk */
-  #parsed(
-    base: TypeScript.CompilerHost,
-    args: Parameters<TypeScript.CompilerHost["getSourceFile"]>,
-  ): TypeScript.SourceFile | undefined {
-    const [file] = args;
-    const cached = this.#parsedFiles.get(file);
-    const modified = file.includes("/node_modules/") ? undefined : mtimeOf(file);
-    if (cached !== undefined && cached.modified === modified) return cached.file;
-    const parsed = base.getSourceFile(...args);
-    if (cached !== undefined) this.#changes += 1;
-    if (parsed === undefined) this.#parsedFiles.delete(file);
-    else this.#parsedFiles.set(file, { file: parsed, modified });
-    return parsed;
-  }
-
-  #createProgram(ts: CompilerApi, options: TypeScript.CompilerOptions): TypeScript.Program {
-    const base = ts.createCompilerHost(options);
-    const host: TypeScript.CompilerHost = {
-      ...base,
-      getSourceFile: (file, language, ...rest) => {
-        const checked = this.#byFileName.get(file);
-        if (checked !== undefined)
-          return (checked.file ??= ts.createSourceFile(file, checked.source, language));
-        return this.#parsed(base, [file, language, ...rest]);
-      },
-      fileExists: (file) => this.#byFileName.has(file) || base.fileExists(file),
-      readFile: (file) => this.#byFileName.get(file)?.source ?? base.readFile(file),
-    };
-    this.#program = ts.createProgram({
-      rootNames: [...this.#byFileName.keys()],
-      options,
-      host,
-      oldProgram: this.#program,
-    });
-    return this.#program;
-  }
-
-  #load(): { ts: CompilerApi; options: TypeScript.CompilerOptions } {
+  #load(): { ts: CompilerApi; service: TypeScript.LanguageService } {
     if (this.#compiler === undefined) {
       const ts = loadTypeScript(this.#root);
-      this.#compiler = { ts, options: compilerOptions(ts, this.#tsconfig) };
+      const options = compilerOptions(ts, this.#tsconfig);
+      const sources = this.#sources;
+      const host: TypeScript.LanguageServiceHost = {
+        ...ts.sys,
+        useCaseSensitiveFileNames: () => ts.sys.useCaseSensitiveFileNames,
+        getCompilationSettings: () => options,
+        getCurrentDirectory: () => this.#root,
+        getDefaultLibFileName: ts.getDefaultLibFilePath,
+        getScriptFileNames: () => [...sources.keys()],
+        getScriptVersion: (file) => sources.get(file) ?? versionOf(file),
+        getScriptSnapshot: (file) => {
+          const text = sources.get(file) ?? ts.sys.readFile(file);
+          return text === undefined ? undefined : ts.ScriptSnapshot.fromString(text);
+        },
+        fileExists: (file) => sources.has(file) || ts.sys.fileExists(file),
+        readFile: (file) => sources.get(file) ?? ts.sys.readFile(file),
+      };
+      this.#compiler = { ts, service: ts.createLanguageService(host) };
     }
     return this.#compiler;
   }
 }
 
-function diagnosticsOf(
-  ts: CompilerApi,
-  program: TypeScript.Program,
-  file: string,
-): TypeDiagnostic[] {
-  return program
-    .getSemanticDiagnostics(program.getSourceFile(file))
-    .map(({ start = 0, length = 0, messageText }) => ({
-      start,
-      end: start + length,
-      message: ts.flattenDiagnosticMessageText(messageText, "\n"),
-    }));
+/** A project file's version is its mtime; installed packages do not change within a session */
+function versionOf(file: string): string {
+  if (file.includes("/node_modules/")) return "";
+  try {
+    return String(statSync(file).mtimeMs);
+  } catch {
+    return "";
+  }
 }
 
 /** A fence's code, then the adapter's fence imports it does not already import itself */
@@ -187,14 +135,6 @@ function loadTypeScript(root: string): CompilerApi {
     throw new Error(`typecheck supports TypeScript 5 and 6, found ${ts.version}`);
   }
   return ts;
-}
-
-function mtimeOf(file: string): number | undefined {
-  try {
-    return statSync(file).mtimeMs;
-  } catch {
-    return undefined;
-  }
 }
 
 function compilerOptions(ts: CompilerApi, configFile: string): TypeScript.CompilerOptions {
