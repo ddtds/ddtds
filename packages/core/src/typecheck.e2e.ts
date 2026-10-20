@@ -101,6 +101,16 @@ describe(`TypeScript ${major}`, () => {
     assert.deepEqual(await errorLines(root), { 1: 3 });
   });
 
+  test("an error in an injected global is not reported on the fence", async () => {
+    const root = project(fence("const count: number = 1;"));
+    const broken: TestAdapter = {
+      ...adapter,
+      fenceImports: [typedImports<Record<string, unknown>>("missing-module")("expect")],
+    };
+    const session = DdtSession.fromFiles(broken, { root });
+    assert.equal(session.typeErrors().size, 0);
+  });
+
   test("a fence importing a global itself does not clash", async () => {
     const root = project(fence('import { expect } from "test-stub";\nexpect(1).toBe(1);'));
     assert.deepEqual(await errorLines(root), { 1: undefined });
