@@ -4,7 +4,7 @@
  */
 
 import { describe, expect, test } from "vitest";
-import { typedImports, type StaticImport } from "@ddtds/core";
+import { ANNOTATIONS, typedImports, type Lang, type StaticImport } from "@ddtds/core";
 import {
   fence,
   jsdoc,
@@ -157,37 +157,45 @@ export function conformance(name: string, runner: Runner, dialect: Dialect): voi
       fence(missingPackage) + fence(passing),
       { "doc.md:1": FAILED, "doc.md:6": PASSED },
     ],
-    ["a fail fence that throws", fence('throw new Error("boom");', "fail"), { "doc.md:1": PASSED }],
-    ["a fail fence that passes", fence("1;", "fail"), { "doc.md:1": FAILED }],
-    ["a compile_fail fence that compiles", fence("1;", "compile_fail"), { "doc.md:1": FAILED }],
+    [
+      "a fail fence that throws",
+      fence('throw new Error("boom");', ANNOTATIONS.FAIL),
+      { "doc.md:1": PASSED },
+    ],
+    ["a fail fence that passes", fence("1;", ANNOTATIONS.FAIL), { "doc.md:1": FAILED }],
+    [
+      "a compile_fail fence that compiles",
+      fence("1;", ANNOTATIONS.COMPILE_FAIL),
+      { "doc.md:1": FAILED },
+    ],
     [
       "a compile_fail fence that throws once compiled",
-      fence('throw new Error("boom");', "compile_fail"),
+      fence('throw new Error("boom");', ANNOTATIONS.COMPILE_FAIL),
       { "doc.md:1": FAILED },
     ],
     [
       "a compile_fail fence that does not compile",
-      fence("const = 1;", "compile_fail"),
+      fence("const = 1;", ANNOTATIONS.COMPILE_FAIL),
       { "doc.md:1": PASSED },
     ],
     [
       "a compile_only fence that throws",
-      fence(throwingBody, "compile_only"),
+      fence(throwingBody, ANNOTATIONS.COMPILE_ONLY),
       { "doc.md:1": PASSED },
     ],
     [
       "a compile_only fence that never ends",
-      fence("while (true) {}", "compile_only"),
+      fence("while (true) {}", ANNOTATIONS.COMPILE_ONLY),
       { "doc.md:1": PASSED },
     ],
     [
       "a compile_only fence with a failing assertion",
-      fence(failing, "compile_only"),
+      fence(failing, ANNOTATIONS.COMPILE_ONLY),
       { "doc.md:1": PASSED },
     ],
     [
       "a compile_only fence with a syntax error",
-      fence("const = 1;", "compile_only"),
+      fence("const = 1;", ANNOTATIONS.COMPILE_ONLY),
       { "doc.md:1": FAILED },
     ],
     // a CommonJS fence requires its imports from inside its body
@@ -196,13 +204,13 @@ export function conformance(name: string, runner: Runner, dialect: Dialect): voi
       : [
           [
             "a compile_only fence with a missing import",
-            fence(missingPackage, "compile_only"),
+            fence(missingPackage, ANNOTATIONS.COMPILE_ONLY),
             { "doc.md:1": FAILED },
           ] satisfies [string, string, Verdicts],
         ]),
     [
       "a compile_only fence that does not run its code",
-      fence(`globalThis.__ddtdsCompileOnly = true;`, "compile_only") +
+      fence(`globalThis.__ddtdsCompileOnly = true;`, ANNOTATIONS.COMPILE_ONLY) +
         fence(dialect.equal("typeof globalThis.__ddtdsCompileOnly", '"undefined"')),
       { "doc.md:1": PASSED, "doc.md:5": PASSED },
     ],
@@ -265,17 +273,17 @@ export function conformance(name: string, runner: Runner, dialect: Dialect): voi
     ],
     [
       "a setup comment above a fail fence",
-      `<!-- ddt-setup const boom = () => { throw new Error("boom"); }; -->\n\n${fence("boom();", "fail")}`,
+      `<!-- ddt-setup const boom = () => { throw new Error("boom"); }; -->\n\n${fence("boom();", ANNOTATIONS.FAIL)}`,
       { "doc.md:3": PASSED },
     ],
     [
       "a setup comment above a skipped fence",
-      `<!-- ddt-setup throw new Error("boom"); -->\n\n${fence(failing, "skip")}${fence(passing)}`,
+      `<!-- ddt-setup throw new Error("boom"); -->\n\n${fence(failing, ANNOTATIONS.SKIP)}${fence(passing)}`,
       { "doc.md:7": PASSED },
     ],
     [
       "a setup comment above a compile_fail fence that does not compile",
-      `<!-- ddt-setup const one = 1; -->\n\n${fence("const = 1;", "compile_fail")}`,
+      `<!-- ddt-setup const one = 1; -->\n\n${fence("const = 1;", ANNOTATIONS.COMPILE_FAIL)}`,
       { "doc.md:3": PASSED },
     ],
     [
@@ -390,15 +398,19 @@ export function conformance(name: string, runner: Runner, dialect: Dialect): voi
       `\`\`\`ts run\n${passing}\n\n## Next section\n`,
       { "doc.md:1": FAILED },
     ],
-    ["a js fence", fence(passing, "run", "js"), { "doc.md:1": PASSED }],
-    ["a javascript fence", fence(passing, "run", "javascript"), { "doc.md:1": PASSED }],
-    ["a typescript fence", fence(passing, "run", "typescript"), { "doc.md:1": PASSED }],
+    ["a js fence", fence(passing, ANNOTATIONS.RUN, "js"), { "doc.md:1": PASSED }],
+    ["a javascript fence", fence(passing, ANNOTATIONS.RUN, "javascript"), { "doc.md:1": PASSED }],
+    ["a typescript fence", fence(passing, ANNOTATIONS.RUN, "typescript"), { "doc.md:1": PASSED }],
     [
       "a type error, which is not checked",
       fence(`const n: number = "a";\n${dialect.equal("n", '"a"')}`),
       { "doc.md:1": PASSED },
     ],
-    ["a fence that is skipped", fence(failing, "skip") + fence(passing), { "doc.md:5": PASSED }],
+    [
+      "a fence that is skipped",
+      fence(failing, ANNOTATIONS.SKIP) + fence(passing),
+      { "doc.md:5": PASSED },
+    ],
     [
       "a fence with an unknown annotation",
       fence(failing, "bogus") + fence(passing),
@@ -489,8 +501,8 @@ export function conformance(name: string, runner: Runner, dialect: Dialect): voi
       "an annotation that changes",
       [
         [fence(failing), { "guide.md:1": FAILED }],
-        [fence(failing, "fail"), { "guide.md:1": PASSED }],
-        [fence(failing, "run"), { "guide.md:1": FAILED }],
+        [fence(failing, ANNOTATIONS.FAIL), { "guide.md:1": PASSED }],
+        [fence(failing, ANNOTATIONS.RUN), { "guide.md:1": FAILED }],
       ],
     ],
     [
@@ -703,7 +715,7 @@ export function conformance(name: string, runner: Runner, dialect: Dialect): voi
   describe.concurrent.each(dialect.nativeModules === false ? [] : [name])(
     "%s fence module system conformance",
     () => {
-      const cases: [lang: string, code: string][] = [
+      const cases: [lang: Lang, code: string][] = [
         ["cjs", isRequireDefined("function")],
         ["cts", isRequireDefined("function")],
         ["mjs", `import { sep } from "node:path";\n${isRequireDefined("undefined")}\nsep;`],
@@ -711,7 +723,7 @@ export function conformance(name: string, runner: Runner, dialect: Dialect): voi
       ];
 
       test.each(cases)("a %s fence names its module system", async (lang, code) => {
-        await using ddt = openProject(markdown, { "doc.md": fence(code, "run", lang) });
+        await using ddt = openProject(markdown, { "doc.md": fence(code, ANNOTATIONS.RUN, lang) });
         expect(await ddt.run()).toEqual({ "doc.md:1": PASSED });
       });
 

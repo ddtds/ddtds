@@ -1,5 +1,11 @@
 export { CodeBlock, parseCodeFences } from "./fences/blocks.ts";
-export { defaultDocsInclude, defaultDocsExclude, defaultOutDir } from "./constants.ts";
+export {
+  ANNOTATIONS,
+  defaultDocsInclude,
+  defaultDocsExclude,
+  defaultOutDir,
+  type Lang,
+} from "./constants.ts";
 export { DocIndex, type Fence, type IndexOptions } from "./docs/docs.ts";
 export { DdtCompileError } from "./fences/compile-error.ts";
 export { configureLogging, resolveLogLevel, type LogLevel } from "./log-level.ts";

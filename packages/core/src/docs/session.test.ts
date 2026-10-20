@@ -1,15 +1,11 @@
 import { join } from "node:path";
 import { describe, expect, onTestFinished, test, vi } from "vitest";
 import { adapter } from "../codegen/test-utils.ts";
-import { tempFixture } from "../test-utils.ts";
+import { markdown, tempFixture } from "../test-utils.ts";
 import { DocIndex } from "./docs.ts";
 import { DdtSession } from "./session.ts";
 
 const ROOT = "/repo";
-
-function doc(code: string): string {
-  return `\`\`\`ts run\n${code}\n\`\`\`\n`;
-}
 
 function source(name: string): string {
   return `/**\n * \`\`\`ts run\n * expect(1).toBe(1);\n * \`\`\`\n */\nexport const ${name} = 1;\n`;
@@ -42,7 +38,7 @@ function memorySession(files: Record<string, string> = {}): {
 
 describe("DdtSession.fromFiles", () => {
   test("indexes each doc and serves both its doc and fence modules", () => {
-    const root = tempFixture({ "guide.md": doc("expect(1).toBe(1);") });
+    const root = tempFixture({ "guide.md": markdown("expect(1).toBe(1);") });
     const session = sessionOver(root);
     const [fence] = session.index.fences();
 
@@ -80,10 +76,10 @@ describe("DdtSession.fromFiles source files", () => {
 
 describe("DdtSession.refresh", () => {
   test("re-reads a doc and picks up the edit", () => {
-    const { session, edit } = memorySession({ "guide.md": doc("expect(1).toBe(1);") });
+    const { session, edit } = memorySession({ "guide.md": markdown("expect(1).toBe(1);") });
     const [fence] = session.index.fences();
 
-    edit("guide.md", doc("expect(2).toBe(2);"));
+    edit("guide.md", markdown("expect(2).toBe(2);"));
     session.refresh(join(ROOT, "guide.md"));
 
     expect(session.index.size).toBe(1);
@@ -94,8 +90,8 @@ describe("DdtSession.refresh", () => {
   });
 
   test("refreshes a doc when the watcher reports a root-relative id", () => {
-    const { session, edit } = memorySession({ "guide.md": doc("expect(1).toBe(1);") });
-    edit("guide.md", doc("expect(2).toBe(2);"));
+    const { session, edit } = memorySession({ "guide.md": markdown("expect(1).toBe(1);") });
+    edit("guide.md", markdown("expect(2).toBe(2);"));
 
     session.refresh("guide.md");
 
@@ -109,7 +105,7 @@ describe("DdtSession.refresh", () => {
     const path = join(ROOT, "guide.md");
     expect(session.index.size).toBe(0);
 
-    edit("guide.md", doc("expect(1).toBe(1);"));
+    edit("guide.md", markdown("expect(1).toBe(1);"));
     expect(session.entry(path)).toBe(`${path}?ddtds`);
     expect(session.index.size).toBe(1);
   });
@@ -121,7 +117,7 @@ describe("DdtSession.refresh", () => {
 
   test("forgets a doc whose file is gone, and picks it up again when it returns", () => {
     const path = join(ROOT, "guide.md");
-    const first = doc("expect(1).toBe(1);");
+    const first = markdown("expect(1).toBe(1);");
     let source: string | undefined = first;
     const session = DdtSession.fromSources(adapter, new Map([[path, first]]), ROOT, () => source);
 
@@ -130,7 +126,7 @@ describe("DdtSession.refresh", () => {
     expect(session.index.hasDoc(path)).toBe(false);
     expect(session.index.size).toBe(0);
 
-    source = doc("expect(2).toBe(2);");
+    source = markdown("expect(2).toBe(2);");
     session.refresh(path);
     expect(session.index.hasDoc(path)).toBe(true);
     expect(session.index.size).toBe(1);
@@ -139,7 +135,7 @@ describe("DdtSession.refresh", () => {
   test("indexes a doc it has not seen yet", () => {
     const { session, edit } = memorySession();
     const path = join(ROOT, "guide.md");
-    edit("guide.md", doc("expect(1).toBe(1);"));
+    edit("guide.md", markdown("expect(1).toBe(1);"));
 
     session.refresh(path);
     expect(session.index.hasDoc(path)).toBe(true);
@@ -149,7 +145,7 @@ describe("DdtSession.refresh", () => {
   });
 
   test("leaves anything that is not a doc alone", () => {
-    const { session } = memorySession({ "guide.md": doc("expect(1).toBe(1);") });
+    const { session } = memorySession({ "guide.md": markdown("expect(1).toBe(1);") });
 
     expect(session.index.hasDoc(join(ROOT, "src/index.ts"))).toBe(false);
     session.refresh(join(ROOT, "src/index.ts"));
@@ -157,7 +153,7 @@ describe("DdtSession.refresh", () => {
   });
 
   test("skips reindexing when a reread doc is unchanged", () => {
-    const { session, edit } = memorySession({ "guide.md": doc("expect(1).toBe(1);") });
+    const { session, edit } = memorySession({ "guide.md": markdown("expect(1).toBe(1);") });
     const replaceDoc = vi.spyOn(DocIndex.prototype, "replaceDoc");
     onTestFinished(() => replaceDoc.mockRestore());
 
@@ -165,7 +161,7 @@ describe("DdtSession.refresh", () => {
     session.entry("guide.md");
     expect(replaceDoc).not.toHaveBeenCalled();
 
-    edit("guide.md", doc("expect(2).toBe(2);"));
+    edit("guide.md", markdown("expect(2).toBe(2);"));
     session.refresh(join(ROOT, "guide.md"));
     expect(replaceDoc).toHaveBeenCalledTimes(1);
   });
@@ -173,7 +169,7 @@ describe("DdtSession.refresh", () => {
 
 describe("DdtSession.resolve", () => {
   test("resolves absolute and root-relative fence ids", () => {
-    const { session } = memorySession({ "guide.md": doc("expect(1).toBe(1);") });
+    const { session } = memorySession({ "guide.md": markdown("expect(1).toBe(1);") });
     const [fence] = session.index.fences();
 
     expect(session.resolve(fence!.id)).toBe(fence!.id);

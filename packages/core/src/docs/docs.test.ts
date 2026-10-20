@@ -1,11 +1,12 @@
 import { expect, test } from "vitest";
+import { ANNOTATIONS } from "../constants.ts";
+import { markdown } from "../test-utils.ts";
 import { DocIndex } from "./docs.ts";
 
 const options = {
   root: "/repo/pkg",
   moduleDir: "/repo/pkg/__doctests__",
 };
-const run = (code: string, lang = "ts") => `\`\`\`${lang} run\n${code}\n\`\`\`\n`;
 
 function index(sources: Record<string, string>): DocIndex {
   return DocIndex.fromSources(new Map(Object.entries(sources)), options);
@@ -22,7 +23,7 @@ function summary(index: DocIndex): Record<string, string[]> {
 
 test("fromSources indexes runnable fences and skips docs without any", () => {
   const docs = index({
-    "/repo/docs/guide.md": `${run("1")}\n${run("<p />", "tsx")}`,
+    "/repo/docs/guide.md": `${markdown("1")}\n${markdown("<p />", ANNOTATIONS.RUN, "tsx")}`,
     "/repo/pkg/prose.md": "# no code\n",
   });
   expect(summary(docs)).toMatchInlineSnapshot(`
@@ -36,10 +37,10 @@ test("fromSources indexes runnable fences and skips docs without any", () => {
 });
 
 test("replaceDoc replaces one doc in place", () => {
-  const docs = index({ "/repo/pkg/a.md": run("1"), "/repo/pkg/b.md": run("2") });
+  const docs = index({ "/repo/pkg/a.md": markdown("1"), "/repo/pkg/b.md": markdown("2") });
   const removed = docs.fencesOf("/repo/pkg/a.md")[0]!.id;
 
-  docs.replaceDoc("/repo/pkg/a.md", `\n\n${run("3")}`);
+  docs.replaceDoc("/repo/pkg/a.md", `\n\n${markdown("3")}`);
 
   expect(summary(docs)).toMatchInlineSnapshot(`
     {
@@ -56,7 +57,7 @@ test("replaceDoc replaces one doc in place", () => {
 });
 
 test("replaceDoc keeps a doc that loses all its fences", () => {
-  const docs = index({ "/repo/pkg/a.md": run("1") });
+  const docs = index({ "/repo/pkg/a.md": markdown("1") });
 
   docs.replaceDoc("/repo/pkg/a.md", "# no code\n");
 
@@ -73,13 +74,13 @@ test("docModuleId flattens the doc path relative to the root", () => {
 
 test("docs whose flattened paths collide get distinct ids", () => {
   const paths = ["/repo/pkg/a/b.md", "/repo/pkg/a_b.md", "/repo/pkg/a.b.md"];
-  const ids = paths.map((doc) => index({ [doc]: run("1") }).docModuleId(doc));
+  const ids = paths.map((doc) => index({ [doc]: markdown("1") }).docModuleId(doc));
 
   expect(new Set(ids).size).toBe(paths.length);
 });
 
 test("sourceOf returns the doc's original text", () => {
-  const source = run("1");
+  const source = markdown("1");
   const docs = index({ "/repo/docs/guide.md": source });
   expect(docs.sourceOf("/repo/docs/guide.md")).toBe(source);
   expect(docs.sourceOf("/repo/docs/missing.md")).toBeUndefined();
