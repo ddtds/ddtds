@@ -29,9 +29,8 @@ export class DdtSession {
   readonly #tracked: Set<string> | "all";
   readonly #read: (doc: string) => string | undefined;
   #index: DocIndex;
-  #typeChecker: TypeChecker | undefined;
-  #revision = 0;
-  #typed: { revision: number; errors: Map<string, DdtCompileError> } | undefined;
+  readonly #typeChecker: TypeChecker;
+  #typed: Map<string, DdtCompileError> | undefined;
 
   private constructor(
     adapter: TestAdapter,
@@ -41,6 +40,7 @@ export class DdtSession {
     read: (doc: string) => string | undefined,
   ) {
     this.#adapter = adapter;
+    this.#typeChecker = new TypeChecker(root, adapter);
     this.#tracked = tracked;
     this.#read = read;
     logger.debug("injecting {globals} into every fence", () => ({
@@ -96,13 +96,13 @@ export class DdtSession {
     const source = this.#read(doc);
     if (source === undefined) {
       this.#index.removeDoc(doc);
-      this.#revision++;
+      this.#typed = undefined;
       return;
     }
     // indexing is pure in the source, so an unchanged doc needs no work
     if (this.#index.sourceOf(doc) === source) return;
     this.#index.replaceDoc(doc, source);
-    this.#revision++;
+    this.#typed = undefined;
     this.#logFences(doc);
   }
 
@@ -140,11 +140,8 @@ export class DdtSession {
   }
 
   public typeErrors(): Map<string, DdtCompileError> {
-    if (this.#typed?.revision !== this.#revision) {
-      this.#typeChecker ??= new TypeChecker(this.root, this.#adapter);
-      this.#typed = { revision: this.#revision, errors: this.#typeChecker.check(this.#index) };
-    }
-    return this.#typed.errors;
+    this.#typed ??= this.#typeChecker.check(this.#index);
+    return this.#typed;
   }
 
   /** Module for an entry or fence id, rereading an entry's doc */

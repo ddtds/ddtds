@@ -25,13 +25,11 @@ const defaultCompilerOptions = {
 
 export class TypeChecker {
   readonly #root: string;
-  readonly #tsconfig: string;
   readonly #adapter: TestAdapter;
   readonly #sources = new Map<string, string>();
   #compiler: { ts: CompilerApi; service: TypeScript.LanguageService } | undefined;
 
   public constructor(root: string, adapter: TestAdapter) {
-    this.#tsconfig = join(root, "tsconfig.json");
     this.#root = root;
     this.#adapter = adapter;
   }
@@ -58,7 +56,7 @@ export class TypeChecker {
   #load(): { ts: CompilerApi; service: TypeScript.LanguageService } {
     if (this.#compiler === undefined) {
       const ts = loadTypeScript(this.#root);
-      const options = compilerOptions(ts, this.#tsconfig);
+      const options = compilerOptions(ts, join(this.#root, "tsconfig.json"));
       const sources = this.#sources;
       const host: TypeScript.LanguageServiceHost = {
         ...ts.sys,
