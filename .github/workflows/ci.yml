@@ -38,6 +38,8 @@ jobs:
         include:
           - { name: vitest 4, script: test:vitest, vitest-version: 4 }
           - { name: vitest 5, script: test:vitest, vitest-version: 5 }
+          - { name: typecheck TS 5, script: test:typecheck:ci, typescript: 5 }
+          - { name: typecheck TS 6, script: test:typecheck:ci, typescript: 6 }
           - { name: node:test 24, script: test:node, node-version: 24 }
           - { name: node:test 25, script: test:node, node-version: 25 }
           - { name: node:test 26, script: test:node, node-version: 26 }
@@ -56,3 +58,5 @@ jobs:
           VITEST_VERSION: ${{ matrix.vitest-version }}
       - run: pnpm run build
       - run: pnpm run ${{ matrix.script }}
+        env:
+          TYPESCRIPT: ${{ matrix.typescript }}

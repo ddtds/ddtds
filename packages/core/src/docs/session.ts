@@ -1,12 +1,14 @@
 import { readFileSync } from "node:fs";
 import { join, relative, resolve } from "node:path";
 import { getLogger } from "@logtape/logtape";
+import type { DdtCompileError } from "../fences/compile-error.ts";
 import type { TestAdapter } from "../codegen/adapter.ts";
 import { localName } from "../codegen/static-import.ts";
 import { moduleFor, type GeneratedModule } from "../codegen/modules.ts";
 import { type DocsConfig, readDocs, resolveDocsOptions } from "./discovery.ts";
 import { isMarkdownFile, isSourceFile } from "../fences/doc-kinds.ts";
 import { DocIndex } from "./docs.ts";
+import { TypeChecker } from "./typecheck.ts";
 
 const logger = getLogger(["ddtds", "session"]);
 /** Reads a doc, or `undefined` when the file is gone */
@@ -26,6 +28,10 @@ export class DdtSession {
   readonly #tracked: Set<string> | "all";
   readonly #read: (doc: string) => string | undefined;
   #index: DocIndex;
+  #typeChecker: TypeChecker | undefined;
+  /** Bumped whenever the index changes, so cached type errors know to go stale */
+  #revision = 0;
+  #typed: { revision: number; errors: Map<string, DdtCompileError> } | undefined;
 
   private constructor(
     adapter: TestAdapter,
@@ -88,10 +94,15 @@ export class DdtSession {
     if (!isMarkdownFile(doc) && !this.#tracks(doc)) return;
     if (this.#tracked !== "all") this.#tracked.add(doc);
     const source = this.#read(doc);
-    if (source === undefined) return this.#index.removeDoc(doc);
+    if (source === undefined) {
+      this.#index.removeDoc(doc);
+      this.#revision++;
+      return;
+    }
     // indexing is pure in the source, so an unchanged doc needs no work
     if (this.#index.sourceOf(doc) === source) return;
     this.#index.replaceDoc(doc, source);
+    this.#revision++;
     this.#logFences(doc);
   }
 
@@ -128,10 +139,22 @@ export class DdtSession {
     return this.#index.fence(fromRoot) ? fromRoot : undefined;
   }
 
-  /** Module for an entry or fence id, rereading an entry's doc */
-  public load(id: string): GeneratedModule | undefined {
+  /** Type errors by fence id; a result stays valid until a doc changes */
+  public typeErrors(): Map<string, DdtCompileError> {
+    if (this.#typed?.revision !== this.#revision) {
+      this.#typeChecker ??= new TypeChecker(this.root, this.#adapter);
+      this.#typed = { revision: this.#revision, errors: this.#typeChecker.check(this.#index) };
+    }
+    return this.#typed.errors;
+  }
+
+  /** Module for an entry or fence id, rereading an entry's doc. Fences in `typeErrors` fail to compile */
+  public load(
+    id: string,
+    typeErrors?: ReadonlyMap<string, DdtCompileError>,
+  ): GeneratedModule | undefined {
     const doc = this.#index.docOfEntry(id);
     if (doc !== undefined) this.refresh(doc);
-    return moduleFor(this.#adapter, this.#index, id);
+    return moduleFor(this.#adapter, this.#index, id, typeErrors);
   }
 }

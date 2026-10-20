@@ -38,21 +38,25 @@ function serializeCause(cause: unknown): SerializedCause | undefined {
   return { name: cause.name, message: cause.message, code, stack: cause.stack };
 }
 
-export function planFence({ doc, block }: Fence): FenceOutcome {
+export function planFence({ doc, block }: Fence, typeError?: DdtCompileError): FenceOutcome {
   const expectsCompileFailure = block.shouldFailToCompile();
+  const failed = (error: DdtCompileError): FenceOutcome =>
+    expectsCompileFailure && error.details.phase !== "parser-crash"
+      ? { tag: "emptyPass" }
+      : {
+          tag: "compileError",
+          fileName: doc,
+          details: error.details,
+          cause: serializeCause(error.cause),
+        };
   let split: PreparedBlock;
   try {
     split = block.splitImports();
   } catch (error) {
     if (!(error instanceof DdtCompileError)) throw error;
-    if (expectsCompileFailure && error.details.phase === "parse") return { tag: "emptyPass" };
-    return {
-      tag: "compileError",
-      fileName: doc,
-      details: error.details,
-      cause: serializeCause(error.cause),
-    };
+    return failed(error);
   }
+  if (typeError) return failed(typeError);
   if (expectsCompileFailure) {
     return { tag: "missingCompileError", fileName: doc, position: block.details.range.start };
   }

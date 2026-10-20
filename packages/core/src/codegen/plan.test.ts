@@ -1,7 +1,8 @@
 import { describe, expect, test } from "vitest";
 import { ANNOTATIONS } from "../constants.ts";
 import { planFence } from "./plan.ts";
-import { failingWithCause, fence } from "./test-utils.ts";
+import { DdtCompileError } from "../fences/compile-error.ts";
+import { captureParseError, failingWithCause, fence } from "./test-utils.ts";
 
 describe("planFence: run fences", () => {
   test("reports the runtime names the fence imports bind, not type-only ones", () => {
@@ -80,5 +81,23 @@ describe("planFence: compile errors", () => {
       },
     });
     expect(() => planFence(f)).toThrow(RangeError);
+  });
+});
+
+describe("planFence: type errors", () => {
+  const { details } = captureParseError(fence("const = 1;"));
+  const typeError = new DdtCompileError({ ...details, phase: "typecheck" });
+
+  test("a type error in a run fence is a compile error", () => {
+    expect(planFence(fence("1;"), typeError)).toMatchObject({
+      tag: "compileError",
+      details: { phase: "typecheck" },
+    });
+  });
+
+  test("a type error is the expected failure of a compile_fail fence", () => {
+    expect(planFence(fence("1;", ANNOTATIONS.COMPILE_FAIL), typeError)).toEqual({
+      tag: "emptyPass",
+    });
   });
 });

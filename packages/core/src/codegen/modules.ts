@@ -1,5 +1,6 @@
 import { Bundle, MagicString, SourceMap, type SourceMapSegment } from "magic-string";
 import type { DocIndex, Fence } from "../docs/docs.ts";
+import type { DdtCompileError } from "../fences/compile-error.ts";
 import type { ModuleSystem, TestAdapter } from "./adapter.ts";
 import { adapterFor, runtimeImport } from "./module-system.ts";
 import { isSourceFile } from "../fences/doc-kinds.ts";
@@ -25,8 +26,9 @@ export function fenceModule(
   defaultAdapter: TestAdapter,
   fence: Fence,
   source?: string,
+  typeError?: DdtCompileError,
 ): GeneratedModule {
-  const outcome = planFence(fence);
+  const outcome = planFence(fence, typeError);
   const module = resolveModule(fence.block, {
     syntax: outcome.tag === "run" ? outcome.syntax : "ambiguous",
     fallback: defaultAdapter.module ?? "esm",
@@ -112,6 +114,7 @@ export function moduleFor(
   adapter: TestAdapter,
   index: DocIndex,
   id: string,
+  typeErrors?: ReadonlyMap<string, DdtCompileError>,
 ): GeneratedModule | undefined {
   const doc = index.docOfEntry(id);
   if (doc !== undefined) {
@@ -119,5 +122,5 @@ export function moduleFor(
   }
   const fence = index.fence(id);
   if (!fence) return undefined;
-  return fenceModule(adapter, fence, index.sourceOf(fence.doc));
+  return fenceModule(adapter, fence, index.sourceOf(fence.doc), typeErrors?.get(fence.id));
 }
