@@ -112,6 +112,51 @@ function reportOf(stdout: Lines): Report {
   return { outcomes, failures };
 }
 
+type Exit = { code: number | null; signal: NodeJS.Signals | null };
+
+function capture(stream: Readable): () => string {
+  let text = "";
+  stream.setEncoding("utf8");
+  stream.on("data", (chunk: string) => {
+    text = (text + chunk).slice(-8_000);
+  });
+  return () => text;
+}
+
+function details(stderr: string): string {
+  const text = stderr.trim();
+  return text ? `\nstderr:\n${text}` : "";
+}
+
+function reportFor(name: string, stdout: Lines, exit: Exit, stderr: string): Report {
+  if (stdout.last === undefined) {
+    const status = exit.signal ? `was killed by ${exit.signal}` : `exited with code ${exit.code}`;
+    throw new Error(`${name} ${status} without reporting outcomes${details(stderr)}`);
+  }
+
+  let report: Report;
+  try {
+    report = reportOf(stdout);
+  } catch (error) {
+    throw new Error(`${name} wrote an unreadable report: ${stdout.last}${details(stderr)}`, {
+      cause: error,
+    });
+  }
+
+  if (exit.signal) throw new Error(`${name} was killed by ${exit.signal}${details(stderr)}`);
+  if (exit.code === null) throw new Error(`${name} exited without a code${details(stderr)}`);
+  const failures = Object.values(report.outcomes).filter((outcome) => outcome !== "passed");
+  if (exit.code === 0 && failures.length > 0) {
+    throw new Error(
+      `${name} exited 0 after ${failures.length} failing outcome(s)${details(stderr)}`,
+    );
+  }
+  if (exit.code !== 0 && failures.length === 0) {
+    throw new Error(`${name} exited ${exit.code} with no failing outcomes${details(stderr)}`);
+  }
+  return report;
+}
+
 function watcher(
   name: string,
   command: Command,
@@ -126,7 +171,7 @@ function watcher(
     stdio: ["ignore", "pipe", "pipe"],
   });
   const stdout = new Lines(child.stdout);
-  child.stderr.resume();
+  const stderr = capture(child.stderr);
 
   const exited = (): boolean => child.exitCode !== null || child.signalCode !== null;
   let seen = 0;
@@ -144,7 +189,7 @@ function watcher(
       };
       const timer = setTimeout(() => {
         stop();
-        reject(new Error(`${name} did not rerun`));
+        reject(new Error(`${name} did not rerun${details(stderr())}`));
       }, 20_000);
       stdout.on("line", check);
       check();
@@ -167,6 +212,7 @@ function watcher(
 }
 
 async function execute(
+  name: string,
   command: Command,
   env: NodeJS.ProcessEnv | undefined,
   root: string,
@@ -179,9 +225,9 @@ async function execute(
     stdio: ["ignore", "pipe", "pipe"],
   });
   const stdout = new Lines(child.stdout);
-  child.stderr.resume();
+  const stderr = capture(child.stderr);
   await once(child, "close");
-  return reportOf(stdout);
+  return reportFor(name, stdout, { code: child.exitCode, signal: child.signalCode }, stderr());
 }
 
 export function cli(spec: {
@@ -193,7 +239,7 @@ export function cli(spec: {
   return {
     name: spec.name,
     prepare: (root: string): void => spec.prepare?.(root),
-    run: (root, docs) => execute(spec.command, spec.env, root, docs),
+    run: (root, docs) => execute(spec.name, spec.command, spec.env, root, docs),
     watch: async (root, docs) => watcher(spec.name, spec.command, spec.env, root, docs),
   };
 }
