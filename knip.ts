@@ -1,7 +1,8 @@
+import { existsSync } from "node:fs";
 import type { KnipConfig } from "knip";
 
 const config: KnipConfig = {
-  ignore: [".claude/**"],
+  ignore: existsSync(".claude/worktrees") ? [".claude/**"] : [],
   rules: {
     types: "off",
   },
@@ -9,7 +10,9 @@ const config: KnipConfig = {
     ".": {
       // used in generated README tests
       ignoreDependencies: [
+        "react",
         "react-dom",
+        "@types/react",
         "@types/react-dom",
         "@testing-library/react",
         "@testing-library/user-event",
