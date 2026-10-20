@@ -6,6 +6,7 @@ import { tmpdir } from "node:os";
 import { createInterface } from "node:readline";
 import type { Readable } from "node:stream";
 import { setTimeout as delay } from "node:timers/promises";
+import { ANNOTATIONS, type Lang } from "@ddtds/core";
 import * as v from "valibot";
 import { frame, type Frame } from "./frames.ts";
 
@@ -75,8 +76,8 @@ export type Session = AsyncDisposable & {
 
 type Command = (docs: string[], mode: Mode) => readonly [string, ...string[]];
 
-export function fence(code: string, annotation = "run", lang = "ts"): string {
-  return `\`\`\`${lang} ${annotation}\n${code}\n\`\`\`\n\n`;
+export function fence(code: string, info: string = ANNOTATIONS.RUN, lang: Lang = "ts"): string {
+  return `\`\`\`${lang} ${info}\n${code}\n\`\`\`\n\n`;
 }
 
 export function encode(outcomes: Outcomes, failures: Failures): string {

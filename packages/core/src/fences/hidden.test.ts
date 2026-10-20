@@ -1,10 +1,11 @@
 import { describe, expect, test } from "vitest";
+import { markdown } from "../test-utils.ts";
 import { parseCodeFences } from "./blocks.ts";
 import { parseJsDocFences } from "./jsdoc.ts";
 
 const AT_COMMENT = /doc\.md:1:/;
 
-const fence = (...lines: string[]): string => ["```ts run", ...lines, "```", ""].join("\n");
+const fence = (...lines: string[]): string => markdown(lines.join("\n"));
 
 function split(source: string, path = "doc.md") {
   const [block] = parseCodeFences(source, path);
