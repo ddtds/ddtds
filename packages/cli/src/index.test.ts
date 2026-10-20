@@ -27,7 +27,7 @@ function build(level?: string): { stdout: string; stderr: string } {
 test("ddt build logs the total to stdout and problems to stderr", () => {
   expect(build()).toMatchInlineSnapshot(`
     {
-      "stderr": "unknown annotation in code block: "run fail"
+      "stderr": "code block has more than one annotation: run, fail
     ",
       "stdout": "Total: 1 tests
     ",

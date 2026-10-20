@@ -397,6 +397,31 @@ export function conformance(name: string, runner: Runner, dialect: Dialect): voi
       fence(failing, "bogus") + fence(passing),
       { "doc.md:5": PASSED },
     ],
+    [
+      "a fence with other tools' words",
+      fence(passing, 'twoslash title="a run.ts" {1} run'),
+      { "doc.md:1": PASSED },
+    ],
+    [
+      "a fence with only other tools' words",
+      fence(failing, "title=hi") + fence(passing),
+      { "doc.md:5": PASSED },
+    ],
+    [
+      "a failing fence with other tools' words",
+      fence(failing, "title=hi {1} fail"),
+      { "doc.md:1": PASSED },
+    ],
+    [
+      "a compile_only fence with other tools' words",
+      fence(failing, "title=hi compile_only"),
+      { "doc.md:1": PASSED },
+    ],
+    [
+      "a fence with two annotations",
+      fence(failing, "run fail") + fence(passing),
+      { "doc.md:5": PASSED },
+    ],
     ["a fence without an annotation", fence(failing, "") + fence(passing), { "doc.md:5": PASSED }],
     ["a fence in a blockquote", `> \`\`\`ts run\n> ${passing}\n> \`\`\`\n`, { "doc.md:1": PASSED }],
     ["a fence in tildes", `~~~ts run\n${passing}\n~~~\n`, { "doc.md:1": PASSED }],
