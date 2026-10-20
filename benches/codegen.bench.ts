@@ -1,6 +1,6 @@
 import { test } from "vitest";
 import { DocIndex } from "@ddtds/core";
-import { loadModule, moduleFiles } from "@ddtds/vitest";
+import { loadModule } from "@ddtds/vitest";
 import { fenceSources, options } from "./fixtures.ts";
 
 const index = DocIndex.fromSources(fenceSources(10, 20), options);
@@ -19,12 +19,5 @@ test("vitest plugin load", async ({ bench }) => {
 
   await bench("serve every doc module", () => {
     for (const id of docIds) loadModule(index, id);
-  }).run();
-});
-
-/** What writing every module up front costs. */
-test("vitest plugin moduleFiles", async ({ bench }) => {
-  await bench("generate every module for 10 docs", () => {
-    moduleFiles(index);
   }).run();
 });
