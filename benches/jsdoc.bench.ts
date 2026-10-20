@@ -1,6 +1,7 @@
 import { test } from "vitest";
 import { DdtSession } from "@ddtds/core";
-import { defaultGlobals, vitestAdapter } from "@ddtds/vitest/adapter";
+import { defaultGlobals } from "@ddtds/vitest";
+import { vitestAdapter } from "../packages/vitest/src/adapter.ts";
 import {
   markdownSources,
   root,

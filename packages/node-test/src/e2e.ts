@@ -1,6 +1,6 @@
 import { writeFileSync } from "node:fs";
 import { join } from "node:path";
-import type { StaticImport } from "@ddtds/core/imports";
+import type { StaticImport } from "@ddtds/core/config";
 import { cli, type Mode, type Runner } from "@ddtds/test-utils";
 import type { Globals } from "@ddtds/test-utils/conformance";
 

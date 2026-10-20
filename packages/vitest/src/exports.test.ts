@@ -1,5 +1,4 @@
 import { expect, test } from "vitest";
-import * as adapter from "@ddtds/vitest/adapter";
 import * as plugin from "@ddtds/vitest";
 import * as runtime from "@ddtds/vitest/runtime";
 
@@ -10,14 +9,6 @@ test("the package root exposes the plugin and its config helpers", () => {
     "defaultDocsInclude",
     "defaultGlobals",
     "typedImports",
-    "vitestImports",
-  ]);
-});
-
-test("the adapter exposes only what the plugin builds with", () => {
-  expect(Object.keys(adapter).toSorted()).toEqual([
-    "defaultGlobals",
-    "vitestAdapter",
     "vitestImports",
   ]);
 });

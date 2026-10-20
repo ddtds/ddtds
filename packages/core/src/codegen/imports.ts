@@ -5,7 +5,7 @@ import { brand, type Brand } from "../brand.ts";
  *
  * @example
  * ```ts run
- * import { typedImports, type StaticImport } from "@ddtds/core/imports";
+ * import { typedImports, type StaticImport } from "@ddtds/core/config";
  *
  * const importFromPath = typedImports<typeof import("node:path")>("node:path");
  * const basename: StaticImport = importFromPath("basename");

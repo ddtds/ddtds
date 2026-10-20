@@ -2,6 +2,9 @@ import type { StaticImport } from "./codegen/imports.ts";
 import { DOC_GLOB } from "./fences/doc-kinds.ts";
 import type { LogLevel } from "./log-level.ts";
 
+export { typedImports } from "./codegen/imports.ts";
+export type { StaticImport } from "./codegen/imports.ts";
+
 /** Markdown docs, and source files whose JSDoc comments hold code fences */
 export const defaultDocsInclude: string[] = [DOC_GLOB];
 export const defaultDocsExclude: string[] = [
