@@ -1,11 +1,9 @@
 import { test } from "vitest";
 import { moduleFor } from "@ddtds/core/codegen";
 import { DocIndex } from "@ddtds/core/docs";
-import { defaultGlobals } from "@ddtds/vitest";
-import { vitestAdapter } from "../packages/vitest/src/adapter.ts";
+import { adapter } from "./adapter.ts";
 import { fenceSources, options } from "./fixtures.ts";
 
-const adapter = vitestAdapter(defaultGlobals);
 const index = DocIndex.fromSources(fenceSources(10, 20), options);
 
 const fenceIds = Array.from(index.fences(), (fence) => fence.id);

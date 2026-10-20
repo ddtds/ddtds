@@ -27,6 +27,7 @@ import {
 } from "./segments.ts";
 import { setupBefore } from "./hidden.ts";
 import { parseInfo, type FenceInfo } from "./info.ts";
+import { splitImportsAndBlock, type PreparedBlock } from "./parse.ts";
 
 const logger = getLogger(["ddtds", "blocks"]);
 
@@ -123,6 +124,10 @@ export class CodeBlock {
 
   public isCompileOnly(): boolean {
     return this.details.annotation === ANNOTATIONS.COMPILE_ONLY;
+  }
+
+  public splitImports(): PreparedBlock {
+    return splitImportsAndBlock(this);
   }
 }
 
