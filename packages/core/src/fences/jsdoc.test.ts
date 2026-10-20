@@ -1,4 +1,5 @@
 import { describe, expect, test } from "vitest";
+import { ANNOTATIONS } from "../constants.ts";
 import type { Position } from "./compile-error.ts";
 import { DocIndex } from "../docs/docs.ts";
 import { parseJsDocFences } from "./jsdoc.ts";
@@ -237,7 +238,7 @@ describe("what is not a JSDoc fence", () => {
   });
 
   test("a skipped fence", () => {
-    expect(parseJsDocFences(fence.replace("run", "skip"), "a.ts")).toEqual([]);
+    expect(parseJsDocFences(fence.replace(ANNOTATIONS.RUN, ANNOTATIONS.SKIP), "a.ts")).toEqual([]);
   });
 
   test("an unterminated comment", () => {

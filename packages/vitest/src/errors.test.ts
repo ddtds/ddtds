@@ -1,4 +1,5 @@
 import { expect, test } from "vitest";
+import { ANNOTATIONS } from "@ddtds/core";
 import { fence, fixture, spawn } from "@ddtds/test-utils";
 import { failures } from "./test-utils.ts";
 import { vitest } from "./e2e.ts";
@@ -33,7 +34,7 @@ test("failures report the error the fence threw", async () => {
 
 test("compile failures point at the markdown", async () => {
   await using dir = fixture({
-    "guide.md": `# Guide\n\n${fence("const ok = 1;\nconst = 1;")}${fence("1;", "compile_fail")}`,
+    "guide.md": `# Guide\n\n${fence("const ok = 1;\nconst = 1;")}${fence("1;", ANNOTATIONS.COMPILE_FAIL)}`,
   });
   expect(await failures(dir.root)).toMatchInlineSnapshot(`
     {
