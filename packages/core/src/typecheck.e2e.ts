@@ -20,6 +20,8 @@ const adapter: TestAdapter = {
   fenceImports: [stub("expect")],
 };
 
+const compileErrorModule = /runtime\.compileError.*phase:"typecheck"/;
+const compileErrorCall = /compileError/;
 const missingTypeScript = /typecheck needs "typescript" installed/;
 const nativeTypeScript = /supports TypeScript 5 and 6, found 7\.0\.0/;
 const fence = (code: string, annotation = "run", lang = "ts"): string =>
@@ -74,6 +76,14 @@ async function errorLines(root: string): Promise<Record<number, number | undefin
       errors.get(id)?.details.diagnostics[0]?.labels[0]?.start.line,
     ]),
   );
+}
+
+/** The generated module of the only fence in `guide`, given the session's type errors */
+function loadFence(guide: string): string {
+  const session = DdtSession.fromFiles(adapter, { root: project(guide) });
+  const id = [...session.index.fences()][0]?.id;
+  assert(id !== undefined);
+  return session.load(id, session.typeErrors())?.code ?? "";
 }
 
 describe(`TypeScript ${major}`, () => {
@@ -194,5 +204,29 @@ describe("unsupported installs", () => {
   test("typecheck rejects the native TypeScript", () => {
     const session = DdtSession.fromFiles(adapter, { root: project(fence("1;"), {}, "native") });
     assert.throws(() => session.typeErrors(), nativeTypeScript);
+  });
+});
+
+describe("fence annotations", () => {
+  const bad = "const count: number = 'one';";
+
+  test("skipped and unannotated fences are not checked", async () => {
+    const root = project(
+      [fence(bad, "skip"), "```ts\n" + bad + "\n```\n", fence(bad, "compile_only")].join("\n"),
+    );
+    assert.deepEqual(await errorLines(root), { 9: 10 });
+  });
+
+  test("a fence with a type error fails to compile", () => {
+    assert.match(loadFence(fence(bad)), compileErrorModule);
+  });
+
+  test("a compile_fail fence passes on a type error", () => {
+    assert.doesNotMatch(loadFence(fence(bad, "compile_fail")), compileErrorCall);
+  });
+
+  test("a doc without ts fences does not need typescript", () => {
+    const root = project(fence(bad, "run", "js"), {}, "none");
+    assert.equal(DdtSession.fromFiles(adapter, { root }).typeErrors().size, 0);
   });
 });
