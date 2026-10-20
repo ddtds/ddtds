@@ -50,6 +50,7 @@
     "typescript/explicit-member-accessibility": "warn",
     "typescript/explicit-function-return-type": "warn",
     "import/consistent-type-specifier-style": ["warn", "prefer-top-level-if-only-type-imports"],
+    "import/no-cycle": ["error", { "ignoreTypes": true, "ignoreExternal": true }],
     "unicorn/prefer-node-protocol": "warn",
     "typescript/no-floating-promises": "warn",
     "typescript/no-misused-promises": "warn",
@@ -60,13 +61,13 @@
     "typescript/prefer-nullish-coalescing": "warn",
     "typescript/await-thenable": "warn",
     "no-duplicate-imports": "warn",
-    "unicorn/prefer-array-some": "warn",
-    "oxc/no-barrel-file": ["error", { "threshold": 0 }]
+    "unicorn/prefer-array-some": "warn"
   },
   "overrides": [
     {
       "files": ["packages/node-test/src/hooks.ts"],
       "rules": {
+        "no-restricted-properties": "off",
         "typescript/no-extraneous-class": "off"
       }
     },
@@ -81,12 +82,6 @@
       "files": ["**/*.bench.ts"],
       "rules": {
         "vitest/expect-expect": "off"
-      }
-    },
-    {
-      "files": ["examples/**"],
-      "rules": {
-        "oxc/no-barrel-file": "off"
       }
     }
   ],
