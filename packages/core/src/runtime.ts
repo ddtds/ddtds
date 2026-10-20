@@ -14,7 +14,12 @@ import {
 type FenceRun = () => Promise<void>;
 type FenceModule = { default: FenceRun };
 
-export type SerializedCause = { name: string; message: string; code?: string };
+export type SerializedCause = {
+  name: string;
+  message: string;
+  code?: string;
+  stack?: string;
+};
 
 /** Points the error's stack at the markdown. */
 function thrownAt(error: Error, fileName: string, { line, column }: Position): Error {

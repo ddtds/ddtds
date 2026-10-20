@@ -35,7 +35,7 @@ function serializeCause(cause: unknown): SerializedCause | undefined {
   if (cause === undefined) return undefined;
   if (!(cause instanceof Error)) return { name: "UnknownCause", message: inspect(cause) };
   const code = "code" in cause && typeof cause.code === "string" ? cause.code : undefined;
-  return { name: cause.name, message: cause.message, code };
+  return { name: cause.name, message: cause.message, code, stack: cause.stack };
 }
 
 export function planFence({ doc, block }: Fence): FenceOutcome {
