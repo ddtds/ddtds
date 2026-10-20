@@ -1,15 +1,8 @@
 import { writeFileSync } from "node:fs";
 import { join, relative } from "node:path";
 import { describe, test, expect } from "vitest";
-import {
-  CodeBlock,
-  DdtCompileError,
-  parseCodeFences,
-  defaultDocsExclude,
-  defaultDocsInclude,
-  findDocs,
-  resolveDocsOptions,
-} from "./index";
+import { CodeBlock, DdtCompileError, defaultDocsExclude, defaultDocsInclude } from "./index";
+import { findDocs, parseCodeFences, resolveDocsOptions } from "./internal";
 import { ANNOTATIONS, isLang, type Annotation, type Lang } from "./constants";
 import { tempFixture } from "./test-utils";
 

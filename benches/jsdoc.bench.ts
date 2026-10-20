@@ -1,6 +1,6 @@
 import { test } from "vitest";
 import { DdtSession } from "@ddtds/core";
-import { vitestTestAdapter } from "@ddtds/vitest";
+import { defaultGlobals, vitestAdapter } from "@ddtds/vitest";
 import {
   markdownSources,
   root,
@@ -9,6 +9,7 @@ import {
   sourceWithoutFences,
 } from "./fixtures.ts";
 
+const adapter = vitestAdapter(defaultGlobals);
 const withFences = sourceDocs(20, 5, sourceWithFences);
 const withoutFences = sourceDocs(20, 20, sourceWithoutFences);
 /** A repo scanned by the default `include`, which covers markdown and source files */
@@ -24,14 +25,14 @@ const fromSources = DdtSession.fromSources.bind(DdtSession);
  */
 test("DdtSession source docs", async ({ bench }) => {
   await bench("index 20 source docs with 5 example fences", () => {
-    fromSources(vitestTestAdapter, withFences, root);
+    fromSources(adapter, withFences, root);
   }).run();
 
   await bench("index 20 source docs with no fences", () => {
-    fromSources(vitestTestAdapter, withoutFences, root);
+    fromSources(adapter, withoutFences, root);
   }).run();
 
   await bench("index a mixed markdown and source repo", () => {
-    fromSources(vitestTestAdapter, mixed, root);
+    fromSources(adapter, mixed, root);
   }).run();
 });

@@ -1,17 +1,10 @@
-export { CodeBlock, parseCodeFences } from "./fences/blocks.ts";
-export {
-  ANNOTATIONS,
-  defaultDocsInclude,
-  defaultDocsExclude,
-  defaultOutDir,
-  type Lang,
-} from "./constants.ts";
-export { DocIndex, type Fence, type IndexOptions } from "./docs/docs.ts";
+export { ANNOTATIONS, defaultDocsExclude, defaultDocsInclude, type Lang } from "./constants.ts";
+export { CodeBlock } from "./fences/blocks.ts";
 export { DdtCompileError } from "./fences/compile-error.ts";
-export { configureLogging, resolveLogLevel, type LogLevel } from "./log-level.ts";
+export { DocIndex, type Fence, type IndexOptions } from "./docs/docs.ts";
+export { configureLogging, type LogLevel } from "./log-level.ts";
 export type { DdtOptions } from "./options.ts";
 export {
-  moduleFor,
   typedImports,
   type GeneratedModule,
   type StaticImport,
@@ -19,4 +12,4 @@ export {
   type TestAdapter,
 } from "./codegen/index.ts";
 export { DdtSession } from "./docs/session.ts";
-export { findDocs, readDocs, resolveDocsOptions, type DocsOptions } from "./docs/discovery.ts";
+export { type DocsConfig, type DocsOptions } from "./docs/discovery.ts";

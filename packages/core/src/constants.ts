@@ -12,7 +12,6 @@ export const defaultDocsExclude: string[] = [
   "**/*.d.cts",
   "**/__ddtds__/**",
 ];
-export const defaultOutDir = "__doctests__";
 
 const PARSERS = ["ts", "js", "tsx", "jsx", "tsrx"] as const;
 export type Parser = (typeof PARSERS)[number];

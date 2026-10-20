@@ -66,19 +66,6 @@ test("replaceDoc keeps a doc that loses all its fences", () => {
   expect(docs.size).toBe(0);
 });
 
-test("docModuleId flattens the doc path relative to the root", () => {
-  expect(index({}).docModuleId("/repo/docs/guide.md")).toBe(
-    "/repo/pkg/__doctests__/.._sdocs_sguide.md.test.ts",
-  );
-});
-
-test("docs whose flattened paths collide get distinct ids", () => {
-  const paths = ["/repo/pkg/a/b.md", "/repo/pkg/a_b.md", "/repo/pkg/a.b.md"];
-  const ids = paths.map((doc) => index({ [doc]: markdown("1") }).docModuleId(doc));
-
-  expect(new Set(ids).size).toBe(paths.length);
-});
-
 test("sourceOf returns the doc's original text", () => {
   const source = markdown("1");
   const docs = index({ "/repo/docs/guide.md": source });

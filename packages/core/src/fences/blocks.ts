@@ -128,6 +128,7 @@ export class CodeBlock {
     return this.details.annotation === ANNOTATIONS.COMPILE_ONLY;
   }
 
+  /** @internal */
   public splitImports(): PreparedBlock {
     return splitImportsAndBlock(this);
   }

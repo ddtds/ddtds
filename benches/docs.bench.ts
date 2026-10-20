@@ -1,8 +1,10 @@
 import { test } from "vitest";
-import { DdtSession, parseCodeFences } from "@ddtds/core";
-import { vitestTestAdapter } from "@ddtds/vitest";
+import { DdtSession } from "@ddtds/core";
+import { parseCodeFences } from "@ddtds/core/internal";
+import { defaultGlobals, vitestAdapter } from "@ddtds/vitest";
 import { guide, markdownSources, mdxGuide, root } from "./fixtures.ts";
 
+const adapter = vitestAdapter(defaultGlobals);
 const doc = guide(50);
 const mdx = mdxGuide(50);
 
@@ -31,15 +33,15 @@ test("parseCodeFences", async ({ bench }) => {
 
 test("DdtSession", async ({ bench }) => {
   await bench("index 20 docs of 10 sections", () => {
-    DdtSession.fromSources(vitestTestAdapter, sources, root);
+    DdtSession.fromSources(adapter, sources, root);
   }).run();
 
-  const session = DdtSession.fromSources(vitestTestAdapter, sources, root, reader());
+  const session = DdtSession.fromSources(adapter, sources, root, reader());
   await bench("reindex one changed doc in a 20 doc session", () => {
     session.refresh(edited);
   }).run();
 
-  const many = DdtSession.fromSources(vitestTestAdapter, markdownSources(1_000, 1), root, reader());
+  const many = DdtSession.fromSources(adapter, markdownSources(1_000, 1), root, reader());
   await bench("reindex one changed doc in a 1000 doc session", () => {
     many.refresh(edited);
   }).run();

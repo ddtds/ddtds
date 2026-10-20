@@ -1,32 +1,16 @@
 import { join, relative } from "node:path";
 import type { Plugin } from "vitest/config";
 import type { TestProject } from "vitest/node";
-import {
-  DdtSession,
-  DocIndex,
-  defaultOutDir,
-  moduleFor,
-  type DdtOptions,
-  type DocsOptions,
-  type GeneratedModule,
-} from "@ddtds/core";
+import { DdtSession, type DdtOptions, type DocsOptions } from "@ddtds/core";
 import { getLogger } from "@logtape/logtape";
-import { defaultGlobals, vitestAdapter, vitestTestAdapter } from "./adapter.ts";
+import { defaultGlobals, vitestAdapter } from "./adapter.ts";
 import { configureLogging, createViteSink } from "./logging.ts";
 
-export { defaultGlobals, vitestImports, vitestTestAdapter } from "./adapter.ts";
-export type { CodeBlock, DocIndex, DocsOptions, Fence, LogLevel, StaticImport } from "@ddtds/core";
-export {
-  DdtCompileError,
-  typedImports,
-  defaultDocsInclude,
-  defaultDocsExclude,
-  defaultOutDir,
-} from "@ddtds/core";
+export { defaultGlobals, vitestAdapter, vitestImports } from "./adapter.ts";
+export type { StaticImport } from "@ddtds/core";
+export { DdtCompileError, typedImports } from "@ddtds/core";
 
-export function loadModule(index: DocIndex, id: string): GeneratedModule | undefined {
-  return moduleFor(vitestTestAdapter, index, id);
-}
+const legacyOutDir = "__doctests__";
 
 const logger = getLogger(["ddtds", "vitest"]);
 
@@ -75,7 +59,7 @@ export function ddtPlugin({
       project = context.project;
       const { config } = context.project;
       config.include = [...config.include, ...docFiles()];
-      config.exclude = [...config.exclude, join(session.root, defaultOutDir, "**")];
+      config.exclude = [...config.exclude, join(session.root, legacyOutDir, "**")];
     },
     configResolved(config) {
       vite.attach(config.logger);
