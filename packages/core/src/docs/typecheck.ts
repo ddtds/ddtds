@@ -26,9 +26,9 @@ export class TypeChecker {
   }
 
   public check(index: DocIndex): Map<string, DdtCompileError> {
-    const typed = [...index.fences()].filter(({ block }) =>
-      TYPED_PARSERS.has(parserOf(block.lang)),
-    );
+    const typed = Iterator.from(index.fences())
+      .filter(({ block }) => TYPED_PARSERS.has(parserOf(block.lang)))
+      .toArray();
     this.#sources.clear();
     for (const fence of typed) this.#sources.set(fence.id, fenceSource(fence, this.#adapter));
     if (typed.length === 0) return new Map();
