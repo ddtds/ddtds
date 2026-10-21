@@ -1,5 +1,4 @@
-import { moduleOf } from "./adapter.ts";
-import type { ModuleSystem, TestAdapter } from "./adapter.ts";
+import { moduleOf, type ModuleSystem, type TestAdapter } from "./adapter.ts";
 
 const statements: Record<ModuleSystem, (module: string, name: string, alias?: string) => string> = {
   esm: (module, name, alias) =>

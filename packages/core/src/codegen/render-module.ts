@@ -1,9 +1,8 @@
 import { Bundle, MagicString, SourceMap, type SourceMapSegment } from "magic-string";
 import type { Fence } from "../docs/docs.ts";
 import type { DdtCompileError } from "../fences/compile-error.ts";
-import type { TestAdapter } from "./adapter.ts";
+import { moduleOf, type TestAdapter } from "./adapter.ts";
 import { adapterFor, runtimeImport } from "./module-system.ts";
-import { moduleOf } from "./adapter.ts";
 import { isSourceFile } from "../fences/doc-kinds.ts";
 import { emitFence, wrap } from "./emit.ts";
 import { resolveModule } from "./resolve-module.ts";
