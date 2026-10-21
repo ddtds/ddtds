@@ -110,6 +110,12 @@ expect(foo).toBe("ok");
 const = 1;
 ```
 
+With `typecheck` on, `compile_fail` also passes on a type error. This fence parses, but a string is not a number:
+
+```ts compile_fail
+const count: number = "one";
+```
+
 ```tsrx compile_fail
 function Greeting() @{
   <p>
