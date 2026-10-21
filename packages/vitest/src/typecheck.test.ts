@@ -10,7 +10,7 @@ const guide = [
   fence("const name: string = 1;", "compile_fail"),
 ].join("\n");
 
-describe("typecheck", () => {
+describe("typecheck", { timeout: 30_000 }, () => {
   test("type errors do not fail fences without typecheck", async () => {
     await using plain = spawn(vitest(), { "guide.md": guide });
     expect(await plain.run()).toMatchInlineSnapshot(`

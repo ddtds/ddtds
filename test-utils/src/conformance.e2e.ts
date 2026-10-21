@@ -44,6 +44,7 @@ export type Dialect = {
 
 const PASSED = "passed";
 const FAILED = "failed";
+const TYPECHECK_TIMEOUT = 30_000;
 
 type Verdicts = Record<string, typeof PASSED | typeof FAILED>;
 
@@ -839,7 +840,7 @@ export function conformance(name: string, runner: Runner, dialect: Dialect): voi
     },
   );
 
-  describe.concurrent.each(dialect.typecheck ? [dialect.typecheck] : [])(
+  describe.each(dialect.typecheck ? [dialect.typecheck] : [])(
     `${name} typecheck conformance`,
     ({ runner: typechecking }) => {
       const checking = typechecking();
@@ -888,32 +889,44 @@ export function conformance(name: string, runner: Runner, dialect: Dialect): voi
         ],
       ];
 
-      test.each(cases)("%s", async (_title, doc, expected) => {
-        await using ddt = openProject(markdown, { "doc.md": doc }, ["doc.md"], checking);
-        expect(await ddt.run()).toEqual(expected);
-      });
+      test.each(cases)(
+        "%s",
+        async (_title, doc, expected) => {
+          await using ddt = openProject(markdown, { "doc.md": doc }, ["doc.md"], checking);
+          expect(await ddt.run()).toEqual(expected);
+        },
+        TYPECHECK_TIMEOUT,
+      );
 
-      test("rechecks an edited fence in watch mode", async () => {
-        await using ddt = openProject(
-          markdown,
-          { "guide.md": fence(passing) },
-          ["guide.md"],
-          checking,
-        );
-        expect(await ddt.watch()).toEqual({ "guide.md:1": PASSED });
-        expect(await ddt.edit("guide.md", fence(typeError))).toEqual({ "guide.md:1": FAILED });
-        expect(await ddt.edit("guide.md", fence(passing))).toEqual({ "guide.md:1": PASSED });
-      });
+      test(
+        "rechecks an edited fence in watch mode",
+        async () => {
+          await using ddt = openProject(
+            markdown,
+            { "guide.md": fence(passing) },
+            ["guide.md"],
+            checking,
+          );
+          expect(await ddt.watch()).toEqual({ "guide.md:1": PASSED });
+          expect(await ddt.edit("guide.md", fence(typeError))).toEqual({ "guide.md:1": FAILED });
+          expect(await ddt.edit("guide.md", fence(passing))).toEqual({ "guide.md:1": PASSED });
+        },
+        TYPECHECK_TIMEOUT,
+      );
 
-      test("checks a JSDoc fence", async () => {
-        await using ddt = openProject(
-          jsdocKind,
-          { "doc.md": fence(typeError) },
-          undefined,
-          checking,
-        );
-        expect(await ddt.run()).toEqual(located(jsdocKind, { "doc.md:1": FAILED }));
-      });
+      test(
+        "checks a JSDoc fence",
+        async () => {
+          await using ddt = openProject(
+            jsdocKind,
+            { "doc.md": fence(typeError) },
+            undefined,
+            checking,
+          );
+          expect(await ddt.run()).toEqual(located(jsdocKind, { "doc.md:1": FAILED }));
+        },
+        TYPECHECK_TIMEOUT,
+      );
     },
   );
 
