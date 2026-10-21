@@ -15,6 +15,7 @@ export const adapter: TestAdapter = {
   runtime: "@ddtds/test/runtime",
   testImport: testImports("test"),
   fenceImports: [expectImports("expect")],
+  module: "esm",
 };
 
 export function fence(

@@ -13,7 +13,7 @@ export type TestAdapter = Readonly<{
   testImport: StaticImport;
   /** Imports for fences, e.g. `expect` */
   fenceImports: readonly StaticImport[];
-  /** Module system fence modules are written in. Defaults to `"esm"` */
-  module?: ModuleSystem;
+  /** Module system fence modules are written in. */
+  module: ModuleSystem;
   forModule?: (module: ModuleSystem) => TestAdapter;
 }>;

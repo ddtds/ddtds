@@ -18,6 +18,7 @@ const adapter: TestAdapter = {
   runtime: "@ddtds/vitest/runtime",
   testImport: stub("test"),
   fenceImports: [stub("expect")],
+  module: "esm",
 };
 
 const compileErrorModule = /runtime\.compileError.*phase:"typecheck"/;
