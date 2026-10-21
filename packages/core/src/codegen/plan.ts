@@ -19,7 +19,6 @@ export type FenceOutcome =
       importedNames: string[];
       body: Fragment[];
       shouldFail: boolean;
-      compileOnly: boolean;
       syntax: ModuleSyntax;
     }
   | { tag: "missingCompileError"; fileName: string; position: Position }
@@ -66,13 +65,14 @@ export function planFence(
   if (expectsCompileFailure) {
     return { tag: "missingCompileError", fileName: doc, position: block.details.range.start };
   }
+  // parsing and typechecking already compiled it, and loading its imports would run them
+  if (block.isCompileOnly()) return { tag: "emptyPass" };
   return {
     tag: "run",
     imports: split.imports,
     importedNames: runtimeNames(split.bindings),
     body: split.body,
     shouldFail: block.shouldFail(),
-    compileOnly: block.isCompileOnly(),
     syntax: split.syntax,
   };
 }

@@ -202,16 +202,12 @@ export function conformance(name: string, runner: Runner, dialect: Dialect): voi
       fence("const = 1;", ANNOTATIONS.COMPILE_ONLY),
       { "doc.md:1": FAILED },
     ],
-    // a CommonJS fence requires its imports from inside its body
-    ...(commonjs
-      ? []
-      : [
-          [
-            "a compile_only fence with a missing import",
-            fence(missingPackage, ANNOTATIONS.COMPILE_ONLY),
-            { "doc.md:1": FAILED },
-          ] satisfies [string, string, Verdicts],
-        ]),
+    // only typecheck resolves imports, since loading them would run them
+    [
+      "a compile_only fence with a missing import",
+      fence(missingPackage, ANNOTATIONS.COMPILE_ONLY),
+      { "doc.md:1": PASSED },
+    ],
     [
       "a compile_only fence that does not run its code",
       fence(`globalThis.__ddtdsCompileOnly = true;`, ANNOTATIONS.COMPILE_ONLY) +
@@ -673,6 +669,22 @@ export function conformance(name: string, runner: Runner, dialect: Dialect): voi
       expect(await ddt.run()).toEqual(located(kind, { "README.md:1": PASSED }));
     });
 
+    test("does not run the modules a compile_only fence imports", async () => {
+      const loaded = "globalThis.__ddtdsLoaded = true;";
+      await using ddt = openProject(kind, {
+        "node_modules/noisy/package.json": `{ "name": "noisy", "type": "${commonjs ? "commonjs" : "module"}", "main": "index.js" }`,
+        "node_modules/noisy/index.js": commonjs
+          ? `${loaded}\nexports.x = 1;`
+          : `${loaded}\nexport const x = 1;`,
+        "README.md":
+          fence(`${importNames("x", "noisy")}\nx;`, ANNOTATIONS.COMPILE_ONLY) +
+          fence(dialect.equal("typeof globalThis.__ddtdsLoaded", '"undefined"')),
+      });
+      expect(await ddt.run()).toEqual(
+        located(kind, { "README.md:1": PASSED, "README.md:6": PASSED }),
+      );
+    });
+
     test("runs setup next to a fence that imports from the project", async () => {
       await using ddt = openProject(kind, {
         ...calc,
@@ -870,6 +882,11 @@ export function conformance(name: string, runner: Runner, dialect: Dialect): voi
         [
           "fails a compile_only fence with a type error",
           fence(typeError, "compile_only"),
+          { "doc.md:1": FAILED },
+        ],
+        [
+          "fails a compile_only fence with a missing import",
+          fence('import { x } from "missing-package";\nx;', "compile_only"),
           { "doc.md:1": FAILED },
         ],
         [
