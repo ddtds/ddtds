@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
 import { join, relative, resolve } from "node:path";
 import { getLogger } from "@logtape/logtape";
+import type { DdtCompileError } from "../fences/compile-error.ts";
 import type { TestAdapter } from "../codegen/adapter.ts";
 import { localName } from "../codegen/static-import.ts";
 import { moduleFor, type GeneratedModule } from "../codegen/modules.ts";
@@ -8,8 +9,14 @@ import type { DocsConfig } from "../config.ts";
 import { readDocs, resolveDocsOptions } from "./discovery.ts";
 import { isMarkdownFile, isSourceFile } from "../fences/doc-kinds.ts";
 import { DocIndex } from "./docs.ts";
+import { TypeChecker } from "./typecheck.ts";
 
 const logger = getLogger(["ddtds", "session"]);
+
+export type SessionOptions = {
+  /** Fails ts and tsx fences that have type errors. Needs `typescript` and a tsconfig.json */
+  typecheck?: boolean;
+};
 /** Reads a doc, or `undefined` when the file is gone */
 const readFromDisk = (doc: string): string | undefined => {
   try {
@@ -27,6 +34,8 @@ export class DdtSession {
   readonly #tracked: Set<string> | "all";
   readonly #read: (doc: string) => string | undefined;
   #index: DocIndex;
+  readonly #typeChecker: TypeChecker | undefined;
+  #typed: Map<string, DdtCompileError> | undefined;
 
   private constructor(
     adapter: TestAdapter,
@@ -34,8 +43,10 @@ export class DdtSession {
     root: string,
     tracked: Set<string> | "all",
     read: (doc: string) => string | undefined,
+    { typecheck = false }: SessionOptions = {},
   ) {
     this.#adapter = adapter;
+    this.#typeChecker = typecheck ? new TypeChecker(root, adapter) : undefined;
     this.#tracked = tracked;
     this.#read = read;
     logger.debug("injecting {globals} into every fence", () => ({
@@ -45,8 +56,8 @@ export class DdtSession {
     for (const doc of sources.keys()) this.#logFences(doc);
   }
 
-  public static open(adapter: TestAdapter, root: string): DdtSession {
-    return new DdtSession(adapter, new Map(), root, "all", readFromDisk);
+  public static open(adapter: TestAdapter, root: string, options?: SessionOptions): DdtSession {
+    return new DdtSession(adapter, new Map(), root, "all", readFromDisk, options);
   }
 
   public static fromSources(
@@ -58,7 +69,10 @@ export class DdtSession {
     return new DdtSession(adapter, sources, root, new Set(sources.keys()), read);
   }
 
-  public static fromFiles(adapter: TestAdapter, config: DocsConfig): DdtSession {
+  public static fromFiles(
+    adapter: TestAdapter,
+    { typecheck, ...config }: DocsConfig & SessionOptions,
+  ): DdtSession {
     const { root, include, exclude } = resolveDocsOptions(config);
     logger.debug("looking for docs in {root} including {include} excluding {exclude}", {
       root,
@@ -67,7 +81,7 @@ export class DdtSession {
     });
     const docs = readDocs(root, include, exclude);
     logger.debug("found {count} docs", { count: docs.size });
-    return DdtSession.fromSources(adapter, docs, root);
+    return new DdtSession(adapter, docs, root, new Set(docs.keys()), readFromDisk, { typecheck });
   }
 
   public get index(): DocIndex {
@@ -89,10 +103,15 @@ export class DdtSession {
     if (!isMarkdownFile(doc) && !this.#tracks(doc)) return;
     if (this.#tracked !== "all") this.#tracked.add(doc);
     const source = this.#read(doc);
-    if (source === undefined) return this.#index.removeDoc(doc);
+    if (source === undefined) {
+      this.#index.removeDoc(doc);
+      this.#typed = undefined;
+      return;
+    }
     // indexing is pure in the source, so an unchanged doc needs no work
     if (this.#index.sourceOf(doc) === source) return;
     this.#index.replaceDoc(doc, source);
+    this.#typed = undefined;
     this.#logFences(doc);
   }
 
@@ -129,10 +148,16 @@ export class DdtSession {
     return this.#index.fence(fromRoot) ? fromRoot : undefined;
   }
 
+  public typeErrors(): Map<string, DdtCompileError> {
+    this.#typed ??= this.#typeChecker?.check(this.#index) ?? new Map();
+    return this.#typed;
+  }
+
   /** Module for an entry or fence id, rereading an entry's doc */
   public load(id: string): GeneratedModule | undefined {
     const doc = this.#index.docOfEntry(id);
     if (doc !== undefined) this.refresh(doc);
-    return moduleFor(this.#adapter, this.#index, id);
+    const typeErrors = this.#index.fence(id) ? this.typeErrors() : undefined;
+    return moduleFor(this.#adapter, this.#index, id, typeErrors);
   }
 }

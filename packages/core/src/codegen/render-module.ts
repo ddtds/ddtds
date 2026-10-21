@@ -1,5 +1,6 @@
 import { Bundle, MagicString, SourceMap, type SourceMapSegment } from "magic-string";
 import type { Fence } from "../docs/docs.ts";
+import type { DdtCompileError } from "../fences/compile-error.ts";
 import type { TestAdapter } from "./adapter.ts";
 import { adapterFor, runtimeImport } from "./module-system.ts";
 import { isSourceFile } from "../fences/doc-kinds.ts";
@@ -24,8 +25,9 @@ export function fenceModule(
   defaultAdapter: TestAdapter,
   fence: Fence,
   source?: string,
+  typeError?: DdtCompileError,
 ): GeneratedModule {
-  const outcome = planFence(fence);
+  const outcome = planFence(fence, undefined, typeError);
   const module = resolveModule(fence.block, {
     syntax: outcome.tag === "run" ? outcome.syntax : "ambiguous",
     fallback: defaultAdapter.module ?? "esm",

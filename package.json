@@ -19,7 +19,7 @@
     "typecheck": "pnpm -r run typecheck",
     "build": "tsdown",
     "pretest": "pnpm run build",
-    "test": "vitest run",
+    "test": "vitest run && pnpm test:typecheck",
     "test:packages": "pnpm --filter './packages/*' run test",
     "test:examples": "pnpm --filter '@ddtds/example-*' test",
     "test:update-snapshots": "vitest run -u",
@@ -30,7 +30,9 @@
     "knip": "knip --treat-config-hints-as-errors",
     "publint": "pnpm --filter './packages/*' exec publint --strict",
     "sherif": "sherif --fail-on-warnings",
-    "validate:renovate": "renovate-config-validator renovate.json"
+    "validate:renovate": "renovate-config-validator renovate.json",
+    "test:typecheck": "TYPESCRIPT=5 pnpm --filter @ddtds/core test:typecheck && TYPESCRIPT=6 pnpm --filter @ddtds/core test:typecheck",
+    "test:typecheck:ci": "pnpm --filter @ddtds/core test:typecheck"
   },
   "devDependencies": {
     "@arethetypeswrong/core": "0.18.5",

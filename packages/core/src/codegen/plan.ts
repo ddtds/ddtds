@@ -43,21 +43,26 @@ type SplitBlock = (block: Fence["block"]) => PreparedBlock;
 export function planFence(
   { doc, block }: Fence,
   splitBlock: SplitBlock = splitImportsAndBlock,
+  typeError?: DdtCompileError,
 ): FenceOutcome {
   const expectsCompileFailure = block.shouldFailToCompile();
+  const failed = (error: DdtCompileError): FenceOutcome =>
+    expectsCompileFailure && error.details.phase !== "parser-crash"
+      ? { tag: "emptyPass" }
+      : {
+          tag: "compileError",
+          fileName: doc,
+          details: error.details,
+          cause: serializeCause(error.cause),
+        };
   let split: PreparedBlock;
   try {
     split = splitBlock(block);
   } catch (error) {
     if (!(error instanceof DdtCompileError)) throw error;
-    if (expectsCompileFailure && error.details.phase === "parse") return { tag: "emptyPass" };
-    return {
-      tag: "compileError",
-      fileName: doc,
-      details: error.details,
-      cause: serializeCause(error.cause),
-    };
+    return failed(error);
   }
+  if (typeError) return failed(typeError);
   if (expectsCompileFailure) {
     return { tag: "missingCompileError", fileName: doc, position: block.details.range.start };
   }

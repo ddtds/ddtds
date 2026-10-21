@@ -55,7 +55,8 @@
   },
   "scripts": {
     "test": "vitest run",
-    "typecheck": "tsc"
+    "typecheck": "tsc",
+    "test:typecheck": "node --test src/typecheck.e2e.ts"
   },
   "dependencies": {
     "@logtape/logtape": "catalog:prod",
@@ -69,13 +70,20 @@
     "@oxc-project/types": "^0.154.0",
     "@tsrx/oxc": "catalog:dev",
     "@types/node": "catalog:dev",
+    "typescript": "catalog:dev",
+    "typescript5": "catalog:dev",
+    "typescript6": "catalog:dev",
     "vitest": "catalog:dev"
   },
   "peerDependencies": {
-    "@tsrx/oxc": "^0.20.0 || ^0.21.0"
+    "@tsrx/oxc": "^0.20.0 || ^0.21.0",
+    "typescript": "catalog:peers"
   },
   "peerDependenciesMeta": {
     "@tsrx/oxc": {
+      "optional": true
+    },
+    "typescript": {
       "optional": true
     }
   },

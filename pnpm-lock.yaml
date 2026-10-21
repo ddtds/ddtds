@@ -191,6 +191,12 @@ catalogs:
     typescript:
       specifier: ^7.0.2
       version: 7.0.2
+    typescript5:
+      specifier: npm:typescript@^5.9.3
+      version: 5.9.3
+    typescript6:
+      specifier: npm:typescript@^6.0.3
+      version: 6.0.3
     vitest:
       specifier: ^5.0.4
       version: 5.0.5
@@ -809,6 +815,15 @@ importers:
       '@types/node':
         specifier: catalog:dev
         version: 24.19.2
+      typescript:
+        specifier: catalog:dev
+        version: 7.0.2
+      typescript5:
+        specifier: catalog:dev
+        version: typescript@5.9.3
+      typescript6:
+        specifier: catalog:dev
+        version: typescript@6.0.3
       vitest:
         specifier: catalog:dev
         version: 5.0.5(@opentelemetry/api@1.9.1)(@types/node@24.19.2)(@vitest/coverage-v8@5.0.5)(happy-dom@21.0.3)(vite@8.3.0(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1))
@@ -2292,12 +2307,14 @@ packages:
   '@opentelemetry/sdk-trace-base@2.12.0':
     resolution: {integrity: sha512-JOERgZCxRM06FEJ5kEWxlSRChah6MmXDx3KwCruqEv/iEyLkTokCSemf2y1w8oIHtfrr8EVTpzebq/31vn2Cpg==}
     engines: {node: ^18.19.0 || >=20.6.0}
+    deprecated: Use @opentelemetry/sdk-trace package
     peerDependencies:
       '@opentelemetry/api': '>=1.3.0 <1.10.0'
 
   '@opentelemetry/sdk-trace-node@2.12.0':
     resolution: {integrity: sha512-9DufH1IlmQMoKAfot5y/FhTP1RnmhLb5K6eKmJO/bvzPjYwPAazoiAUbTZFdPbqxOXN0FEbhZx/e6SB1Og4jmg==}
     engines: {node: ^18.19.0 || >=20.6.0}
+    deprecated: Use @opentelemetry/sdk-trace package
     peerDependencies:
       '@opentelemetry/api': '>=1.0.0 <1.10.0'
 
@@ -7483,6 +7500,11 @@ packages:
 
   typescript@5.6.1-rc:
     resolution: {integrity: sha512-E3b2+1zEFu84jB0YQi9BORDjz9+jGbwwy1Zi3G0LUNw7a7cePUrHMRNy8aPh53nXpkFGVHSxIZo5vKTfYaFiBQ==}
+    engines: {node: '>=14.17'}
+    hasBin: true
+
+  typescript@5.9.3:
+    resolution: {integrity: sha512-jl1vZzPDinLr9eUt3J/t7V6FgNEw9QjvBPdysz9KfQDD41fQrC2Y4vKQdiaUpFT4bXlb1RHhLpp8wtm6M5TgSw==}
     engines: {node: '>=14.17'}
     hasBin: true
 
@@ -14477,6 +14499,8 @@ snapshots:
       is-typedarray: 1.0.0
 
   typescript@5.6.1-rc: {}
+
+  typescript@5.9.3: {}
 
   typescript@6.0.3: {}
 
