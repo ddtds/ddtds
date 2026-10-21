@@ -26,14 +26,15 @@ export class TypeChecker {
   }
 
   public check(index: DocIndex): Map<string, DdtCompileError> {
-    const typed = [...index.fences()].filter(({ block }) =>
-      TYPED_PARSERS.has(parserOf(block.lang)),
-    );
+    const typed = index
+      .fences()
+      .filter(({ block }) => TYPED_PARSERS.has(parserOf(block.lang)))
+      .toArray();
     this.#sources.clear();
     for (const fence of typed) this.#sources.set(fence.id, fenceSource(fence, this.#adapter));
     if (typed.length === 0) return new Map();
 
-    const { ts, service } = this.#load();
+    const { ts, service } = (this.#compiler ??= createCompiler(this.#root, this.#sources));
     const errors = new Map<string, DdtCompileError>();
     for (const fence of typed) {
       const diagnostics = service
@@ -43,23 +44,12 @@ export class TypeChecker {
     }
     return errors;
   }
-
-  #load(): Compiler {
-    if (this.#compiler === undefined) {
-      const ts = loadTypeScript(this.#root);
-      this.#compiler = { ts, service: createService(ts, this.#root, this.#sources) };
-    }
-    return this.#compiler;
-  }
 }
 
-function createService(
-  ts: CompilerApi,
-  root: string,
-  sources: ReadonlyMap<string, string>,
-): TypeScript.LanguageService {
+function createCompiler(root: string, sources: ReadonlyMap<string, string>): Compiler {
+  const ts = loadTypeScript(root);
   const options = compilerOptions(ts, root);
-  return ts.createLanguageService({
+  const service = ts.createLanguageService({
     ...ts.sys,
     useCaseSensitiveFileNames: () => ts.sys.useCaseSensitiveFileNames,
     getCompilationSettings: () => options,
@@ -72,6 +62,7 @@ function createService(
       return text === undefined ? undefined : ts.ScriptSnapshot.fromString(text);
     },
   });
+  return { ts, service };
 }
 
 const versionOf = (ts: CompilerApi, file: string): string =>
@@ -101,13 +92,16 @@ function loadTypeScript(root: string): CompilerApi {
 function compilerOptions(ts: CompilerApi, root: string): TypeScript.CompilerOptions {
   const configFile = ts.findConfigFile(root, (file) => ts.sys.fileExists(file));
   if (configFile === undefined) throw new Error(`typecheck needs a tsconfig.json in ${root}`);
+  const unreadable = ({ messageText }: TypeScript.Diagnostic): never => {
+    const reason = ts.flattenDiagnosticMessageText(messageText, "\n");
+    throw new Error(`typecheck could not read ${configFile}: ${reason}`);
+  };
+  const { error } = ts.readConfigFile(configFile, (file) => ts.sys.readFile(file));
+  if (error) unreadable(error);
   const config = ts.getParsedCommandLineOfConfigFile(
     configFile,
     {},
-    {
-      ...ts.sys,
-      onUnRecoverableConfigFileDiagnostic: () => {},
-    },
+    { ...ts.sys, onUnRecoverableConfigFileDiagnostic: unreadable },
   );
   return { ...config?.options, noEmit: true };
 }

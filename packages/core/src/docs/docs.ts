@@ -71,7 +71,7 @@ export class DocIndex {
     return this.#docs.entries();
   }
 
-  public fences(): Iterable<Fence> {
+  public fences(): MapIterator<Fence> {
     return this.#fences.values();
   }
 
