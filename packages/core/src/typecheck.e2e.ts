@@ -30,6 +30,7 @@ const projectOptions = {
   jsx: "react-jsx",
   skipLibCheck: true,
 };
+const unreadableTsconfig = /typecheck could not read .*tsconfig\.json/;
 const missingTsconfig = /typecheck needs a tsconfig\.json/;
 const missingTypeScript = /typecheck needs "typescript" installed/;
 const fence = (code: string, annotation = "run", lang = "ts"): string =>
@@ -207,6 +208,11 @@ describe("unsupported installs", () => {
   test("typecheck needs typescript installed", () => {
     const session = DdtSession.fromFiles(adapter, { root: project(fence("1;"), {}, "none") });
     assert.throws(() => session.typeErrors(), missingTypeScript);
+  });
+
+  test("typecheck fails on a tsconfig it cannot parse", () => {
+    const root = project(fence("1;"), { "tsconfig.json": "{ not json" });
+    assert.throws(() => DdtSession.fromFiles(adapter, { root }).typeErrors(), unreadableTsconfig);
   });
 
   test("typecheck needs a tsconfig", () => {
