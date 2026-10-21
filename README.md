@@ -2,7 +2,7 @@
 
 [![CodSpeed](https://img.shields.io/endpoint?url=https://codspeed.io/badge.json)](https://codspeed.io/ddtds/ddtds?utm_source=badge)
 
-Imagine a world where you can just vitest run README.md!!! ddtds uses your existing test and TypeScript config to run and typecheck code examples in Markdown and JSDoc comments
+Imagine a world where you can just `vitest run README.md`!!! ddtds uses your existing test and TypeScript config to run and typecheck code examples in Markdown and JSDoc comments
 
 ```bash
 ~/coding/ddtds pnpm exec vitest run README.md
