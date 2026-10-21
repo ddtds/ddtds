@@ -3,6 +3,7 @@ import type { Fence } from "../docs/docs.ts";
 import type { DdtCompileError } from "../fences/compile-error.ts";
 import type { TestAdapter } from "./adapter.ts";
 import { adapterFor, runtimeImport } from "./module-system.ts";
+import { moduleOf } from "./adapter.ts";
 import { isSourceFile } from "../fences/doc-kinds.ts";
 import { emitFence, wrap } from "./emit.ts";
 import { resolveModule } from "./resolve-module.ts";
@@ -30,7 +31,7 @@ export function fenceModule(
   const outcome = planFence(fence, undefined, typeError);
   const module = resolveModule(fence.block, {
     syntax: outcome.tag === "run" ? outcome.syntax : "ambiguous",
-    fallback: defaultAdapter.module ?? "esm",
+    fallback: moduleOf(defaultAdapter),
   });
   const adapter = adapterFor(defaultAdapter, module);
   const { imports, ...expression } = emitFence(
@@ -61,7 +62,7 @@ export function fenceModule(
     names: [],
     mappings: shiftToFence(mappings, fence),
   });
-  return { code: bundle.toString(), map, module: adapter.module ?? "esm" };
+  return { code: bundle.toString(), map, module: moduleOf(adapter) };
 }
 
 const testName = ({ block }: Fence): string =>

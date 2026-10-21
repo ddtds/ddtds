@@ -4,6 +4,7 @@ import type { TestAdapter } from "./adapter.ts";
 import type { GeneratedModule } from "./module-types.ts";
 import { docModule, fenceModule } from "./render-module.ts";
 
+export { moduleOf } from "./adapter.ts";
 export type { ModuleSystem, TestAdapter } from "./adapter.ts";
 export type { GeneratedModule } from "./module-types.ts";
 

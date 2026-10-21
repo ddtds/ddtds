@@ -1,3 +1,4 @@
+import { moduleOf } from "./adapter.ts";
 import type { ModuleSystem, TestAdapter } from "./adapter.ts";
 
 const statements: Record<ModuleSystem, (module: string, name: string, alias?: string) => string> = {
@@ -19,12 +20,12 @@ export function importStatement(
 /** Doc modules always `import`; fence modules follow the adapter's module system */
 export function runtimeImport(
   adapter: TestAdapter,
-  system: ModuleSystem = adapter.module ?? "esm",
+  system: ModuleSystem = moduleOf(adapter),
 ): string {
   return importStatement(system, adapter.runtime, "runtime");
 }
 
 export function adapterFor(adapter: TestAdapter, module: ModuleSystem): TestAdapter {
-  if (module === (adapter.module ?? "esm")) return adapter;
+  if (module === moduleOf(adapter)) return adapter;
   return adapter.forModule?.(module) ?? adapter;
 }

@@ -3,6 +3,7 @@ import { MagicString } from "magic-string";
 import type { FenceRuntime } from "../runtime.ts";
 import { serialize } from "seroval";
 import type { TestAdapter } from "./adapter.ts";
+import { moduleOf } from "./adapter.ts";
 import { runtimeImport } from "./module-system.ts";
 import { localName, renderImport, unshadowed } from "./static-import.ts";
 import type { FenceOutcome, Fragment } from "./plan.ts";
@@ -74,7 +75,7 @@ function emitRun(
     );
   }
   const imports = [
-    ...injected.map((fenceImport) => renderImport(fenceImport, adapter.module ?? "esm")),
+    ...injected.map((fenceImport) => renderImport(fenceImport, moduleOf(adapter))),
     ...outcome.imports,
   ];
   const run = outcome.compileOnly

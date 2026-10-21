@@ -17,3 +17,8 @@ export type TestAdapter = Readonly<{
   module?: ModuleSystem;
   forModule?: (module: ModuleSystem) => TestAdapter;
 }>;
+
+/** Module system of an adapter, defaulting to ESM when unset */
+export function moduleOf(adapter: TestAdapter): ModuleSystem {
+  return adapter.module ?? "esm";
+}
