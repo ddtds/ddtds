@@ -10,7 +10,7 @@
   "devDependencies": {
     "@ddtds/vitest": "workspace:*",
     "@types/node": "catalog:dev",
-    "typescript": "^6.0.3",
+    "typescript": "catalog:examples",
     "vitest": "catalog:dev"
   }
 }
