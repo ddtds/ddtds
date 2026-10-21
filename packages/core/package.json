@@ -71,8 +71,8 @@
     "@tsrx/oxc": "catalog:dev",
     "@types/node": "catalog:dev",
     "typescript": "catalog:dev",
-    "typescript5": "npm:typescript@^5.9.3",
-    "typescript6": "npm:typescript@^6.0.3",
+    "typescript5": "catalog:dev",
+    "typescript6": "catalog:dev",
     "vitest": "catalog:dev"
   },
   "peerDependencies": {

@@ -32,6 +32,8 @@ catalogs:
     "@types/stack-utils": ^2.0.3
     stack-utils: ^2.0.6
     typescript: ^7.0.2
+    typescript5: npm:typescript@^5.9.3
+    typescript6: npm:typescript@^6.0.3
     vitest: ^5.0.4
     "@vitest/coverage-v8": ^5.0.4
   examples:
