@@ -14,5 +14,6 @@ export function vitestAdapter(globals: readonly StaticImport[]): TestAdapter {
     runtime: "@ddtds/vitest/runtime",
     testImport: vitestImports("test"),
     fenceImports: globals,
+    module: "esm",
   };
 }

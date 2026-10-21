@@ -5,4 +5,5 @@ export const adapter: TestAdapter = {
   runtime: "@ddtds/vitest/runtime",
   testImport: vitestImports("test"),
   fenceImports: defaultGlobals,
+  module: "esm",
 };
