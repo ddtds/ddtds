@@ -4,8 +4,7 @@ import { getLogger } from "@logtape/logtape";
 import type { DdtCompileError } from "../fences/compile-error.ts";
 import type { TestAdapter } from "../codegen/adapter.ts";
 import { localName } from "../codegen/static-import.ts";
-import type { GeneratedModule } from "../codegen/modules.ts";
-import { docModule, fenceModule } from "../codegen/render-module.ts";
+import { moduleFor, type GeneratedModule } from "../codegen/modules.ts";
 import type { DocsConfig } from "../config.ts";
 import { readDocs, resolveDocsOptions } from "./discovery.ts";
 import { isMarkdownFile, isSourceFile } from "../fences/doc-kinds.ts";
@@ -150,16 +149,8 @@ export class DdtSession {
     id: string,
     typeErrors?: ReadonlyMap<string, DdtCompileError>,
   ): GeneratedModule | undefined {
-    const stale = this.#index.docOfEntry(id);
-    if (stale !== undefined) this.refresh(stale);
     const doc = this.#index.docOfEntry(id);
-    if (doc !== undefined) {
-      const fences = this.#index.fencesOf(doc);
-      return docModule(this.#adapter, doc, fences, { source: this.#index.sourceOf(doc) });
-    }
-    const fence = this.#index.fence(id);
-    if (!fence) return undefined;
-    const source = this.#index.sourceOf(fence.doc);
-    return fenceModule(this.#adapter, fence, source, typeErrors?.get(fence.id));
+    if (doc !== undefined) this.refresh(doc);
+    return moduleFor(this.#adapter, this.#index, id, typeErrors);
   }
 }
