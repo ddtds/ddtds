@@ -1,8 +1,9 @@
 import { conformance, type Dialect } from "@ddtds/test-utils/conformance";
-import { nodeTest, nodeTestWithGlobals } from "./e2e.ts";
+import { nodeTest, nodeTestTypechecking, nodeTestWithGlobals } from "./e2e.ts";
 
 const dialect: Dialect = {
   equal: (actual, expected) => `assert.equal(${actual}, ${expected});`,
+  typecheck: { runner: nodeTestTypechecking },
   globals: { names: ["assert", "mock"], runner: nodeTestWithGlobals },
 };
 

@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { findPackageJSON, setSourceMapsSupport, type RegisterHooksOptions } from "node:module";
 import { extname } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
-import { DdtSession } from "@ddtds/core";
+import { DdtSession, type SessionOptions } from "@ddtds/core";
 import type { ModuleSystem } from "@ddtds/core/codegen";
 import type { DdtOptions, StaticImport } from "@ddtds/core/config";
 import { configureLogging } from "@ddtds/core/log";
@@ -20,16 +20,17 @@ const sink = getConsoleSink({ formatter });
 
 const logger = getLogger(["ddtds", "hooks"]);
 
-export type HookOptions = DdtOptions & {
-  module?: ModuleSystem;
-  globals?: readonly StaticImport[];
-};
+export type HookOptions = DdtOptions &
+  SessionOptions & {
+    module?: ModuleSystem;
+    globals?: readonly StaticImport[];
+  };
 
 export function ddtHooks(root: string, options: HookOptions = {}): RegisterHooksOptions {
   setSourceMapsSupport(true);
   configureLogging(sink, options.logLevel);
   const adapter = nodeTestAdapter(defaultModule(root, options), options.globals);
-  const session = DdtSession.open(adapter, root);
+  const session = DdtSession.open(adapter, root, options);
 
   return {
     resolve(specifier, context, next) {

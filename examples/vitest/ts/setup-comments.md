@@ -59,6 +59,7 @@ A comment with no marker is never run, even when its body is valid code:
 <!-- const leaked = "no marker"; -->
 
 ```ts run
+// @ts-expect-error not defined here
 expect(typeof leaked).toBe("undefined");
 ```
 
@@ -76,6 +77,7 @@ expect(scoped).toBe("first fence only");
 The previous comment does not reach this fence, so `scoped` is not defined here:
 
 ```ts run
+// @ts-expect-error not defined here
 expect(typeof scoped).toBe("undefined");
 ```
 
@@ -84,6 +86,7 @@ expect(typeof scoped).toBe("undefined");
 Text in between ends the search.
 
 ```ts run
+// @ts-expect-error not defined here
 expect(typeof detached).toBe("undefined");
 ```
 
@@ -116,5 +119,6 @@ A marker inside a fence is plain text, so it is not setup. This fence declares w
 ```ts run
 const text = "<!-- ddt-setup const nope = 1; -->";
 expect(text).toContain("ddt-setup");
+// @ts-expect-error not defined here
 expect(typeof nope).toBe("undefined");
 ```

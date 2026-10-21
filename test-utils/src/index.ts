@@ -1,6 +1,15 @@
 import { spawn as launch } from "node:child_process";
 import { EventEmitter, once } from "node:events";
-import { existsSync, mkdirSync, mkdtempSync, rmSync, statSync, writeFileSync } from "node:fs";
+import {
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  rmSync,
+  statSync,
+  symlinkSync,
+  writeFileSync,
+} from "node:fs";
+import { createRequire } from "node:module";
 import { dirname, join } from "node:path";
 import { tmpdir } from "node:os";
 import { createInterface } from "node:readline";
@@ -58,6 +67,25 @@ export type Watcher = {
   next(): Promise<Report>;
   close(): Promise<void>;
 };
+
+const tsconfig = JSON.stringify({
+  compilerOptions: {
+    strict: true,
+    target: "esnext",
+    module: "preserve",
+    moduleResolution: "bundler",
+    skipLibCheck: true,
+  },
+});
+
+/** Gives a fixture project TypeScript 6 and, unless it brings one, a strict tsconfig */
+export function prepareTypecheck(root: string): void {
+  const config = join(root, "tsconfig.json");
+  if (!existsSync(config)) writeFileSync(config, tsconfig);
+  const typescript = dirname(createRequire(import.meta.url).resolve("typescript6/package.json"));
+  mkdirSync(join(root, "node_modules"), { recursive: true });
+  symlinkSync(typescript, join(root, "node_modules/typescript"));
+}
 
 export type Runner = {
   name: string;

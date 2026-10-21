@@ -33,6 +33,8 @@ export type Dialect = {
   /** Module system of the project and its fences. Defaults to `"esm"` */
   module?: "esm" | "cjs";
   nativeModules?: boolean;
+  /** A runner with typecheck on, in a project that has TypeScript installed */
+  typecheck?: { runner: () => Runner };
   globals?: {
     /** Names the runner injects into every fence by default */
     names: readonly string[];
@@ -42,6 +44,7 @@ export type Dialect = {
 
 const PASSED = "passed";
 const FAILED = "failed";
+const TYPECHECK_TIMEOUT = 30_000;
 
 type Verdicts = Record<string, typeof PASSED | typeof FAILED>;
 
@@ -834,6 +837,96 @@ export function conformance(name: string, runner: Runner, dialect: Dialect): voi
         );
         expect(await ddt.run()).toEqual(located(jsdocKind, { "doc.md:1": PASSED }));
       });
+    },
+  );
+
+  describe.each(dialect.typecheck ? [dialect.typecheck] : [])(
+    `${name} typecheck conformance`,
+    ({ runner: typechecking }) => {
+      const checking = typechecking();
+      const typeError = 'const count: number = "one";';
+      const cases: [title: string, doc: string, expected: Verdicts][] = [
+        [
+          "passes a well typed fence",
+          fence(`const n: number = 1;\n${dialect.equal("n", "1")}`),
+          { "doc.md:1": PASSED },
+        ],
+        ["fails a fence with a type error", fence(typeError), { "doc.md:1": FAILED }],
+        [
+          "fails only the fence with the type error",
+          fence(passing) + fence(typeError) + fence(passing),
+          { "doc.md:1": PASSED, "doc.md:5": FAILED, "doc.md:9": PASSED },
+        ],
+        [
+          "passes a compile_fail fence with a type error",
+          fence(typeError, "compile_fail"),
+          { "doc.md:1": PASSED },
+        ],
+        [
+          "fails a compile_fail fence that type checks",
+          fence(passing, "compile_fail"),
+          { "doc.md:1": FAILED },
+        ],
+        [
+          "fails a compile_only fence with a type error",
+          fence(typeError, "compile_only"),
+          { "doc.md:1": FAILED },
+        ],
+        [
+          "passes a compile_only fence that type checks",
+          fence(`${passing}\n${throwingBody}`, "compile_only"),
+          { "doc.md:1": PASSED },
+        ],
+        [
+          "checks the code of a setup comment",
+          `<!-- ddt-setup ${typeError} -->\n\n${fence(passing)}`,
+          { "doc.md:3": FAILED },
+        ],
+        [
+          "does not check a skipped fence",
+          fence(typeError, "skip") + fence(passing),
+          { "doc.md:5": PASSED },
+        ],
+      ];
+
+      test.each(cases)(
+        "%s",
+        async (_title, doc, expected) => {
+          await using ddt = openProject(markdown, { "doc.md": doc }, ["doc.md"], checking);
+          expect(await ddt.run()).toEqual(expected);
+        },
+        TYPECHECK_TIMEOUT,
+      );
+
+      test(
+        "rechecks an edited fence in watch mode",
+        async () => {
+          await using ddt = openProject(
+            markdown,
+            { "guide.md": fence(passing) },
+            ["guide.md"],
+            checking,
+          );
+          expect(await ddt.watch()).toEqual({ "guide.md:1": PASSED });
+          expect(await ddt.edit("guide.md", fence(typeError))).toEqual({ "guide.md:1": FAILED });
+          expect(await ddt.edit("guide.md", fence(passing))).toEqual({ "guide.md:1": PASSED });
+        },
+        TYPECHECK_TIMEOUT,
+      );
+
+      test(
+        "checks a JSDoc fence",
+        async () => {
+          await using ddt = openProject(
+            jsdocKind,
+            { "doc.md": fence(typeError) },
+            undefined,
+            checking,
+          );
+          expect(await ddt.run()).toEqual(located(jsdocKind, { "doc.md:1": FAILED }));
+        },
+        TYPECHECK_TIMEOUT,
+      );
     },
   );
 

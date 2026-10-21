@@ -25,6 +25,7 @@
   "devDependencies": {
     "@types/node": "catalog:dev",
     "@types/stack-utils": "catalog:dev",
+    "typescript6": "catalog:dev",
     "vitest": "catalog:dev"
   }
 }
