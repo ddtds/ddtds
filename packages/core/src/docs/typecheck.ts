@@ -1,5 +1,6 @@
 import { createRequire } from "node:module";
-import { join } from "node:path";
+import { join, relative } from "node:path";
+import { getLogger } from "@logtape/logtape";
 import type * as TypeScript from "typescript6";
 import { DdtCompileError, type CompileDiagnostic } from "../fences/compile-error.ts";
 import { parserOf } from "../language-registry.ts";
@@ -12,6 +13,7 @@ import type { DocIndex, Fence } from "./docs.ts";
 type CompilerApi = typeof TypeScript;
 type Compiler = { ts: CompilerApi; service: TypeScript.LanguageService };
 
+const logger = getLogger(["ddtds", "typecheck"]);
 const TYPED_PARSERS: ReadonlySet<Parser> = new Set(["ts", "tsx"]);
 
 export class TypeChecker {
@@ -37,9 +39,13 @@ export class TypeChecker {
     const { ts, service } = (this.#compiler ??= createCompiler(this.#root, this.#sources));
     const errors = new Map<string, DdtCompileError>();
     for (const fence of typed) {
-      const diagnostics = service
-        .getSemanticDiagnostics(fence.id)
-        .filter(({ start = 0 }) => start < fence.block.code.length);
+      const all = service.getSemanticDiagnostics(fence.id);
+      const diagnostics = all.filter(({ start = 0 }) => start < fence.block.code.length);
+      if (diagnostics.length < all.length) {
+        logger.debug("the globals injected into {id} have type errors", () => ({
+          id: relative(this.#root, fence.id),
+        }));
+      }
       if (diagnostics.length > 0) errors.set(fence.id, typeError(ts, fence, diagnostics));
     }
     return errors;
