@@ -2,9 +2,6 @@ import { describe, expect, test } from "vitest";
 import { fence, spawn } from "@ddtds/test-utils";
 import { vitest, vitestTypechecking } from "./e2e.ts";
 
-const tsconfig = JSON.stringify({
-  compilerOptions: { strict: true, module: "preserve", moduleResolution: "bundler" },
-});
 const guide = [
   "# Guide",
   "",
@@ -23,10 +20,7 @@ describe("typecheck", () => {
         "guide.md:9": "passed",
       }
     `);
-    await using checked = spawn(vitestTypechecking(), {
-      "tsconfig.json": tsconfig,
-      "guide.md": guide,
-    });
+    await using checked = spawn(vitestTypechecking(), { "guide.md": guide });
     expect(await checked.run()).toMatchInlineSnapshot(`
       {
         "guide.md:15": "passed",
@@ -37,7 +31,7 @@ describe("typecheck", () => {
   });
 
   test("type errors point at the markdown", async () => {
-    await using ddt = spawn(vitestTypechecking(), { "tsconfig.json": tsconfig, "guide.md": guide });
+    await using ddt = spawn(vitestTypechecking(), { "guide.md": guide });
     await ddt.run();
     expect(ddt.failures).toMatchInlineSnapshot(`
       {

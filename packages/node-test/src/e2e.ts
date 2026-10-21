@@ -1,8 +1,7 @@
 import { writeFileSync } from "node:fs";
-import { createRequire } from "node:module";
-import { dirname, join } from "node:path";
+import { join } from "node:path";
 import type { StaticImport } from "@ddtds/core/config";
-import { cli, linkTypeScript, type Mode, type Runner } from "@ddtds/test-utils";
+import { cli, prepareTypecheck, type Mode, type Runner } from "@ddtds/test-utils";
 import type { Globals } from "@ddtds/test-utils/conformance";
 
 const register = join(import.meta.dirname, "register.ts");
@@ -47,10 +46,7 @@ export function nodeTestTypechecking(): Runner {
         join(root, "register.mts"),
         registerSource({ defaults: true, extra: [] }, true),
       );
-      linkTypeScript(
-        root,
-        dirname(createRequire(import.meta.url).resolve("typescript6/package.json")),
-      );
+      prepareTypecheck(root);
     },
     command: command("./register.mts"),
   });

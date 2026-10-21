@@ -49,7 +49,7 @@ export function ddtHooks(root: string, options: HookOptions = {}): RegisterHooks
       const parsed = URL.parse(url);
       if (parsed?.protocol !== "file:") return next(url, context);
       const id = fileURLToPath(parsed) + parsed.search;
-      const checked = options.typecheck && session.resolve(id) !== undefined;
+      const checked = options.typecheck && session.index.fence(id) !== undefined;
       const module = session.load(id, checked ? session.typeErrors() : undefined);
       if (!module) return next(url, context);
 

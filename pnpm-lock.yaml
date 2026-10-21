@@ -855,9 +855,6 @@ importers:
       '@types/node':
         specifier: catalog:dev
         version: 24.19.2
-      typescript6:
-        specifier: npm:typescript@^6.0.3
-        version: typescript@6.0.3
       vitest:
         specifier: catalog:dev
         version: 5.0.5(@opentelemetry/api@1.9.1)(@types/node@24.19.2)(@vitest/coverage-v8@5.0.5)(happy-dom@21.0.3)(vite@8.3.0(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1))
@@ -880,9 +877,6 @@ importers:
       '@vitest/coverage-v8':
         specifier: catalog:dev
         version: 5.0.5(vitest@5.0.5)
-      typescript6:
-        specifier: npm:typescript@^6.0.3
-        version: typescript@6.0.3
       vitest:
         specifier: catalog:dev
         version: 5.0.5(@opentelemetry/api@1.9.1)(@types/node@24.19.2)(@vitest/coverage-v8@5.0.5)(happy-dom@21.0.3)(vite@8.3.0(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1))
@@ -897,7 +891,7 @@ importers:
         version: 2.0.6
       valibot:
         specifier: ^1.5.0
-        version: 1.5.0(typescript@7.0.2)
+        version: 1.5.0(typescript@6.0.3)
     devDependencies:
       '@types/node':
         specifier: catalog:dev
@@ -905,6 +899,9 @@ importers:
       '@types/stack-utils':
         specifier: catalog:dev
         version: 2.0.3
+      typescript6:
+        specifier: npm:typescript@^6.0.3
+        version: typescript@6.0.3
       vitest:
         specifier: catalog:dev
         version: 5.0.5(@opentelemetry/api@1.9.1)(@types/node@24.19.2)(@vitest/coverage-v8@5.0.5)(happy-dom@21.0.3)(vite@8.3.0(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.104.1)(sass@1.104.1)(yaml@2.9.1))
@@ -14635,9 +14632,9 @@ snapshots:
 
   url-join@5.0.0: {}
 
-  valibot@1.5.0(typescript@7.0.2):
+  valibot@1.5.0(typescript@6.0.3):
     optionalDependencies:
-      typescript: 7.0.2
+      typescript: 6.0.3
 
   validate-npm-package-name@5.0.0:
     dependencies:

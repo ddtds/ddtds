@@ -1,8 +1,6 @@
-import { createRequire } from "node:module";
-import { dirname } from "node:path";
 import {
   emptyReport,
-  linkTypeScript,
+  prepareTypecheck,
   type Report,
   type Runner,
   type Watcher,
@@ -71,12 +69,5 @@ export function vitestWithGlobals({ defaults, extra }: Globals): Runner {
 
 /** A runner with typecheck on, for projects that have TypeScript 6 installed */
 export function vitestTypechecking(): Runner {
-  return {
-    ...vitest({ plugin: { typecheck: true } }),
-    prepare: (root) =>
-      linkTypeScript(
-        root,
-        dirname(createRequire(import.meta.url).resolve("typescript6/package.json")),
-      ),
-  };
+  return { ...vitest({ plugin: { typecheck: true } }), prepare: prepareTypecheck };
 }
