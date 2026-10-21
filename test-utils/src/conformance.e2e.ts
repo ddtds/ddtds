@@ -927,6 +927,29 @@ export function conformance(name: string, runner: Runner, dialect: Dialect): voi
         },
         TYPECHECK_TIMEOUT,
       );
+
+      test.each([
+        ["passes a fence that uses a declaration from tsconfig files", ["globals.d.ts"], PASSED],
+        ["fails that fence when tsconfig does not list the file", [], FAILED],
+      ])(
+        "%s",
+        async (_title, files, expected) => {
+          const tsconfig = { compilerOptions: { strict: true, skipLibCheck: true }, files };
+          await using ddt = openProject(
+            markdown,
+            {
+              "tsconfig.json": JSON.stringify(tsconfig),
+              "globals.d.ts": "declare const answer: number;",
+              // a type position, since the declaration has no value at runtime
+              "doc.md": fence("const n: typeof answer = 1;"),
+            },
+            ["doc.md"],
+            checking,
+          );
+          expect(await ddt.run()).toEqual({ "doc.md:1": expected });
+        },
+        TYPECHECK_TIMEOUT,
+      );
     },
   );
 
