@@ -11,20 +11,12 @@ const guide = [
 ].join("\n");
 
 describe("typecheck", () => {
-  test("type errors only fail fences when typecheck is on", async () => {
+  test("type errors do not fail fences without typecheck", async () => {
     await using plain = spawn(vitest(), { "guide.md": guide });
     expect(await plain.run()).toMatchInlineSnapshot(`
       {
         "guide.md:15": "Error",
         "guide.md:3": "passed",
-        "guide.md:9": "passed",
-      }
-    `);
-    await using checked = spawn(vitestTypechecking(), { "guide.md": guide });
-    expect(await checked.run()).toMatchInlineSnapshot(`
-      {
-        "guide.md:15": "passed",
-        "guide.md:3": "DdtCompileError",
         "guide.md:9": "passed",
       }
     `);

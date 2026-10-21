@@ -1,7 +1,7 @@
 import { join, relative } from "node:path";
 import type { Plugin } from "vitest/config";
 import type { TestProject } from "vitest/node";
-import { DdtSession } from "@ddtds/core";
+import { DdtSession, type SessionOptions } from "@ddtds/core";
 import type { DdtOptions, DocsOptions } from "@ddtds/core/config";
 import { getLogger } from "@logtape/logtape";
 import { defaultGlobals, vitestAdapter } from "./adapter.ts";
@@ -15,12 +15,11 @@ const logger = getLogger(["ddtds", "vitest"]);
 
 const WATCH_TRIGGER = /\.(?:mdx?|[cm]?[jt]sx?)$/;
 
-export type DdtPluginOptions = DocsOptions & DdtOptions & { typecheck?: boolean };
+export type DdtPluginOptions = DocsOptions & DdtOptions & SessionOptions;
 
 export function ddtPlugin({
   logLevel,
   globals = defaultGlobals,
-  typecheck = false,
   ...docs
 }: DdtPluginOptions = {}): Plugin {
   const vite = createViteSink();
@@ -84,7 +83,7 @@ export function ddtPlugin({
     load(id) {
       const fence = session.index.fence(id);
       if (fence) this.addWatchFile(fence.doc);
-      return session.load(id, fence && typecheck ? session.typeErrors() : undefined);
+      return session.load(id);
     },
   };
 }

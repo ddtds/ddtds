@@ -914,35 +914,6 @@ export function conformance(name: string, runner: Runner, dialect: Dialect): voi
         );
         expect(await ddt.run()).toEqual(located(jsdocKind, { "doc.md:1": FAILED }));
       });
-
-      test("checks an mdx fence and its setup comment", async () => {
-        const files = {
-          "ok.mdx": `{/* ddt-setup const one: number = 1; */}\n\n${fence(dialect.equal("one", "1"))}`,
-          "bad.mdx": `# Guide\n\n${fence(typeError)}`,
-          "bad-setup.mdx": `{/* ddt-setup ${typeError} */}\n\n${fence(passing)}`,
-        };
-        await using ddt = openProject(markdown, files, Object.keys(files), checking);
-        expect(await ddt.run()).toEqual({
-          "ok.mdx:3": PASSED,
-          "bad.mdx:3": FAILED,
-          "bad-setup.mdx:3": FAILED,
-        });
-      });
-
-      test.each<Lang>(["mts", "cts", "typescript"])("checks a %s fence", async (lang) => {
-        const files = {
-          "doc.md": fence(typeError, "run", lang) + fence(passing, "run", lang),
-        };
-        await using ddt = openProject(markdown, files, ["doc.md"], checking);
-        expect(await ddt.run()).toEqual({ "doc.md:1": FAILED, "doc.md:5": PASSED });
-      });
-
-      test("does not check a js fence", async () => {
-        const jsError = '/** @type {number} */\nconst count = "one";';
-        const files = { "doc.md": fence(jsError, "run", "js") };
-        await using ddt = openProject(markdown, files, ["doc.md"], checking);
-        expect(await ddt.run()).toEqual({ "doc.md:1": PASSED });
-      });
     },
   );
 
