@@ -30,7 +30,7 @@ export function fenceModule(
   const outcome = planFence(fence, undefined, typeError);
   const module = resolveModule(fence.block, {
     syntax: outcome.tag === "run" ? outcome.syntax : "ambiguous",
-    fallback: defaultAdapter.module ?? "esm",
+    fallback: defaultAdapter.module,
   });
   const adapter = adapterFor(defaultAdapter, module);
   const { imports, ...expression } = emitFence(
@@ -61,7 +61,7 @@ export function fenceModule(
     names: [],
     mappings: shiftToFence(mappings, fence),
   });
-  return { code: bundle.toString(), map, module: adapter.module ?? "esm" };
+  return { code: bundle.toString(), map, module: adapter.module };
 }
 
 const testName = ({ block }: Fence): string =>

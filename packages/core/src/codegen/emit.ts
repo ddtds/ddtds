@@ -74,7 +74,7 @@ function emitRun(
     );
   }
   const imports = [
-    ...injected.map((fenceImport) => renderImport(fenceImport, adapter.module ?? "esm")),
+    ...injected.map((fenceImport) => renderImport(fenceImport, adapter.module)),
     ...outcome.imports,
   ];
   const run = outcome.compileOnly

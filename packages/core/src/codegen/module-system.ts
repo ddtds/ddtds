@@ -17,14 +17,11 @@ export function importStatement(
 }
 
 /** Doc modules always `import`; fence modules follow the adapter's module system */
-export function runtimeImport(
-  adapter: TestAdapter,
-  system: ModuleSystem = adapter.module ?? "esm",
-): string {
+export function runtimeImport(adapter: TestAdapter, system: ModuleSystem = adapter.module): string {
   return importStatement(system, adapter.runtime, "runtime");
 }
 
 export function adapterFor(adapter: TestAdapter, module: ModuleSystem): TestAdapter {
-  if (module === (adapter.module ?? "esm")) return adapter;
+  if (module === adapter.module) return adapter;
   return adapter.forModule?.(module) ?? adapter;
 }
