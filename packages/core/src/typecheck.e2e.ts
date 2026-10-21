@@ -21,7 +21,6 @@ const adapter: TestAdapter = {
 };
 
 const compileErrorModule = /runtime\.compileError.*phase:"typecheck"/;
-const compileErrorCall = /compileError/;
 const projectOptions = {
   strict: true,
   target: "esnext",
@@ -67,8 +66,11 @@ function project(
   return root;
 }
 
+const checked = (root: string, using = adapter): DdtSession =>
+  DdtSession.fromFiles(using, { root, typecheck: true });
+
 async function errorLines(root: string): Promise<Record<number, number | undefined>> {
-  const session = DdtSession.fromFiles(adapter, { root });
+  const session = checked(root);
   const errors = session.typeErrors();
   return Object.fromEntries(
     Array.from(session.index.fences(), ({ id, block }) => [
@@ -78,11 +80,10 @@ async function errorLines(root: string): Promise<Record<number, number | undefin
   );
 }
 
-function loadFence(guide: string): string {
-  const session = DdtSession.fromFiles(adapter, { root: project(guide) });
+function loadFence(session: DdtSession): string {
   const id = [...session.index.fences()][0]?.id;
   assert(id !== undefined);
-  return session.load(id, session.typeErrors())?.code ?? "";
+  return session.load(id)?.code ?? "";
 }
 
 describe(`TypeScript ${major}`, () => {
@@ -109,7 +110,7 @@ describe(`TypeScript ${major}`, () => {
       ...adapter,
       fenceImports: [typedImports<Record<string, unknown>>("missing-module")("expect")],
     };
-    const session = DdtSession.fromFiles(broken, { root });
+    const session = checked(root, broken);
     assert.equal(session.typeErrors().size, 0);
   });
 
@@ -154,7 +155,7 @@ describe(`TypeScript ${major}`, () => {
     symlinkSync(join(root, "libsrc"), join(root, "node_modules/lib"));
     const importing = fence('import { value } from "lib";\nconst n: number = value;');
     writeFileSync(guide, importing);
-    const session = DdtSession.fromFiles(adapter, { root });
+    const session = checked(root);
     assert.equal(session.typeErrors().size, 0);
 
     writeFileSync(source, 'export const value: string = "one";');
@@ -167,7 +168,7 @@ describe(`TypeScript ${major}`, () => {
   test("a watch session rechecks only what an edit changed", async () => {
     const clean = fence("const count: number = 1;");
     const root = project([clean, fence("const name: string = 1;")].join("\n"));
-    const session = DdtSession.fromFiles(adapter, { root });
+    const session = checked(root);
     const failing = (): number[] =>
       Array.from(session.typeErrors().values(), ({ details }) => details.block.range.start.line);
     assert.deepEqual(failing(), [5]);
@@ -186,12 +187,33 @@ describe(`TypeScript ${major}`, () => {
   test("only ts and tsx fences are checked", async () => {
     const root = project(
       [
-        fence("const count: number = 'one';", "run", "js"),
+        fence('/** @type {number} */\nconst count = "one";', "run", "js"),
         fence("const count: number = 'one';", "run", "json"),
         fence("const count: number = 'one';"),
+        fence("const count: number = 'one';", "run", "mts"),
+        fence("const count: number = 'one';", "run", "cts"),
+        fence("const count: number = 'one';", "run", "typescript"),
       ].join("\n"),
     );
-    assert.deepEqual(await errorLines(root), { 1: undefined, 9: 10 });
+    assert.deepEqual(await errorLines(root), {
+      1: undefined,
+      10: 11,
+      14: 15,
+      18: 19,
+      22: 23,
+    });
+  });
+
+  test("mdx fences and setup comments are checked", async () => {
+    const root = project("", {
+      "guide.mdx": [
+        "{/* ddt-setup const root: number = 'one'; */}",
+        "",
+        fence("expect(root).toBe(1);"),
+        fence("const count: number = 'one';"),
+      ].join("\n"),
+    });
+    assert.deepEqual(await errorLines(root), { 3: 1, 7: 8 });
   });
 
   test("setup comments are checked with the fence", async () => {
@@ -206,19 +228,19 @@ describe(`TypeScript ${major}`, () => {
 
 describe("unsupported installs", () => {
   test("typecheck needs typescript installed", () => {
-    const session = DdtSession.fromFiles(adapter, { root: project(fence("1;"), {}, "none") });
+    const session = checked(project(fence("1;"), {}, "none"));
     assert.throws(() => session.typeErrors(), missingTypeScript);
   });
 
   test("typecheck fails on a tsconfig it cannot parse", () => {
     const root = project(fence("1;"), { "tsconfig.json": "{ not json" });
-    assert.throws(() => DdtSession.fromFiles(adapter, { root }).typeErrors(), unreadableTsconfig);
+    assert.throws(() => checked(root).typeErrors(), unreadableTsconfig);
   });
 
   test("typecheck needs a tsconfig", () => {
     const root = project(fence("1;"));
     rmSync(join(root, "tsconfig.json"));
-    assert.throws(() => DdtSession.fromFiles(adapter, { root }).typeErrors(), missingTsconfig);
+    assert.throws(() => checked(root).typeErrors(), missingTsconfig);
   });
 });
 
@@ -233,15 +255,21 @@ describe("fence annotations", () => {
   });
 
   test("a fence with a type error fails to compile", () => {
-    assert.match(loadFence(fence(bad)), compileErrorModule);
+    assert.match(loadFence(checked(project(fence(bad)))), compileErrorModule);
   });
 
-  test("a compile_fail fence passes on a type error", () => {
-    assert.doesNotMatch(loadFence(fence(bad, "compile_fail")), compileErrorCall);
+  test("a session without typecheck does not need typescript", () => {
+    const session = DdtSession.fromFiles(adapter, { root: project(fence(bad), {}, "none") });
+    assert.doesNotMatch(loadFence(session), compileErrorModule);
+  });
+
+  test("loading a doc module does not need typescript", () => {
+    const session = checked(project(fence(bad), {}, "none"));
+    assert.ok(session.load(session.entry("guide.md") ?? ""));
   });
 
   test("a doc without ts fences does not need typescript", () => {
     const root = project(fence(bad, "run", "js"), {}, "none");
-    assert.equal(DdtSession.fromFiles(adapter, { root }).typeErrors().size, 0);
+    assert.equal(checked(root).typeErrors().size, 0);
   });
 });

@@ -12,6 +12,11 @@ import { DocIndex } from "./docs.ts";
 import { TypeChecker } from "./typecheck.ts";
 
 const logger = getLogger(["ddtds", "session"]);
+
+export type SessionOptions = {
+  /** Fails ts and tsx fences that have type errors. Needs `typescript` and a tsconfig.json */
+  typecheck?: boolean;
+};
 /** Reads a doc, or `undefined` when the file is gone */
 const readFromDisk = (doc: string): string | undefined => {
   try {
@@ -29,7 +34,7 @@ export class DdtSession {
   readonly #tracked: Set<string> | "all";
   readonly #read: (doc: string) => string | undefined;
   #index: DocIndex;
-  readonly #typeChecker: TypeChecker;
+  readonly #typeChecker: TypeChecker | undefined;
   #typed: Map<string, DdtCompileError> | undefined;
 
   private constructor(
@@ -38,9 +43,10 @@ export class DdtSession {
     root: string,
     tracked: Set<string> | "all",
     read: (doc: string) => string | undefined,
+    { typecheck = false }: SessionOptions = {},
   ) {
     this.#adapter = adapter;
-    this.#typeChecker = new TypeChecker(root, adapter);
+    this.#typeChecker = typecheck ? new TypeChecker(root, adapter) : undefined;
     this.#tracked = tracked;
     this.#read = read;
     logger.debug("injecting {globals} into every fence", () => ({
@@ -50,8 +56,8 @@ export class DdtSession {
     for (const doc of sources.keys()) this.#logFences(doc);
   }
 
-  public static open(adapter: TestAdapter, root: string): DdtSession {
-    return new DdtSession(adapter, new Map(), root, "all", readFromDisk);
+  public static open(adapter: TestAdapter, root: string, options?: SessionOptions): DdtSession {
+    return new DdtSession(adapter, new Map(), root, "all", readFromDisk, options);
   }
 
   public static fromSources(
@@ -63,7 +69,10 @@ export class DdtSession {
     return new DdtSession(adapter, sources, root, new Set(sources.keys()), read);
   }
 
-  public static fromFiles(adapter: TestAdapter, config: DocsConfig): DdtSession {
+  public static fromFiles(
+    adapter: TestAdapter,
+    { typecheck, ...config }: DocsConfig & SessionOptions,
+  ): DdtSession {
     const { root, include, exclude } = resolveDocsOptions(config);
     logger.debug("looking for docs in {root} including {include} excluding {exclude}", {
       root,
@@ -72,7 +81,7 @@ export class DdtSession {
     });
     const docs = readDocs(root, include, exclude);
     logger.debug("found {count} docs", { count: docs.size });
-    return DdtSession.fromSources(adapter, docs, root);
+    return new DdtSession(adapter, docs, root, new Set(docs.keys()), readFromDisk, { typecheck });
   }
 
   public get index(): DocIndex {
@@ -140,17 +149,15 @@ export class DdtSession {
   }
 
   public typeErrors(): Map<string, DdtCompileError> {
-    this.#typed ??= this.#typeChecker.check(this.#index);
+    this.#typed ??= this.#typeChecker?.check(this.#index) ?? new Map();
     return this.#typed;
   }
 
   /** Module for an entry or fence id, rereading an entry's doc */
-  public load(
-    id: string,
-    typeErrors?: ReadonlyMap<string, DdtCompileError>,
-  ): GeneratedModule | undefined {
+  public load(id: string): GeneratedModule | undefined {
     const doc = this.#index.docOfEntry(id);
     if (doc !== undefined) this.refresh(doc);
+    const typeErrors = this.#index.fence(id) ? this.typeErrors() : undefined;
     return moduleFor(this.#adapter, this.#index, id, typeErrors);
   }
 }
