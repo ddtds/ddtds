@@ -928,19 +928,23 @@ export function conformance(name: string, runner: Runner, dialect: Dialect): voi
         TYPECHECK_TIMEOUT,
       );
 
+      const declaration = "declare const answer: number;";
+      const augmentation = "declare global {\n  const answer: number;\n}\nexport {};";
       test.each([
-        ["uses a declaration tsconfig files lists", { files: ["types/globals.d.ts"] }, PASSED],
-        ["uses a declaration tsconfig include matches", { include: ["types"] }, PASSED],
-        ["fails on a declaration tsconfig does not list", { include: ["src"] }, FAILED],
+        ["a declaration file tsconfig files lists", { files: ["types/a.d.ts"] }, PASSED],
+        ["a declaration file tsconfig include matches", { include: ["types"] }, PASSED],
+        ["a source file that augments globals", { include: ["src"] }, PASSED],
+        ["nothing, when tsconfig lists neither", { include: ["docs"] }, FAILED],
       ])(
-        "%s",
+        "uses the globals of %s",
         async (_title, listing, expected) => {
           const compilerOptions = { strict: true, skipLibCheck: true };
           await using ddt = openProject(
             markdown,
             {
               "tsconfig.json": JSON.stringify({ compilerOptions, ...listing }),
-              "types/globals.d.ts": "declare const answer: number;",
+              "types/a.d.ts": declaration,
+              "src/register.ts": augmentation,
               // a type position, since the declaration has no value at runtime
               "doc.md": fence("const n: typeof answer = 1;"),
             },

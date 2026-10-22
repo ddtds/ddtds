@@ -14,7 +14,6 @@ type CompilerApi = typeof TypeScript;
 type Compiler = { ts: CompilerApi; service: TypeScript.LanguageService };
 
 const logger = getLogger(["ddtds", "typecheck"]);
-const DECLARATION_FILE = /\.d\.[cm]?ts$/;
 const TYPED_PARSERS: ReadonlySet<Parser> = new Set(["ts", "tsx"]);
 
 export class TypeChecker {
@@ -55,14 +54,14 @@ export class TypeChecker {
 
 function createCompiler(root: string, sources: ReadonlyMap<string, string>): Compiler {
   const ts = loadTypeScript(root);
-  const { options, declarations } = projectConfig(ts, root);
+  const { options, files } = projectConfig(ts, root);
   const service = ts.createLanguageService({
     ...ts.sys,
     useCaseSensitiveFileNames: () => ts.sys.useCaseSensitiveFileNames,
     getCompilationSettings: () => options,
     getCurrentDirectory: () => root,
     getDefaultLibFileName: ts.getDefaultLibFilePath,
-    getScriptFileNames: () => [...declarations, ...sources.keys()],
+    getScriptFileNames: () => [...files, ...sources.keys()],
     getScriptVersion: (file) => sources.get(file) ?? versionOf(ts, file),
     getScriptSnapshot: (file) => {
       const text = sources.get(file) ?? ts.sys.readFile(file);
@@ -99,7 +98,7 @@ function loadTypeScript(root: string): CompilerApi {
 function projectConfig(
   ts: CompilerApi,
   root: string,
-): { options: TypeScript.CompilerOptions; declarations: string[] } {
+): { options: TypeScript.CompilerOptions; files: string[] } {
   const configFile = ts.findConfigFile(root, (file) => ts.sys.fileExists(file));
   if (configFile === undefined) throw new Error(`typecheck needs a tsconfig.json in ${root}`);
   const unreadable = ({ messageText }: TypeScript.Diagnostic): never => {
@@ -113,9 +112,8 @@ function projectConfig(
     {},
     { ...ts.sys, onUnRecoverableConfigFileDiagnostic: unreadable },
   );
-  // a project's own declarations, like globals or module augmentations, apply to its fences
-  const declarations = (config?.fileNames ?? []).filter((file) => DECLARATION_FILE.test(file));
-  return { options: { ...config?.options, noEmit: true }, declarations };
+  // fences check as part of the project, so its globals and module augmentations apply to them
+  return { options: { ...config?.options, noEmit: true }, files: config?.fileNames ?? [] };
 }
 
 function typeError(
