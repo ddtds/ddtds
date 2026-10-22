@@ -113,11 +113,13 @@ function projectConfig(
     { ...ts.sys, onUnRecoverableConfigFileDiagnostic: unreadable },
   );
 
-  return { options: { 
-...config?.options, 
-noEmit: true 
-}, files: config?.fileNames ?? [] 
-};
+  return {
+    options: {
+      ...config?.options,
+      noEmit: true,
+    },
+    files: config?.fileNames ?? [],
+  };
 }
 
 function typeError(
