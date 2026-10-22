@@ -54,14 +54,14 @@ export class TypeChecker {
 
 function createCompiler(root: string, sources: ReadonlyMap<string, string>): Compiler {
   const ts = loadTypeScript(root);
-  const options = compilerOptions(ts, root);
+  const { options, files } = projectConfig(ts, root);
   const service = ts.createLanguageService({
     ...ts.sys,
     useCaseSensitiveFileNames: () => ts.sys.useCaseSensitiveFileNames,
     getCompilationSettings: () => options,
     getCurrentDirectory: () => root,
     getDefaultLibFileName: ts.getDefaultLibFilePath,
-    getScriptFileNames: () => [...sources.keys()],
+    getScriptFileNames: () => [...files, ...sources.keys()],
     getScriptVersion: (file) => sources.get(file) ?? versionOf(ts, file),
     getScriptSnapshot: (file) => {
       const text = sources.get(file) ?? ts.sys.readFile(file);
@@ -95,7 +95,10 @@ function loadTypeScript(root: string): CompilerApi {
   }
 }
 
-function compilerOptions(ts: CompilerApi, root: string): TypeScript.CompilerOptions {
+function projectConfig(
+  ts: CompilerApi,
+  root: string,
+): { options: TypeScript.CompilerOptions; files: string[] } {
   const configFile = ts.findConfigFile(root, (file) => ts.sys.fileExists(file));
   if (configFile === undefined) throw new Error(`typecheck needs a tsconfig.json in ${root}`);
   const unreadable = ({ messageText }: TypeScript.Diagnostic): never => {
@@ -109,7 +112,14 @@ function compilerOptions(ts: CompilerApi, root: string): TypeScript.CompilerOpti
     {},
     { ...ts.sys, onUnRecoverableConfigFileDiagnostic: unreadable },
   );
-  return { ...config?.options, noEmit: true };
+
+  return {
+    options: {
+      ...config?.options,
+      noEmit: true,
+    },
+    files: config?.fileNames ?? [],
+  };
 }
 
 function typeError(
