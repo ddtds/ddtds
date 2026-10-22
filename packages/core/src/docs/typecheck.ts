@@ -112,8 +112,12 @@ function projectConfig(
     {},
     { ...ts.sys, onUnRecoverableConfigFileDiagnostic: unreadable },
   );
-  // fences check as part of the project, so its globals and module augmentations apply to them
-  return { options: { ...config?.options, noEmit: true }, files: config?.fileNames ?? [] };
+
+  return { options: { 
+...config?.options, 
+noEmit: true 
+}, files: config?.fileNames ?? [] 
+};
 }
 
 function typeError(
