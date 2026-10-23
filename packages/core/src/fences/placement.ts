@@ -19,6 +19,25 @@ export function linesBeforeOffset(source: string, offset: number): number {
   return countLines(source.slice(0, offset)) - 1;
 }
 
+/** `linesBeforeOffset` for many offsets into one source, scanning the source once */
+export function lineIndex(source: string): (offset: number) => number {
+  const lineStarts = [0];
+  for (let i = source.indexOf("\n"); i !== -1; i = source.indexOf("\n", i + 1)) {
+    lineStarts.push(i + 1);
+  }
+  return (offset) => {
+    let low = 0;
+    let high = lineStarts.length;
+    while (low < high) {
+      const middle = (low + high) >>> 1;
+      const start = lineStarts[middle];
+      if (start !== undefined && start <= offset) low = middle + 1;
+      else high = middle;
+    }
+    return low - 1;
+  };
+}
+
 export function columnsBeforeOffset(source: string, offset: number): number {
   return lastLineOf(source.slice(0, offset)).length;
 }

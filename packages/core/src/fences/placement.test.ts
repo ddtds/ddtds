@@ -1,5 +1,5 @@
 import { expect, test } from "vitest";
-import { columnsBeforeOffset, linesBeforeOffset } from "./placement.ts";
+import { columnsBeforeOffset, lineIndex, linesBeforeOffset } from "./placement.ts";
 
 const source = "ab\ncd\r\nef";
 
@@ -7,6 +7,15 @@ test("counts the lines before an offset", () => {
   expect([0, 2, 3, 6, 7].map((offset) => linesBeforeOffset(source, offset))).toEqual([
     0, 0, 1, 1, 2,
   ]);
+});
+
+test("a line index counts the same lines as a scan for each offset", () => {
+  for (const text of [source, "\nab", "", "\n\n", "a\n"]) {
+    const linesBefore = lineIndex(text);
+    for (let offset = 0; offset <= text.length; offset++) {
+      expect(linesBefore(offset)).toBe(linesBeforeOffset(text, offset));
+    }
+  }
 });
 
 test("counts the characters before an offset on its own line", () => {
