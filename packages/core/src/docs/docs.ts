@@ -1,4 +1,4 @@
-import { createHash } from "node:crypto";
+import { hash } from "node:crypto";
 import { join, relative, sep } from "node:path";
 import { parseCodeFences, type CodeBlock } from "../fences/blocks.ts";
 import { isSourceFile } from "../fences/doc-kinds.ts";
@@ -128,7 +128,7 @@ function parseFences({ root, moduleDir }: IndexOptions, doc: string, source: str
  */
 function contentHash(block: CodeBlock): string {
   const input = JSON.stringify([block.details.annotation, block.code]);
-  return createHash("sha1").update(input).digest("hex").slice(0, 8);
+  return hash("sha1", input).slice(0, 8);
 }
 
 /**
