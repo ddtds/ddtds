@@ -7,4 +7,4 @@ export function isAnnotation(s: unknown): s is Annotation {
 const FENCE_OPENING = "(?:```|~~~)";
 const ANNOTATION = `(?:${Object.values(ANNOTATIONS).join("|")})`;
 /** Annotations sit on a fence's opening line, so text without a match has no fence to run */
-export const ANNOTATED_FENCE = new RegExp(`${FENCE_OPENING}.*${ANNOTATION}`);
+export const ANNOTATED_FENCE: RegExp = new RegExp(`${FENCE_OPENING}.*${ANNOTATION}`);
