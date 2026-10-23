@@ -4,8 +4,9 @@ export const root = "/repo";
 export const options: IndexOptions = { root, moduleDir: `${root}/__ddtds__` };
 
 /**
- * A section of a guide: prose, a list with an indented fence, a top-level fence and a
- * skipped one, so parsing and codegen see the shapes real docs use.
+ * A section of a guide: prose, a list with an indented `sh` fence and an indented runnable
+ * fence, a top-level runnable fence and an unannotated one, so parsing and codegen see the
+ * shapes real docs use. 2 of its 4 fences run
  */
 function section(i: number): string {
   return [
@@ -38,15 +39,38 @@ function section(i: number): string {
   ].join("\n");
 }
 
-export function guide(sections: number): string {
-  return Array.from({ length: sections }, (_, i) => section(i)).join("\n");
+const RUNNABLE_FENCES_PER_SECTION = 2;
+
+function sections(runnableFences: number): number[] {
+  return Array.from({ length: runnableFences / RUNNABLE_FENCES_PER_SECTION }, (_, i) => i);
+}
+
+/** A markdown guide with this many runnable fences, among as many that don't run */
+export function guide(runnableFences: number): string {
+  return sections(runnableFences).map(section).join("\n");
 }
 
 /** The same guide in MDX, with components around every fifth section */
-export function mdxGuide(sections: number): string {
-  return Array.from({ length: sections }, (_, i) =>
-    i % 5 === 0 ? `<Steps>\n\n${section(i)}\n</Steps>\n` : section(i),
-  ).join("\n");
+export function mdxGuide(runnableFences: number): string {
+  return sections(runnableFences)
+    .map((i) => (i % 5 === 0 ? `<Steps>\n\n${section(i)}\n</Steps>\n` : section(i)))
+    .join("\n");
+}
+
+export function markdownDocs(docs: number, runnableFencesPerDoc: number): Map<string, string> {
+  return new Map(
+    Array.from({ length: docs }, (_, i) => [
+      `${root}/docs/guide-${i}.md`,
+      guide(runnableFencesPerDoc),
+    ]),
+  );
+}
+
+/** The same docs with `run` removed from every fence, so none of them run */
+export function withoutAnnotations(docs: Map<string, string>): Map<string, string> {
+  return new Map(
+    Array.from(docs, ([path, text]) => [path, text.replaceAll(/(```\w+) run/g, "$1")]),
+  );
 }
 
 /** One runnable fence, the unit the plugin serves a module for */
@@ -61,31 +85,19 @@ function fence(i: number): string {
   ].join("\n");
 }
 
-export function markdownSources(count: number, sections: number): Map<string, string> {
+/** Docs of nothing but runnable fences */
+export function fenceDocs(docs: number, fencesPerDoc: number): Map<string, string> {
   return new Map(
-    Array.from({ length: count }, (_, i) => [`${root}/docs/guide-${i}.md`, guide(sections)]),
-  );
-}
-
-/** The same docs with `run` removed from every fence */
-export function withoutAnnotations(sources: Map<string, string>): Map<string, string> {
-  return new Map(
-    Array.from(sources, ([path, text]) => [path, text.replaceAll(/(```\w+) run/g, "$1")]),
-  );
-}
-
-export function fenceSources(count: number, fences: number): Map<string, string> {
-  return new Map(
-    Array.from({ length: count }, (_, doc) => [
+    Array.from({ length: docs }, (_, doc) => [
       `${root}/docs/guide-${doc}.md`,
-      Array.from({ length: fences }, (_, i) => fence(i)).join("\n"),
+      Array.from({ length: fencesPerDoc }, (_, i) => fence(i)).join("\n"),
     ]),
   );
 }
 
 /**
- * A source module whose exported functions each document usage with an `@example`
- * fence: the shape `parseJsDocFences` exists to find.
+ * A source module of functions whose doc comments each have one `@example` fence: the
+ * shape `parseJsDocFences` exists to find
  */
 export function sourceWithFences(functions: number): string {
   const parts: string[] = [];
@@ -110,7 +122,7 @@ export function sourceWithFences(functions: number): string {
   return parts.join("\n");
 }
 
-/** The common case: source files with prose comments but no fences */
+/** The common case: a source module of functions whose doc comments are prose */
 export function sourceWithoutFences(functions: number): string {
   const parts: string[] = [];
   for (let i = 0; i < functions; i++) {
@@ -130,12 +142,6 @@ export function sourceWithoutFences(functions: number): string {
   return parts.join("\n");
 }
 
-export function sourceDocs(
-  count: number,
-  functions: number,
-  build: (functions: number) => string,
-): Map<string, string> {
-  return new Map(
-    Array.from({ length: count }, (_, i) => [`${root}/src/module-${i}.ts`, build(functions)]),
-  );
+export function sourceDocs(files: number, source: string): Map<string, string> {
+  return new Map(Array.from({ length: files }, (_, i) => [`${root}/src/module-${i}.ts`, source]));
 }
