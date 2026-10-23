@@ -6,7 +6,6 @@ export function isAnnotation(s: unknown): s is Annotation {
 
 const FENCE_OPENING = "(?:```|~~~)";
 const ANNOTATION = `(?:${Object.values(ANNOTATIONS).join("|")})`;
-/** A fence opening line that names an annotation */
 const ANNOTATED_FENCE = new RegExp(`${FENCE_OPENING}.*${ANNOTATION}`);
 
 /**
