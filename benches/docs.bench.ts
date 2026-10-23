@@ -8,9 +8,7 @@ const doc = guide(50);
 const mdx = mdxGuide(50);
 
 const sources = markdownSources(20, 10);
-/** A large docs site: 200 docs, 3,600 runnable fences */
-const large = markdownSources(200, 9);
-/** As large, with no fence annotated to run, as in docs that test only some pages */
+const large = markdownSources(200, 10);
 const unannotated = withoutAnnotations(large);
 const edited = `${root}/docs/guide-0.md`;
 
@@ -39,11 +37,11 @@ test("DdtSession", async ({ bench }) => {
     DdtSession.fromSources(adapter, sources, root);
   }).run();
 
-  await bench("index 200 docs with 3,600 runnable fences", () => {
+  await bench("index 200 docs of 10 sections", () => {
     DdtSession.fromSources(adapter, large, root);
   }).run();
 
-  await bench("index 200 docs whose fences are all unannotated", () => {
+  await bench("index 200 docs of 10 sections with no annotated fences", () => {
     DdtSession.fromSources(adapter, unannotated, root);
   }).run();
 

@@ -12,13 +12,10 @@ import {
 
 const withFences = sourceDocs(20, 5, sourceWithFences);
 const withoutFences = sourceDocs(20, 20, sourceWithoutFences);
-/** One large module that documents every function with an example */
 const large = sourceDocs(1, 250, sourceWithFences);
-/** As large, with prose comments on most functions and an example on 1 in 7 */
 const mostlyProse = new Map([
   [`${root}/src/large.ts`, `${sourceWithoutFences(214)}\n${sourceWithFences(36)}`],
 ]);
-/** As large, with examples not annotated to run, as in a repo still adopting ddtds */
 const unannotated = withoutAnnotations(large);
 /** A repo scanned by the default `include`, which covers markdown and source files */
 const mixed = new Map([...markdownSources(10, 10), ...withFences]);
