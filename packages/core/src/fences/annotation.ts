@@ -4,11 +4,12 @@ export function isAnnotation(s: unknown): s is Annotation {
   return Object.values(ANNOTATIONS).some((x) => x === s);
 }
 
-/**
- * A fence opening line that names an annotation, or has a `&` or `\` that markdown could
- * decode into one, as in `r&#117;n` or `compile\_only`
- */
-const ANNOTATED_FENCE = /(?:```|~~~).*(?:skip|run|fail|compile_only|[&\\])/;
+const FENCE_OPENING = "(?:```|~~~)";
+const ANNOTATION = `(?:${Object.values(ANNOTATIONS).join("|")})`;
+/** A `&` or `\` that markdown could decode into an annotation, as in `r&#117;n` or `compile\_only` */
+const ENCODED = String.raw`[&\\]`;
+/** A fence opening line that names an annotation, or may encode one */
+const ANNOTATED_FENCE = new RegExp(`${FENCE_OPENING}.*(?:${ANNOTATION}|${ENCODED})`);
 
 /**
  * Whether text may hold a fence to run. A fence's annotations are on its opening line, so
