@@ -1,11 +1,11 @@
 import { parseSync } from "oxc-parser";
+import { mayHaveAnnotatedFence } from "./annotation.ts";
 import { parseCodeFences, type CodeBlock } from "./blocks.ts";
 import { columnsBeforeOffset, lineIndex, type Placement } from "./placement.ts";
 
 const COMMENT_OPEN_LENGTH = "/*".length;
 
 const LINE_PREFIX = /^\s*\*?[ \t]?/;
-const HAS_FENCE = /```|~~~/;
 
 function commentMarkdown(
   source: string,
@@ -33,8 +33,8 @@ function commentMarkdown(
 }
 
 export function parseJsDocFences(source: string, path: string): CodeBlock[] {
-  // most source files have no fences, so skip parsing them
-  if (!HAS_FENCE.test(source)) return [];
+  // most source files have no fence to run, so skip parsing them
+  if (!mayHaveAnnotatedFence(source)) return [];
   const linesBefore = lineIndex(source);
   return parseSync(path, source)
     .comments.filter(({ type, value }) => type === "Block" && value.startsWith("*"))
