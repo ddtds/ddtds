@@ -67,6 +67,16 @@ export function markdownSources(count: number, sections: number): Map<string, st
   );
 }
 
+/**
+ * The same docs with every fence left unannotated, as in repos that document with
+ * examples but run only some of them
+ */
+export function withoutAnnotations(sources: Map<string, string>): Map<string, string> {
+  return new Map(
+    Array.from(sources, ([path, text]) => [path, text.replaceAll(/(```\w+) run/g, "$1")]),
+  );
+}
+
 export function fenceSources(count: number, fences: number): Map<string, string> {
   return new Map(
     Array.from({ length: count }, (_, doc) => [

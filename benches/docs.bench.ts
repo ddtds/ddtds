@@ -2,12 +2,16 @@ import { test } from "vitest";
 import { DdtSession } from "@ddtds/core";
 import { parseCodeFences } from "@ddtds/core/fences";
 import { adapter } from "./adapter.ts";
-import { guide, markdownSources, mdxGuide, root } from "./fixtures.ts";
+import { guide, markdownSources, mdxGuide, root, withoutAnnotations } from "./fixtures.ts";
 
 const doc = guide(50);
 const mdx = mdxGuide(50);
 
 const sources = markdownSources(20, 10);
+/** A large docs site: 200 docs, 3,600 runnable fences */
+const large = markdownSources(200, 9);
+/** As large, with no fence annotated to run, as in docs that test only some pages */
+const unannotated = withoutAnnotations(large);
 const edited = `${root}/docs/guide-0.md`;
 
 function reader(): () => string {
@@ -33,6 +37,14 @@ test("parseCodeFences", async ({ bench }) => {
 test("DdtSession", async ({ bench }) => {
   await bench("index 20 docs of 10 sections", () => {
     DdtSession.fromSources(adapter, sources, root);
+  }).run();
+
+  await bench("index 200 docs with 3,600 runnable fences", () => {
+    DdtSession.fromSources(adapter, large, root);
+  }).run();
+
+  await bench("index 200 docs whose fences are all unannotated", () => {
+    DdtSession.fromSources(adapter, unannotated, root);
   }).run();
 
   const session = DdtSession.fromSources(adapter, sources, root, reader());
