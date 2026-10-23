@@ -1,5 +1,5 @@
 import { mkdirSync, rmSync, writeFileSync } from "node:fs";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
 import { test } from "vitest";
 import { DdtSession } from "@ddtds/core";
 import { ddtPlugin } from "@ddtds/vitest";
@@ -7,41 +7,32 @@ import { adapter } from "./adapter.ts";
 import { guide, sourceWithFences, sourceWithoutFences } from "./fixtures.ts";
 
 /**
- * A package with a large module whose doc comments are mostly prose, with
- * an example on about a third of them, beside markdown guides. The plugin reads it from disk
+ * A package with a large module whose doc comments are mostly prose, with an example on
+ * about a third of them, beside markdown guides. The plugin reads it from disk
  */
 const root = join(import.meta.dirname, ".fixture-plugin");
+const files: Record<string, string> = {
+  "package.json": '{ "type": "module" }',
+  "src/large.ts": `${sourceWithoutFences(170)}\n${sourceWithFences(80)}`,
+};
+for (let i = 0; i < 5; i++) files[`docs/guide-${i}.md`] = guide(10);
 rmSync(root, { recursive: true, force: true });
-mkdirSync(join(root, "src"), { recursive: true });
-mkdirSync(join(root, "docs"), { recursive: true });
-writeFileSync(join(root, "package.json"), '{ "name": "bench-fixture", "type": "module" }');
-writeFileSync(join(root, "src/large.ts"), `${sourceWithoutFences(170)}\n${sourceWithFences(80)}`);
-for (let i = 0; i < 5; i++) writeFileSync(join(root, `docs/guide-${i}.md`), guide(10));
+for (const [path, text] of Object.entries(files)) {
+  mkdirSync(dirname(join(root, path)), { recursive: true });
+  writeFileSync(join(root, path), text);
+}
 const include = ["src/**/*.ts", "docs/**/*.md"];
+const fenceIds = Array.from(
+  DdtSession.fromFiles(adapter, { root, include }).index.fences(),
+  (fence) => fence.id,
+);
 
-type Module = { code: string; map?: unknown };
-
-function handlerOf(hook: unknown): ((...args: unknown[]) => unknown) | undefined {
-  if (typeof hook === "function") return (...args) => Reflect.apply(hook, context, args);
-  if (typeof hook === "object" && hook !== null && "handler" in hook)
-    return handlerOf(hook.handler);
-  return undefined;
-}
-
-/** What Vite reads from a hook's result: code, and a map when there is one */
-function moduleOf(result: unknown): Module | undefined {
-  if (typeof result === "string") return { code: result };
-  if (typeof result !== "object" || result === null || !("code" in result)) return undefined;
-  if (typeof result.code !== "string") return undefined;
-  return { code: result.code, map: "map" in result ? result.map : undefined };
-}
-
-/** A context holding only what ddtds uses of Vite's */
-const context = { addWatchFile(): void {} };
-
-/** Calls a plugin hook the way Vite does */
+/** Calls a plugin hook, which may be a function or `{ handler }`, with the context ddtds uses */
 function call(hook: unknown, ...args: unknown[]): unknown {
-  return handlerOf(hook)?.(...args);
+  const handler =
+    typeof hook === "object" && hook !== null && "handler" in hook ? hook.handler : hook;
+  if (typeof handler !== "function") return undefined;
+  return Reflect.apply(handler, { addWatchFile() {} }, args);
 }
 
 function plugin(): ReturnType<typeof ddtPlugin> {
@@ -49,18 +40,7 @@ function plugin(): ReturnType<typeof ddtPlugin> {
   call(created.config, { root }, { command: "serve", mode: "test" });
   return created;
 }
-
-const fenceIds = Array.from(
-  DdtSession.fromFiles(adapter, { root, include }).index.fences(),
-  (fence) => fence.id,
-);
 const served = plugin();
-
-/** A module as Vitest receives it: its map inlined as base64 by Vite, then read back */
-function roundTrip({ map }: Module): void {
-  const inline = Buffer.from(JSON.stringify(map ?? null)).toString("base64");
-  JSON.parse(Buffer.from(inline, "base64").toString("utf8"));
-}
 
 /** What the vitest plugin costs a run, called through its hooks without starting Vitest */
 test("vitest plugin", async ({ bench }) => {
@@ -73,12 +53,11 @@ test("vitest plugin", async ({ bench }) => {
     for (const id of fenceIds) call(served.load, id);
   }).run();
 
-  await bench("serve every fence module and read its source map back", () => {
+  // Vite serializes each module and its source map to send it to Vitest
+  await bench("serve every fence module and serialize it", () => {
     for (const id of fenceIds) {
-      const loaded = moduleOf(call(served.load, id));
-      const transformed = moduleOf(call(served.transform, loaded?.code ?? "", id));
-      const module = transformed ?? loaded;
-      if (module) roundTrip(module);
+      const loaded = call(served.load, id);
+      JSON.stringify(call(served.transform, "", id) ?? loaded);
     }
   }).run();
 });
