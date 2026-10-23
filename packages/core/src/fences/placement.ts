@@ -1,3 +1,4 @@
+import { partitionPoint } from "../partition-point.ts";
 import type { Position, SourceRange } from "./compile-error.ts";
 
 export type Placement = {
@@ -17,6 +18,16 @@ function lastLineOf(text: string): string {
 
 export function linesBeforeOffset(source: string, offset: number): number {
   return countLines(source.slice(0, offset)) - 1;
+}
+
+/** `linesBeforeOffset` for many offsets into one source, scanning the source once */
+export function lineIndex(source: string): (offset: number) => number {
+  const lineStarts = [0];
+  for (let i = source.indexOf("\n"); i !== -1; i = source.indexOf("\n", i + 1)) {
+    lineStarts.push(i + 1);
+  }
+  // the line an offset is on is the last one starting at or before it
+  return (offset) => partitionPoint(lineStarts, (start) => start <= offset) - 1;
 }
 
 export function columnsBeforeOffset(source: string, offset: number): number {

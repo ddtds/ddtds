@@ -1,6 +1,6 @@
 import { parseSync } from "oxc-parser";
 import { parseCodeFences, type CodeBlock } from "./blocks.ts";
-import { columnsBeforeOffset, linesBeforeOffset, type Placement } from "./placement.ts";
+import { columnsBeforeOffset, lineIndex, type Placement } from "./placement.ts";
 
 const COMMENT_OPEN_LENGTH = "/*".length;
 
@@ -9,6 +9,7 @@ const HAS_FENCE = /```|~~~/;
 
 function commentMarkdown(
   source: string,
+  linesBefore: (offset: number) => number,
   commentStart: number,
   commentValue: string,
 ): { markdown: string; placement: Placement } {
@@ -21,7 +22,7 @@ function commentMarkdown(
   return {
     markdown: lines.map((line, i) => line.slice(prefixLengths[i])).join("\n"),
     placement: {
-      linesBefore: linesBeforeOffset(source, commentStart),
+      linesBefore: linesBefore(commentStart),
       columnsBeforeLine: (line) => {
         const columns = columnsBeforeLines[line];
         if (columns === undefined) throw new Error(`no line ${line} in the comment`);
@@ -34,10 +35,11 @@ function commentMarkdown(
 export function parseJsDocFences(source: string, path: string): CodeBlock[] {
   // most source files have no fences, so skip parsing them
   if (!HAS_FENCE.test(source)) return [];
+  const linesBefore = lineIndex(source);
   return parseSync(path, source)
     .comments.filter(({ type, value }) => type === "Block" && value.startsWith("*"))
     .flatMap(({ start, value }) => {
-      const { markdown, placement } = commentMarkdown(source, start, value);
+      const { markdown, placement } = commentMarkdown(source, linesBefore, start, value);
       return parseCodeFences(markdown, path, placement);
     });
 }
