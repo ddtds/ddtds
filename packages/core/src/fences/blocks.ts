@@ -1,7 +1,7 @@
 import { getLogger } from "@logtape/logtape";
 import { markdownToMdast, mdxToMdast, type MdastNode } from "satteri";
 import { ANNOTATIONS, type Annotation } from "../annotations.ts";
-import { isAnnotation } from "./annotation.ts";
+import { ANNOTATED_FENCE, isAnnotation } from "./annotation.ts";
 import { extensionOf, isLang } from "../language-registry.ts";
 import type { Lang, OutputExtension } from "../languages.ts";
 
@@ -158,6 +158,8 @@ export function parseCodeFences(
   path: string,
   placement: Placement = WHOLE_FILE,
 ): CodeBlock[] {
+  // most docs run nothing
+  if (!ANNOTATED_FENCE.test(source)) return [];
   const tree = parseMarkdown(source, path);
   const blocks: CodeBlock[] = [];
 
