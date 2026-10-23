@@ -1,6 +1,6 @@
 import { createRequire } from "node:module";
 import { MagicString } from "magic-string";
-import { parseSync } from "oxc-parser";
+import { parseSync, rawTransferSupported, type ParserOptions } from "oxc-parser";
 import type * as TsrxParser from "@tsrx/oxc/parser";
 import type { ExportDefaultDeclarationKind, Program } from "@oxc-project/types";
 import { parserOf } from "../language-registry.ts";
@@ -98,10 +98,24 @@ function syntaxOf({ staticImports, staticExports, importMetas }: ModuleRecord): 
 
 type ParseResult = ReturnType<typeof parseSync> | ReturnType<typeof TsrxParser.parseSync>;
 
+/**
+ * oxc reads `experimentalRawTransfer` but leaves it out of `ParserOptions`
+ * https://github.com/oxc-project/bench-javascript-parser#oxc-raw-transfer
+ */
+type OxcOptions = ParserOptions & { experimentalRawTransfer?: boolean };
+
 function runParser(block: ParseableBlock, parser: Parser): ParseResult {
   const filename = `block.${parser}`;
   const options = { sourceType: "module", showSemanticErrors: true } as const;
-  if (parser !== "tsrx") return parseSync(filename, block.code, { ...options, lang: parser });
+  if (parser !== "tsrx") {
+    const oxcOptions: OxcOptions = {
+      ...options,
+      lang: parser,
+      // perf, reads from shared memory instead of JSON via FFI
+      experimentalRawTransfer: rawTransferSupported(),
+    };
+    return parseSync(filename, block.code, oxcOptions);
+  }
 
   const tsrx = tsrxParser();
   try {
