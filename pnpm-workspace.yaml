@@ -25,8 +25,8 @@ catalogs:
     typescript: ^5.4.0 || ^6.0.0
   dev:
     "@jridgewell/trace-mapping": ^0.3.31
-    "@logtape/lint": 2.4.1
-    "@logtape/testing": 2.4.1
+    "@logtape/lint": 2.4.2
+    "@logtape/testing": 2.4.2
     "@tsrx/oxc": 0.21.0
     "@types/node": 24.19.2
     "@types/stack-utils": ^2.0.3
