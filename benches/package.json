@@ -8,7 +8,7 @@
     "typecheck": "tsc"
   },
   "devDependencies": {
-    "@codspeed/vitest-plugin": "6.0.1",
+    "@codspeed/vitest-plugin": "6.1.0",
     "@ddtds/core": "workspace:*",
     "@ddtds/vitest": "workspace:*",
     "@types/node": "catalog:dev",
