@@ -804,7 +804,7 @@ importers:
         version: 0.10.5
       seroval:
         specifier: ^1.6.9
-        version: 1.7.1
+        version: 1.7.7
     devDependencies:
       '@jridgewell/trace-mapping':
         specifier: catalog:dev
@@ -7102,8 +7102,8 @@ packages:
     resolution: {integrity: sha512-CqbIVfk/7GL3ITwZI55lcPbpQbjHZ2DD5cUj4iH7E9YsCfHNJV1mx7yNp86Z84w5IpmkZZS/2s5vPOWmVWSdQg==}
     engines: {node: '>=10'}
 
-  seroval@1.7.1:
-    resolution: {integrity: sha512-tSRMcPkD/bu1rmY0/XfFP2zLPD8jXVuzHli6Y2UFi9AiG/d0kOd8LAc/G6NolpW8MA1PtgDUhywKCmerS4E3tg==}
+  seroval@1.7.7:
+    resolution: {integrity: sha512-9OdYsqMLV5RSUNNtkgr6DT2bS/ncba6AqUJx8H7epNJNa0cKNWhQtF5GLRjkF/KuAdvAuRRitWrq86K/v1S/kg==}
     engines: {node: '>=20'}
 
   set-function-length@1.2.2:
@@ -14046,7 +14046,7 @@ snapshots:
 
   seroval@1.6.12: {}
 
-  seroval@1.7.1: {}
+  seroval@1.7.7: {}
 
   set-function-length@1.2.2:
     dependencies:
@@ -14594,7 +14594,7 @@ snapshots:
       lightningcss: 1.33.0
       picomatch: 4.0.7
       postcss: 8.5.30
-      rolldown: 1.2.8
+      rolldown: 1.2.16
       tinyglobby: 0.2.17
     optionalDependencies:
       '@types/node': 24.19.2
