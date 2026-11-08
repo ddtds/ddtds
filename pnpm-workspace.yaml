@@ -62,7 +62,7 @@ catalogs:
     "@vitejs/plugin-vue": ^6.0.10
     happy-dom: 21.0.4
     lit: ^3.3.3
-    octane: ^0.15.0
+    octane: ^0.16.0
     preact: ^11.0.0
     react: ^19.3.1
     react-dom: ^19.3.1
