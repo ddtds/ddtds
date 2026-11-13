@@ -804,7 +804,7 @@ importers:
         version: 0.11.7
       seroval:
         specifier: ^1.6.9
-        version: 1.7.7
+        version: 1.8.0
     devDependencies:
       '@jridgewell/trace-mapping':
         specifier: catalog:dev
@@ -7058,8 +7058,8 @@ packages:
     resolution: {integrity: sha512-CqbIVfk/7GL3ITwZI55lcPbpQbjHZ2DD5cUj4iH7E9YsCfHNJV1mx7yNp86Z84w5IpmkZZS/2s5vPOWmVWSdQg==}
     engines: {node: '>=10'}
 
-  seroval@1.7.7:
-    resolution: {integrity: sha512-9OdYsqMLV5RSUNNtkgr6DT2bS/ncba6AqUJx8H7epNJNa0cKNWhQtF5GLRjkF/KuAdvAuRRitWrq86K/v1S/kg==}
+  seroval@1.8.0:
+    resolution: {integrity: sha512-W5N4cMPc58lypAsScCmhGTyZxNZ6gPHvLHtMqtyvDFpfyNDsH1QjU0nI9Lr34+Q5ZLPsWeqOhkgTY5XtaPVQ4A==}
     engines: {node: '>=20'}
 
   set-function-length@1.2.2:
@@ -14063,7 +14063,7 @@ snapshots:
 
   seroval@1.6.12: {}
 
-  seroval@1.7.7: {}
+  seroval@1.8.0: {}
 
   set-function-length@1.2.2:
     dependencies:
